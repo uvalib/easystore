@@ -1,6 +1,11 @@
+//
+//
+//
+
 package uva_easystore
 
 import (
+	"github.com/google/uuid"
 	"log"
 	"testing"
 )
@@ -9,6 +14,10 @@ import (
 var namespace = "libraopen"
 var badId = "blablabla"
 var goodId = "12345"
+
+func uniqueId() string {
+	return uuid.New().String()
+}
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	config := EasyStoreConfig{Namespace: namespace, log: log.Default()}

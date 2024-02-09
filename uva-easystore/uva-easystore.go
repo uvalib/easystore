@@ -1,3 +1,7 @@
+//
+//
+//
+
 package uva_easystore
 
 import (
@@ -16,11 +20,12 @@ var ErrDuplicateId = fmt.Errorf("the object already exists")
 // components that can appear in an object
 type EasyStoreComponents uint
 
+// an object can have no metadata, no stored json and no files
 const (
-	Placeholder EasyStoreComponents = 0x00  // placeholder
-	Metadata                        = 0x01  // metadata component
-	StoredJson                      = 0x10  // opaque json component
-	FileDetails                     = 0x100 // file details
+	NoComponents EasyStoreComponents = 0x00  // no additional components
+	Metadata                         = 0x01  // metadata component
+	StoredJson                       = 0x10  // opaque json component
+	FileDetails                      = 0x100 // file details
 
 	AllComponents = 0x111 // all components
 )
@@ -37,7 +42,7 @@ type EasyStoreCommon interface {
 }
 
 // an iterator for enumerating a set of objects
-type EasyStoreSet interface {
+type EasyStoreObjectSet interface {
 	Count()                         // the number of items in the set
 	Next() (EasyStoreObject, error) // the next object in the set
 }
@@ -47,10 +52,10 @@ type EasyStoreReadonly interface {
 
 	// get object(s) by identifier
 	GetById(string, EasyStoreComponents) (EasyStoreObject, error)
-	GetByIds([]string, EasyStoreComponents) (EasyStoreSet, error)
+	GetByIds([]string, EasyStoreComponents) (EasyStoreObjectSet, error)
 
 	// get object(s) by metadata
-	GetByMetadata(EasyStoreObjectMetadata, EasyStoreComponents) (EasyStoreSet, error)
+	GetByMetadata(EasyStoreObjectMetadata, EasyStoreComponents) (EasyStoreObjectSet, error)
 }
 
 type EasyStore interface {
@@ -107,8 +112,8 @@ func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
 func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
 	// mock the implementation here if necessary
-	es, err := newEasyStore(config)
-	return es, err
+	esro, err := newEasyStoreReadonly(config)
+	return esro, err
 }
 
 // NewEasyStoreObject factory for our easystore object (really a helper)
