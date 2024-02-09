@@ -89,13 +89,13 @@ type EasyStoreBlob interface {
 	EasyStoreCommon // any common fields
 }
 
-// UvaEasyStoreConfig our configuration structure
+// EasyStoreConfig our configuration structure
 type EasyStoreConfig struct {
 	Namespace string      // easystore namespace
 	log       *log.Logger // logging support
 }
 
-// NewEasyStore factory for our UvaEasyStore interface
+// NewEasyStore factory for our EasyStore interface
 func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
 
 	// mock the implementation here if necessary
@@ -103,6 +103,7 @@ func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
 	return es, err
 }
 
+// NewEasyStoreReadonly factory for our EasyStoreReadonly interface
 func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
 	// mock the implementation here if necessary
