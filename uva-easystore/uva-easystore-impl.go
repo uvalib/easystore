@@ -4,8 +4,6 @@
 
 package uva_easystore
 
-import ()
-
 // this is our easystore implementation
 type easyStoreImpl struct {
 }
@@ -23,7 +21,7 @@ func (impl easyStoreImpl) GetByIds(ids []string, which EasyStoreComponents) (Eas
 	return nil, ErrNotImplemented
 }
 
-func (impl easyStoreImpl) GetByMetadata(metadata EasyStoreNVPairs, which EasyStoreComponents) (EasyStoreSet, error) {
+func (impl easyStoreImpl) GetByMetadata(metadata EasyStoreObjectMetadata, which EasyStoreComponents) (EasyStoreSet, error) {
 	return nil, ErrNotImplemented
 }
 

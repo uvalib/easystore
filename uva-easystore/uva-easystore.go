@@ -22,12 +22,12 @@ const (
 	StoredJson                      = 0x10  // opaque json component
 	FileDetails                     = 0x100 // file details
 
-	All = 0x111 // all components
+	AllComponents = 0x111 // all components
 )
 
 // object metadata, zero or mkore name/value pairs
-type EasyStoreNVPairs struct {
-	NVPairs map[string]string // name value pairs used in the metadata
+type EasyStoreObjectMetadata struct {
+	metadata map[string]string // name value pairs used in the metadata
 }
 
 // common fields for objects and blobs
@@ -42,15 +42,21 @@ type EasyStoreSet interface {
 	Next() (EasyStoreObject, error) // the next object in the set
 }
 
-// the store abstraction
-type EasyStore interface {
+// the store abstraction (read only)
+type EasyStoreReadonly interface {
 
 	// get object(s) by identifier
 	GetById(string, EasyStoreComponents) (EasyStoreObject, error)
 	GetByIds([]string, EasyStoreComponents) (EasyStoreSet, error)
 
 	// get object(s) by metadata
-	GetByMetadata(EasyStoreNVPairs, EasyStoreComponents) (EasyStoreSet, error)
+	GetByMetadata(EasyStoreObjectMetadata, EasyStoreComponents) (EasyStoreSet, error)
+}
+
+type EasyStore interface {
+
+	// the read only features
+	EasyStoreReadonly
 
 	// create new object
 	Create(EasyStoreObject) (EasyStoreObject, error)
@@ -63,10 +69,10 @@ type EasyStore interface {
 }
 
 type EasyStoreObject interface {
-	Id() string                 // object Id
-	VersionHandle() string      // object version handle
-	Metadata() EasyStoreNVPairs // the non-opaque metadata
-	StoredJson() EasyStoreBlob  // the opaque metadata/json
+	Id() string                        // object Id
+	VersionHandle() string             // object version handle
+	Metadata() EasyStoreObjectMetadata // the non-opaque metadata
+	StoredJson() EasyStoreBlob         // the opaque metadata/json
 
 	Blobs() []EasyStoreBlob // the associated file(s)
 
@@ -85,12 +91,19 @@ type EasyStoreBlob interface {
 
 // UvaEasyStoreConfig our configuration structure
 type EasyStoreConfig struct {
-	Namespace string     // easystore namespace
-	log       log.Logger // logging support
+	Namespace string      // easystore namespace
+	log       *log.Logger // logging support
 }
 
 // NewEasyStore factory for our UvaEasyStore interface
 func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
+
+	// mock the implementation here if necessary
+	es, err := newEasyStore(config)
+	return es, err
+}
+
+func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
 	// mock the implementation here if necessary
 	es, err := newEasyStore(config)
