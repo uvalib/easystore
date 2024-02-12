@@ -11,9 +11,10 @@ import (
 )
 
 // test invariants
-var namespace = "libraopen"
-var badId = "blablabla"
+var goodNamespace = "libraopen"
+var badNamespace = "blablabla"
 var goodId = "12345"
+var badId = "blablabla"
 
 func uniqueId() string {
 	return uuid.New().String()
@@ -22,7 +23,7 @@ func uniqueId() string {
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(namespace)
+	config.Namespace(goodNamespace)
 	config.Logger(log.Default())
 
 	esro, err := NewEasyStoreReadonly(config)
@@ -35,7 +36,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 func testSetup(t *testing.T) EasyStore {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(namespace)
+	config.Namespace(goodNamespace)
 	config.Logger(log.Default())
 
 	es, err := NewEasyStore(config)

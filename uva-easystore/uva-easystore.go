@@ -109,8 +109,9 @@ type EasyStoreBlob interface {
 
 // EasyStoreConfig - the configuration structure
 type EasyStoreConfig interface {
-	Namespace(string)   // easystore namespace
+	Namespace(string)   // easystore goodNamespace
 	Logger(*log.Logger) // logging support
+
 	EasyStoreImplConfig
 }
 

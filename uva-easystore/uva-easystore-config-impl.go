@@ -15,16 +15,16 @@ type easyStoreConfigImpl struct {
 	// other stuff here
 }
 
-func (impl easyStoreConfigImpl) Namespace(namespace string) {
+func (impl *easyStoreConfigImpl) Namespace(namespace string) {
 	impl.namespace = namespace
 }
 
-func (impl easyStoreConfigImpl) Logger(log *log.Logger) {
+func (impl *easyStoreConfigImpl) Logger(log *log.Logger) {
 	impl.log = log
 }
 
 func newDefaultEasyStoreConfig() EasyStoreConfig {
-	return easyStoreConfigImpl{}
+	return &easyStoreConfigImpl{}
 }
 
 //
