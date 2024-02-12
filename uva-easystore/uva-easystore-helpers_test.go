@@ -20,7 +20,11 @@ func uniqueId() string {
 }
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
-	config := EasyStoreConfig{Namespace: namespace, log: log.Default()}
+	config := DefaultEasyStoreConfig()
+	// configure what we need
+	config.Namespace(namespace)
+	config.Logger(log.Default())
+
 	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {
 		t.Fatalf("%t\n", err)
@@ -29,7 +33,11 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 }
 
 func testSetup(t *testing.T) EasyStore {
-	config := EasyStoreConfig{Namespace: namespace, log: log.Default()}
+	config := DefaultEasyStoreConfig()
+	// configure what we need
+	config.Namespace(namespace)
+	config.Logger(log.Default())
+
 	es, err := NewEasyStore(config)
 	if err != nil {
 		t.Fatalf("%t\n", err)

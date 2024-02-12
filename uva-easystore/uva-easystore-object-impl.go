@@ -10,11 +10,11 @@ import (
 
 // this is our easystore object implementation
 type easyStoreObjectImpl struct {
-	id       string                  // object identifier
-	version  string                  // object version (opaque)
-	created  time.Time               // created time
-	modified time.Time               // last modified time
-	metadata EasyStoreObjectMetadata // object metadata
+	id       string                // object identifier
+	version  string                // object version (opaque)
+	created  time.Time             // created time
+	modified time.Time             // last modified time
+	fields   EasyStoreObjectFields // object fields
 }
 
 // factory for our easystore object interface
@@ -38,16 +38,16 @@ func (impl easyStoreObjectImpl) Modified() time.Time {
 	return impl.modified
 }
 
-func (impl easyStoreObjectImpl) Metadata() EasyStoreObjectMetadata {
-	return impl.metadata
+func (impl easyStoreObjectImpl) Fields() EasyStoreObjectFields {
+	return impl.fields
 }
 
-func (impl easyStoreObjectImpl) StoredJson() EasyStoreBlob {
+func (impl easyStoreObjectImpl) Metadata() EasyStoreBlob {
 	sj := easyStoreBlobImpl{}
 	return sj
 }
 
-func (impl easyStoreObjectImpl) Blobs() []EasyStoreBlob {
+func (impl easyStoreObjectImpl) Files() []EasyStoreBlob {
 	b0 := easyStoreBlobImpl{}
 	return []EasyStoreBlob{b0}
 }

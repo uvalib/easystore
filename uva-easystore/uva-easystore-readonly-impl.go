@@ -21,7 +21,7 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 	return nil, ErrNotImplemented
 }
 
-func (impl easyStoreReadonlyImpl) GetByMetadata(metadata EasyStoreObjectMetadata, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) GetByFields(metadata EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 	return nil, ErrNotImplemented
 }
 
