@@ -6,7 +6,6 @@ package uva_easystore
 
 import (
 	"github.com/google/uuid"
-	"log"
 	"testing"
 )
 
@@ -24,7 +23,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
 	config.Namespace(goodNamespace)
-	config.Logger(log.Default())
+	//config.Logger(log.Default())
 
 	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {

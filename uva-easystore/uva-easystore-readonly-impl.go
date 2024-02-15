@@ -29,7 +29,7 @@ func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 		return nil, err
 	}
 
-	logInfo(c.log, fmt.Sprintf("INFO: new readonly easystore (ns: %s)", c.namespace))
+	logInfo(c.log, fmt.Sprintf("new readonly easystore (ns: %s)", c.namespace))
 	return easyStoreReadonlyImpl{config: c, store: s}, nil
 }
 
@@ -45,9 +45,12 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 		return nil, ErrBadParameter
 	}
 
+	logDebug(impl.config.log, fmt.Sprintf("getting id [%s]", id))
+
 	// first get the base object (always required)
 	o, err := impl.store.GetMetadataByOid(id)
 	if err != nil {
+		logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", id))
 		return nil, ErrObjectNotFound
 	}
 
@@ -61,17 +64,23 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 
 	// then get the fields (if required)
 	if (which & Fields) == Fields {
+		logDebug(impl.config.log, fmt.Sprintf("getting fields for id [%s]", id))
 		fields, err := impl.store.GetFieldsByOid(id)
 		if err == nil {
 			obj.fields = *fields
+		} else {
+			logInfo(impl.config.log, fmt.Sprintf("no fields found for id [%s]", id))
 		}
 	}
 
 	// lastly, the blobs (if required)
 	if (which & Files) == Files {
+		logDebug(impl.config.log, fmt.Sprintf("getting files for id [%s]", id))
 		blobs, err := impl.store.GetBlobsByOid(id)
 		if err == nil {
 			obj.files = blobs
+		} else {
+			logInfo(impl.config.log, fmt.Sprintf("no blobs found for id [%s]", id))
 		}
 	}
 

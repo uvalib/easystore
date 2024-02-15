@@ -28,7 +28,7 @@ func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 		return nil, err
 	}
 
-	logInfo(c.log, fmt.Sprintf("INFO: new easystore (ns: %s)", c.namespace))
+	logInfo(c.log, fmt.Sprintf("new easystore (ns: %s)", c.namespace))
 	return easyStoreImpl{easyStoreReadonlyImpl{config: c, store: s}}, nil
 }
 

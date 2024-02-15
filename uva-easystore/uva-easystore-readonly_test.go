@@ -39,7 +39,7 @@ func TestGetById(t *testing.T) {
 	}
 
 	// good id
-	obj, err := esro.GetById(goodId, NoComponents)
+	obj, err := esro.GetById(goodId, AllComponents)
 	if err != nil {
 		t.Fatalf("Expected: 'OK', got '%s'\n", err)
 	}
