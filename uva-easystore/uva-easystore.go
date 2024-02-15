@@ -52,7 +52,7 @@ type EasyStoreCommon interface {
 
 // EasyStoreObjectSet - an iterator for enumerating a set of objects
 type EasyStoreObjectSet interface {
-	Count()                         // the number of items in the set
+	Count() uint                    // the number of items in the set
 	Next() (EasyStoreObject, error) // the next object in the set
 }
 

@@ -4,7 +4,10 @@
 
 package uva_easystore
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
@@ -45,51 +48,14 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 		return nil, ErrBadParameter
 	}
 
-	logDebug(impl.config.log, fmt.Sprintf("getting id [%s]", id))
-
-	// first get the base object (always required)
-	o, err := impl.store.GetObjectByOid(id)
+	// get the base object
+	o, err := impl.getById(id)
 	if err != nil {
-		logInfo(impl.config.log, fmt.Sprintf("no object found for id [%s]", id))
-		return nil, ErrObjectNotFound
+		return nil, err
 	}
 
-	// we know it's one of these
-	obj, _ := o.(*easyStoreObjectImpl)
-
-	// then get the opaque metadata (if required)
-	if (which & Metadata) == Metadata {
-		md, err := impl.store.GetMetadataByOid(id)
-		if err == nil {
-			obj.metadata = md
-		} else {
-			logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", id))
-		}
-	}
-
-	// then get the fields (if required)
-	if (which & Fields) == Fields {
-		logDebug(impl.config.log, fmt.Sprintf("getting fields for id [%s]", id))
-		fields, err := impl.store.GetFieldsByOid(id)
-		if err == nil {
-			obj.fields = *fields
-		} else {
-			logInfo(impl.config.log, fmt.Sprintf("no fields found for id [%s]", id))
-		}
-	}
-
-	// lastly, the blobs (if required)
-	if (which & Files) == Files {
-		logDebug(impl.config.log, fmt.Sprintf("getting files for id [%s]", id))
-		blobs, err := impl.store.GetBlobsByOid(id)
-		if err == nil {
-			obj.files = blobs
-		} else {
-			logInfo(impl.config.log, fmt.Sprintf("no blobs found for id [%s]", id))
-		}
-	}
-
-	return o, nil
+	// poopulate the object and return it
+	return impl.populateObject(o, which)
 }
 
 func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
@@ -111,17 +77,172 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 		return nil, ErrBadParameter
 	}
 
-	return nil, ErrNotImplemented
+	// our results set
+	objs := make([]EasyStoreObject, 0)
+
+	// build our list of objects
+	for _, id := range ids {
+		// get the base object
+		o, err := impl.getById(id)
+		if err == nil {
+			objs = append(objs, o)
+		} else {
+			if errors.Is(err, ErrObjectNotFound) {
+				// do nothing, this is OK
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	// bail out if we did not find any
+	if len(objs) == 0 {
+		return nil, ErrObjectNotFound
+	}
+
+	// fully populate the objects
+	for ix, o := range objs {
+		var err error
+		objs[ix], err = impl.populateObject(o, which)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return newEasyStoreObjectSet(objs), nil
 }
 
-func (impl easyStoreReadonlyImpl) GetByFields(metadata EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// validate the component request
 	if which > AllComponents {
 		return nil, ErrBadParameter
 	}
 
-	return nil, ErrNotImplemented
+	logDebug(impl.config.log, fmt.Sprintf("getting by fields"))
+
+	// first get the base objects (always required)
+	ids, err := impl.store.GetIdsByFields(fields)
+	if err != nil {
+		// known error
+		if errors.Is(err, ErrNoResults) {
+			logInfo(impl.config.log, fmt.Sprintf("no objects found"))
+		} else {
+			return nil, err
+		}
+	}
+
+	// bail out if we did not find any
+	if len(ids) == 0 {
+		return nil, ErrObjectNotFound
+	}
+
+	// our results set
+	objs := make([]EasyStoreObject, 0)
+
+	// build our list of objects
+	for _, id := range ids {
+		// get the base object
+		o, err := impl.getById(id)
+		if err == nil {
+			objs = append(objs, o)
+		} else {
+			return nil, err
+		}
+	}
+
+	// bail out if we did not find any
+	if len(objs) == 0 {
+		return nil, ErrObjectNotFound
+	}
+
+	// fully populate the objects
+	for ix, o := range objs {
+		var err error
+		objs[ix], err = impl.populateObject(o, which)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return newEasyStoreObjectSet(objs), nil
+}
+
+//
+// private methods
+//
+
+func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
+
+	logDebug(impl.config.log, fmt.Sprintf("getting id [%s]", id))
+
+	// get the base object (always required)
+	o, err := impl.store.GetObjectByOid(id)
+	if err != nil {
+		// known error
+		if errors.Is(err, ErrNoResults) {
+			logInfo(impl.config.log, fmt.Sprintf("no object found for id [%s]", id))
+			return nil, ErrObjectNotFound
+		} else {
+			return nil, err
+		}
+	}
+	return o, nil
+}
+
+func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+
+	// we know it's one of these
+	obj, _ := eso.(*easyStoreObjectImpl)
+
+	// then get the opaque metadata (if required)
+	if (which & Metadata) == Metadata {
+		md, err := impl.store.GetMetadataByOid(obj.id)
+		if err == nil {
+			obj.metadata = md
+		} else {
+			// known error
+			if errors.Is(err, ErrNoResults) {
+				logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", obj.id))
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	// then get the fields (if required)
+	if (which & Fields) == Fields {
+		logDebug(impl.config.log, fmt.Sprintf("getting fields for id [%s]", obj.id))
+		fields, err := impl.store.GetFieldsByOid(obj.id)
+		if err == nil {
+			obj.fields = *fields
+		} else {
+			// known error
+			if errors.Is(err, ErrNoResults) {
+				logInfo(impl.config.log, fmt.Sprintf("no fields found for id [%s]", obj.id))
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	// lastly, the blobs (if required)
+	if (which & Files) == Files {
+		logDebug(impl.config.log, fmt.Sprintf("getting files for id [%s]", obj.id))
+		blobs, err := impl.store.GetBlobsByOid(obj.id)
+		if err == nil {
+			obj.files = blobs
+		} else {
+			// known error
+			if errors.Is(err, ErrNoResults) {
+				logInfo(impl.config.log, fmt.Sprintf("no blobs found for id [%s]", obj.id))
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	return eso, nil
 }
 
 //

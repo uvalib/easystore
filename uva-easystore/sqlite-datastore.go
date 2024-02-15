@@ -199,6 +199,11 @@ func (s *storage) DeleteObjectByOid(oid string) error {
 	return execPreparedBy1(stmt, oid)
 }
 
+// GetIdsByFields -- get a list of ids that have the supplied fields/values
+func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error) {
+	return nil, ErrNotImplemented
+}
+
 //
 // private implementation methods
 //

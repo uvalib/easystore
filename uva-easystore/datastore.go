@@ -33,6 +33,9 @@ type DataStore interface {
 	DeleteFieldsByOid(string) error
 	DeleteMetadataByOid(string) error
 	DeleteObjectByOid(string) error
+
+	// search methods
+	GetIdsByFields(EasyStoreObjectFields) ([]string, error)
 }
 
 // our factory

@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestBadConfig(t *testing.T) {
+func TestEmptyNamespace(t *testing.T) {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
 	config.Namespace("")
@@ -21,7 +21,19 @@ func TestBadConfig(t *testing.T) {
 	}
 }
 
-func TestGetById(t *testing.T) {
+func TestNotFoundNamespace(t *testing.T) {
+	config := DefaultEasyStoreConfig()
+	// configure what we need
+	config.Namespace(badNamespace)
+
+	_, err := NewEasyStoreReadonly(config)
+	expected := ErrNamespaceNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+	}
+}
+
+func TestDefaultGetById(t *testing.T) {
 	esro := testSetupReadonly(t)
 
 	// empty id
@@ -63,6 +75,71 @@ func TestGetById(t *testing.T) {
 	if len(obj.Files()) == 0 {
 		t.Fatalf("Expected: files, got none\n")
 	}
+}
+
+func TestDefaultGetByIds(t *testing.T) {
+	esro := testSetupReadonly(t)
+
+	// bad id (not found)
+	ids := []string{badId}
+	_, err := esro.GetByIds(ids, NoComponents)
+	expected := ErrObjectNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+	}
+
+	// good id
+	ids = []string{goodId}
+	iter, err := esro.GetByIds(ids, NoComponents)
+	if err != nil {
+		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+	}
+
+	// ensure we received 1 object
+	if iter.Count() == 1 {
+		o, err := iter.Next()
+		if err != nil {
+			t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		}
+		if o.Id() != goodId {
+			t.Fatalf("Expected: '%s', got '%s'\n", goodId, o.Id())
+		}
+	}
+
+	// good and bad id
+	ids = []string{goodId, badId}
+	iter, err = esro.GetByIds(ids, NoComponents)
+	if err != nil {
+		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+	}
+
+	// ensure we received 1 object
+	if iter.Count() == 1 {
+		o, err := iter.Next()
+		if err != nil {
+			t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		}
+		if o.Id() != goodId {
+			t.Fatalf("Expected: '%s', got '%s'\n", goodId, o.Id())
+		}
+	}
+}
+
+func TestDefaultGetByFields(t *testing.T) {
+	esro := testSetupReadonly(t)
+	fields := EasyStoreObjectFields{}
+
+	//empty fields, should be all items
+	iter, err := esro.GetByFields(fields, NoComponents)
+	if err != nil {
+		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+	}
+
+	// ensure we received some objects
+	if iter.Count() == 0 {
+		t.Fatalf("Expected: objects but got none\n")
+	}
+
 }
 
 //
