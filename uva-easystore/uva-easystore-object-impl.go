@@ -26,7 +26,7 @@ func (impl easyStoreObjectImpl) Id() string {
 	return impl.id
 }
 
-func (impl easyStoreObjectImpl) VersionHandle() string {
+func (impl easyStoreObjectImpl) AccessId() string {
 	return impl.version
 }
 

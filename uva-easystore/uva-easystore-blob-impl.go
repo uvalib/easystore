@@ -28,11 +28,11 @@ func (impl easyStoreBlobImpl) Url() string {
 	return ""
 }
 
-func (impl easyStoreBlobImpl) Payload() []byte {
-	return nil
-}
+//func (impl easyStoreBlobImpl) Payload() []byte {
+//	return nil
+//}
 
-func (impl easyStoreBlobImpl) Read(buf []byte) (int, error) { return 0, nil }
+//func (impl easyStoreBlobImpl) Read(buf []byte) (int, error) { return 0, nil }
 
 func (impl easyStoreBlobImpl) Created() time.Time {
 	return impl.created

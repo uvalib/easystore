@@ -4,7 +4,7 @@
 
 package uva_easystore
 
-import "log"
+import "fmt"
 
 // this is our easystore implementation
 type easyStoreImpl struct {
@@ -22,12 +22,7 @@ func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 		return nil, ErrBadParameter
 	}
 
-	// add standard logger if none provided
-	if c.log == nil {
-		c.log = log.Default()
-	}
-
-	c.log.Printf("INFO: new easystore (ns: %s)", c.namespace)
+	logInfo(c.log, fmt.Sprintf("INFO: new easystore (ns: %s)", c.namespace))
 	return easyStoreImpl{easyStoreReadonlyImpl{config: c}}, nil
 }
 

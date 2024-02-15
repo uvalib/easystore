@@ -4,6 +4,8 @@
 
 package uva_easystore
 
+import "fmt"
+
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
 	config *easyStoreConfigImpl
@@ -20,7 +22,7 @@ func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 		return nil, ErrBadParameter
 	}
 
-	c.log.Printf("INFO: new readonly easystore (ns: %s)", c.namespace)
+	logInfo(c.log, fmt.Sprintf("INFO: new readonly easystore (ns: %s)", c.namespace))
 	return easyStoreReadonlyImpl{config: c}, nil
 }
 

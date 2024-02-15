@@ -12,7 +12,6 @@ package uva_easystore
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"time"
 )
@@ -85,7 +84,7 @@ type EasyStore interface {
 // EasyStoreObject - the objects stored in the easystore
 type EasyStoreObject interface {
 	Id() string                    // object Id
-	VersionHandle() string         // object version handle
+	AccessId() string              // object access handle
 	Fields() EasyStoreObjectFields // the fields
 	Metadata() EasyStoreBlob       // the opaque metadata
 
@@ -101,8 +100,8 @@ type EasyStoreBlob interface {
 
 	// access to actual payload
 	Url() string // not sure, one of these
-	Payload() []byte
-	io.Reader
+	//Payload() []byte
+	//io.Reader
 
 	EasyStoreCommon // any common fields
 }
