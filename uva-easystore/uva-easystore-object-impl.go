@@ -11,7 +11,7 @@ import (
 // this is our easystore object implementation
 type easyStoreObjectImpl struct {
 	id       string                // object identifier
-	version  string                // object version (opaque)
+	accessId string                // object access Id (opaque)
 	created  time.Time             // created time
 	modified time.Time             // last modified time
 	fields   EasyStoreObjectFields // object fields
@@ -27,7 +27,7 @@ func (impl easyStoreObjectImpl) Id() string {
 }
 
 func (impl easyStoreObjectImpl) AccessId() string {
-	return impl.version
+	return impl.accessId
 }
 
 func (impl easyStoreObjectImpl) Created() time.Time {
