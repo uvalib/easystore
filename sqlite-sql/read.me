@@ -1,0 +1,15 @@
+Make sure utils are installed:
+brew install sqlite3 sqlite-utils
+
+To create the schema:
+sqlite3 /tmp/libraopen.db < sqlite-sql/blobs.sql
+sqlite3 /tmp/libraopen.db < sqlite-sql/fields.sql
+sqlite3 /tmp/libraopen.db < sqlite-sql/metadata.sql
+
+To delete the store:
+rm /tmp/libraopen.db
+
+To run queries against the store:
+sqlite-utils /tmp/libraopen.db "select * from blobs"
+sqlite-utils /tmp/libraopen.db "select * from fields"
+sqlite-utils /tmp/libraopen.db "select * from metadata"

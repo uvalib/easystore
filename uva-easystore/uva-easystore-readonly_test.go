@@ -33,15 +33,28 @@ func TestGetById(t *testing.T) {
 
 	// bad id (not found)
 	_, err = esro.GetById(badId, NoComponents)
-	expected = ErrNotFound
+	expected = ErrObjectNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
 	}
 
 	// good id
-	_, err = esro.GetById(goodId, NoComponents)
+	obj, err := esro.GetById(goodId, NoComponents)
 	if err != nil {
 		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+	}
+
+	// test the contents of the object
+	if obj.Id() != goodId {
+		t.Fatalf("Expected: '%s', got '%s'\n", goodId, obj.Id())
+	}
+
+	if len(obj.Fields().fields) == 0 {
+		t.Fatalf("Expected: fields, got none\n")
+	}
+
+	if len(obj.Files()) == 0 {
+		t.Fatalf("Expected: files, got none\n")
 	}
 }
 

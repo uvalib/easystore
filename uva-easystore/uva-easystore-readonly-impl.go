@@ -8,7 +8,8 @@ import "fmt"
 
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
-	config *easyStoreConfigImpl
+	config *easyStoreConfigImpl // configuration info
+	store  DataStore            // storage/persistence implementation
 }
 
 // factory for our easystore interface
@@ -22,8 +23,14 @@ func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 		return nil, ErrBadParameter
 	}
 
+	// create the data store for this namespace
+	s, err := NewDatastore(c.namespace)
+	if err != nil {
+		return nil, err
+	}
+
 	logInfo(c.log, fmt.Sprintf("INFO: new readonly easystore (ns: %s)", c.namespace))
-	return easyStoreReadonlyImpl{config: c}, nil
+	return easyStoreReadonlyImpl{config: c, store: s}, nil
 }
 
 func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -38,7 +45,37 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 		return nil, ErrBadParameter
 	}
 
-	return nil, ErrNotImplemented
+	// first get the base object (always required)
+	o, err := impl.store.GetMetadataByOid(id)
+	if err != nil {
+		return nil, ErrObjectNotFound
+	}
+
+	// we know it's one of these
+	obj, _ := o.(*easyStoreObjectImpl)
+
+	// then get the opaque metadata (if required)
+	if (which & Metadata) == Metadata {
+
+	}
+
+	// then get the fields (if required)
+	if (which & Fields) == Fields {
+		fields, err := impl.store.GetFieldsByOid(id)
+		if err == nil {
+			obj.fields = *fields
+		}
+	}
+
+	// lastly, the blobs (if required)
+	if (which & Files) == Files {
+		blobs, err := impl.store.GetBlobsByOid(id)
+		if err == nil {
+			obj.files = blobs
+		}
+	}
+
+	return o, nil
 }
 
 func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {

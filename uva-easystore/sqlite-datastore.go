@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
 )
 
 // this is our DB implementation
@@ -15,10 +16,18 @@ type storage struct {
 	*sql.DB
 }
 
-// newDBStore -- create a DB version of the storage singleton
-func newDBStore(namespace string) (Storage, error) {
+// newSqliteStore -- create a sqlite version of the DataStore
+func newSqliteStore(namespace string) (DataStore, error) {
 
-	dataSourceName := fmt.Sprintf("%s.db", namespace)
+	// temp location for now
+	dataSourceName := fmt.Sprintf("/tmp/%s.db", namespace)
+
+	// make sure it exists so we do not create an empty schema
+	_, err := os.Stat(dataSourceName)
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
 	db, err := sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		return nil, err
@@ -150,16 +159,24 @@ func deletePreparedById(stmt *sql.Stmt, oid string) error {
 
 func metadataResults(rows *sql.Rows) (EasyStoreObject, error) {
 	results := easyStoreObjectImpl{}
+	count := 0
 
 	for rows.Next() {
 		err := rows.Scan(&results.id, &results.accessId, &results.created, &results.modified)
 		if err != nil {
 			return nil, err
 		}
+		count++
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
+	// check for not found
+	if count == 0 {
+		return nil, ErrNoResults
+	}
+
 	return &results, nil
 }
 
@@ -167,6 +184,8 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 
 	results := EasyStoreObjectFields{}
 	results.fields = make(map[string]string)
+	count := 0
+
 	for rows.Next() {
 		var name, value string
 		err := rows.Scan(&name, &value)
@@ -175,9 +194,15 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 		}
 
 		results.fields[name] = value
+		count++
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	// check for not found
+	if count == 0 {
+		return nil, ErrNoResults
 	}
 
 	return &results, nil
@@ -185,6 +210,7 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 
 func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 	results := make([]EasyStoreBlob, 0)
+	count := 0
 
 	for rows.Next() {
 		blob := easyStoreBlobImpl{}
@@ -194,10 +220,17 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 		}
 
 		results = append(results, blob)
+		count++
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
+	// check for not found
+	if count == 0 {
+		return nil, ErrNoResults
+	}
+
 	return results, nil
 }
 

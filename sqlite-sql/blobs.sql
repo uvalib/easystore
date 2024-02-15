@@ -23,6 +23,9 @@ CREATE INDEX blobs_oid_idx ON blobs(oid);
 -- create the distinct index
 CREATE UNIQUE INDEX blobs_distinct_idx ON blobs(oid, name);
 
+-- add some dummy data for testing
+INSERT INTO blobs(oid,name,mimetype) values('1234567890', 'filename1.txt', 'text/plain');
+
 --
 -- end of file
 --

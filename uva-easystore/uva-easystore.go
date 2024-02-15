@@ -20,7 +20,9 @@ import (
 // native ones can also be returned
 var ErrNotImplemented = fmt.Errorf("not implemented")
 var ErrBadParameter = fmt.Errorf("bad parameter")
-var ErrNotFound = fmt.Errorf("the object does not exist")
+var ErrNamespaceNotFound = fmt.Errorf("the namespace does not exist")
+var ErrObjectNotFound = fmt.Errorf("the object does not exist")
+var ErrBlobNotFound = fmt.Errorf("the blob does not exist")
 var ErrStaleObject = fmt.Errorf("the object is stale")
 var ErrDuplicateId = fmt.Errorf("the object already exists")
 

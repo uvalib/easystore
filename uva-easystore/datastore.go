@@ -6,11 +6,14 @@ package uva_easystore
 
 import (
 	// needed
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var ErrNoResults = fmt.Errorf("no results")
+
 // our storage interface
-type Storage interface {
+type DataStore interface {
 	Check() error
 
 	// add methods
@@ -29,15 +32,10 @@ type Storage interface {
 	DeleteMetadataByOid(string) error
 }
 
-// our singleton store
-var Store Storage
-
 // our factory
-func NewDatastore(namespace string) error {
-	var err error
-	// mock implementation here
-	Store, err = newDBStore(namespace)
-	return err
+func NewDatastore(namespace string) (DataStore, error) {
+	// mock implementation here if necessary
+	return newSqliteStore(namespace)
 }
 
 //

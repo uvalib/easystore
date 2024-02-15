@@ -22,6 +22,9 @@ CREATE INDEX fields_oid_idx ON fields(oid);
 -- create the distinct index
 CREATE UNIQUE INDEX fields_distinct_idx ON fields(oid, name);
 
+-- add some dummy data for testing
+INSERT INTO fields(oid,name,value) values('1234567890', 'thekey', 'thevalue');
+
 --
 -- end of file
 --

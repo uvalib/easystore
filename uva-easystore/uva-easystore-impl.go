@@ -22,8 +22,14 @@ func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 		return nil, ErrBadParameter
 	}
 
+	// create the data store for this namespace
+	s, err := NewDatastore(c.namespace)
+	if err != nil {
+		return nil, err
+	}
+
 	logInfo(c.log, fmt.Sprintf("INFO: new easystore (ns: %s)", c.namespace))
-	return easyStoreImpl{easyStoreReadonlyImpl{config: c}}, nil
+	return easyStoreImpl{easyStoreReadonlyImpl{config: c, store: s}}, nil
 }
 
 func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {

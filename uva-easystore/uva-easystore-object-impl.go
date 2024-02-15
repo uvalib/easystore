@@ -15,6 +15,8 @@ type easyStoreObjectImpl struct {
 	created  time.Time             // created time
 	modified time.Time             // last modified time
 	fields   EasyStoreObjectFields // object fields
+	metadata EasyStoreBlob         // object metadata (its an opaque blob)
+	files    []EasyStoreBlob       // object files
 }
 
 // factory for our easystore object interface

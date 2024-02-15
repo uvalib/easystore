@@ -13,7 +13,7 @@ import (
 // test invariants
 var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
-var goodId = "12345"
+var goodId = "1234567890"
 var badId = "blablabla"
 
 func uniqueId() string {
@@ -37,7 +37,7 @@ func testSetup(t *testing.T) EasyStore {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
 	config.Namespace(goodNamespace)
-	config.Logger(log.Default())
+	//config.Logger(log.Default())
 
 	es, err := NewEasyStore(config)
 	if err != nil {
