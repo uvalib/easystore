@@ -49,10 +49,17 @@ func TestGetById(t *testing.T) {
 		t.Fatalf("Expected: '%s', got '%s'\n", goodId, obj.Id())
 	}
 
+	// does it have fields
 	if len(obj.Fields().fields) == 0 {
 		t.Fatalf("Expected: fields, got none\n")
 	}
 
+	// does it have metadata
+	if obj.Metadata() == nil {
+		t.Fatalf("Expected: metadata, got none\n")
+	}
+
+	// does it have files
 	if len(obj.Files()) == 0 {
 		t.Fatalf("Expected: files, got none\n")
 	}

@@ -48,9 +48,9 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 	logDebug(impl.config.log, fmt.Sprintf("getting id [%s]", id))
 
 	// first get the base object (always required)
-	o, err := impl.store.GetMetadataByOid(id)
+	o, err := impl.store.GetObjectByOid(id)
 	if err != nil {
-		logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", id))
+		logInfo(impl.config.log, fmt.Sprintf("no object found for id [%s]", id))
 		return nil, ErrObjectNotFound
 	}
 
@@ -59,7 +59,12 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 
 	// then get the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
-
+		md, err := impl.store.GetMetadataByOid(id)
+		if err == nil {
+			obj.metadata = md
+		} else {
+			logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", id))
+		}
 	}
 
 	// then get the fields (if required)

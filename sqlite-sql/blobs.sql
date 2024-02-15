@@ -11,7 +11,7 @@ CREATE TABLE blobs (
    oid        VARCHAR( 32 ) NOT NULL DEFAULT '',
    name       VARCHAR( 32 ) NOT NULL DEFAULT '',
    mimetype   VARCHAR( 32 ) NOT NULL DEFAULT '',
---   payload    BLOB,
+   payload    BLOB,
 
    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -24,7 +24,8 @@ CREATE INDEX blobs_oid_idx ON blobs(oid);
 CREATE UNIQUE INDEX blobs_distinct_idx ON blobs(oid, name);
 
 -- add some dummy data for testing
-INSERT INTO blobs(oid,name,mimetype) values('1234567890', 'filename1.txt', 'text/plain');
+INSERT INTO blobs(oid,name,mimetype,payload) values('1234567890', 'metadata.secret.hidden', 'application/json', '{"name":"value"}');
+INSERT INTO blobs(oid,name,mimetype,payload) values('1234567890', 'filename1.txt', 'text/plain', 'bla bla bla');
 
 --
 -- end of file

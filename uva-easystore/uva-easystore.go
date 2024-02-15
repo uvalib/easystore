@@ -88,7 +88,7 @@ type EasyStoreObject interface {
 	Id() string                    // object Id
 	AccessId() string              // object access handle
 	Fields() EasyStoreObjectFields // the fields
-	Metadata() EasyStoreBlob       // the opaque metadata
+	Metadata() EasyStoreMetadata   // the opaque metadata
 
 	Files() []EasyStoreBlob // the associated file(s)
 
@@ -104,6 +104,14 @@ type EasyStoreBlob interface {
 	Url() string // not sure, one of these
 	//Payload() []byte
 	//io.Reader
+
+	EasyStoreCommon // any common fields
+}
+
+// EasyStoreMetadata - represents a binary (opaque) object
+type EasyStoreMetadata interface {
+	MimeType() string // can we type this in some way
+	Payload() []byte  // the opaque content
 
 	EasyStoreCommon // any common fields
 }

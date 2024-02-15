@@ -19,17 +19,20 @@ type DataStore interface {
 	// add methods
 	AddBlob(string, EasyStoreBlob) error
 	AddFields(string, EasyStoreObjectFields) error
-	AddMetadata(EasyStoreObject) error
+	AddMetadata(string, EasyStoreMetadata) error
+	AddObject(EasyStoreObject) error
 
 	// get methods
 	GetBlobsByOid(string) ([]EasyStoreBlob, error)
 	GetFieldsByOid(string) (*EasyStoreObjectFields, error)
-	GetMetadataByOid(string) (EasyStoreObject, error)
+	GetMetadataByOid(string) (EasyStoreMetadata, error)
+	GetObjectByOid(string) (EasyStoreObject, error)
 
 	// delete methods
 	DeleteBlobsByOid(string) error
 	DeleteFieldsByOid(string) error
 	DeleteMetadataByOid(string) error
+	DeleteObjectByOid(string) error
 }
 
 // our factory

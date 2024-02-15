@@ -12,6 +12,7 @@ import (
 type easyStoreBlobImpl struct {
 	name     string    // source file name
 	mimeType string    // mime type (if we know it)
+	payload  []byte    // not exposed
 	created  time.Time // created time
 	modified time.Time // last modified time
 }
@@ -25,7 +26,7 @@ func (impl easyStoreBlobImpl) MimeType() string {
 }
 
 func (impl easyStoreBlobImpl) Url() string {
-	return ""
+	return "https://does.not.work.fu"
 }
 
 //func (impl easyStoreBlobImpl) Payload() []byte {

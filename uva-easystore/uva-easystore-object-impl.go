@@ -15,7 +15,7 @@ type easyStoreObjectImpl struct {
 	created  time.Time             // created time
 	modified time.Time             // last modified time
 	fields   EasyStoreObjectFields // object fields
-	metadata EasyStoreBlob         // object metadata (its an opaque blob)
+	metadata EasyStoreMetadata     // object metadata (its an opaque blob)
 	files    []EasyStoreBlob       // object files
 }
 
@@ -44,14 +44,12 @@ func (impl easyStoreObjectImpl) Fields() EasyStoreObjectFields {
 	return impl.fields
 }
 
-func (impl easyStoreObjectImpl) Metadata() EasyStoreBlob {
-	sj := easyStoreBlobImpl{}
-	return sj
+func (impl easyStoreObjectImpl) Metadata() EasyStoreMetadata {
+	return impl.metadata
 }
 
 func (impl easyStoreObjectImpl) Files() []EasyStoreBlob {
-	b0 := easyStoreBlobImpl{}
-	return []EasyStoreBlob{b0}
+	return impl.files
 }
 
 //

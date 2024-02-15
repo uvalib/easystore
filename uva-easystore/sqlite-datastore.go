@@ -11,6 +11,8 @@ import (
 	"os"
 )
 
+var blobMetadataName = "metadata.secret.hidden"
+
 // this is our DB implementation
 type storage struct {
 	*sql.DB
@@ -47,12 +49,12 @@ func (s *storage) Check() error {
 // AddBlob -- add a new blob object
 func (s *storage) AddBlob(oid string, blob EasyStoreBlob) error {
 
-	stmt, err := s.Prepare("INSERT INTO blobs( oid, name, mimetype ) VALUES( ?,?,? )")
+	stmt, err := s.Prepare("INSERT INTO blobs( oid, name, mimetype, payload ) VALUES( ?,?,?,? )")
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType())
+	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), "dummy payload")
 	return err
 }
 
@@ -74,7 +76,19 @@ func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
 }
 
 // AddMetadata -- add a new metadata object
-func (s *storage) AddMetadata(obj EasyStoreObject) error {
+func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
+
+	stmt, err := s.Prepare("INSERT INTO blob( oid, name, mimetype, payload ) VALUES( ?,?,?,? )")
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.Payload())
+	return err
+}
+
+// AddObject -- add a new metadata object
+func (s *storage) AddObject(obj EasyStoreObject) error {
 
 	stmt, err := s.Prepare("INSERT INTO metadata( oid, accessid ) VALUES( ?,? )")
 	if err != nil {
@@ -88,7 +102,7 @@ func (s *storage) AddMetadata(obj EasyStoreObject) error {
 // GetBlobsByOid -- get all blob data associated with the specified object
 func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, created_at, updated_at FROM blobs WHERE oid = ?", oid)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = ?", oid)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +124,31 @@ func (s *storage) GetFieldsByOid(oid string) (*EasyStoreObjectFields, error) {
 }
 
 // GetMetadataByOid -- get all field data associated with the specified object
-func (s *storage) GetMetadataByOid(oid string) (EasyStoreObject, error) {
+func (s *storage) GetMetadataByOid(oid string) (EasyStoreMetadata, error) {
+
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = ? and name = ? LIMIT 1", oid, blobMetadataName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	br, err := blobResults(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	b, _ := br[0].(easyStoreBlobImpl)
+	md := easyStoreMetadataImpl{
+		mimeType: b.mimeType,
+		payload:  b.payload,
+		created:  b.created,
+		modified: b.modified}
+
+	return md, nil
+}
+
+// GetObjectOid -- get all field data associated with the specified object
+func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
 
 	rows, err := s.Query("SELECT oid, accessid, created_at, updated_at FROM metadata WHERE oid = ? LIMIT 1", oid)
 	if err != nil {
@@ -118,7 +156,7 @@ func (s *storage) GetMetadataByOid(oid string) (EasyStoreObject, error) {
 	}
 	defer rows.Close()
 
-	return metadataResults(rows)
+	return objectResults(rows)
 }
 
 // DeleteBlobsByOid -- delete all blob data associated with the specified object
@@ -128,7 +166,7 @@ func (s *storage) DeleteBlobsByOid(oid string) error {
 	if err != nil {
 		return err
 	}
-	return deletePreparedById(stmt, oid)
+	return execPreparedBy1(stmt, oid)
 }
 
 // DeleteFieldsByOid -- delete all field data associated with the specified object
@@ -138,26 +176,44 @@ func (s *storage) DeleteFieldsByOid(oid string) error {
 	if err != nil {
 		return err
 	}
-	return deletePreparedById(stmt, oid)
+	return execPreparedBy1(stmt, oid)
 }
 
 // DeleteMetadataByOid -- delete all field data associated with the specified object
 func (s *storage) DeleteMetadataByOid(oid string) error {
 
+	stmt, err := s.Prepare("DELETE FROM blob WHERE oid = ? AND name = ?")
+	if err != nil {
+		return err
+	}
+	return execPreparedBy1(stmt, oid)
+}
+
+// DeleteObjectByOid -- delete all field data associated with the specified object
+func (s *storage) DeleteObjectByOid(oid string) error {
+
 	stmt, err := s.Prepare("DELETE FROM metadata WHERE oid = ?")
 	if err != nil {
 		return err
 	}
-	return deletePreparedById(stmt, oid)
+	return execPreparedBy1(stmt, oid)
 }
 
+//
 // private implementation methods
-func deletePreparedById(stmt *sql.Stmt, oid string) error {
-	_, err := stmt.Exec(oid)
+//
+
+func execPreparedBy1(stmt *sql.Stmt, value1 string) error {
+	_, err := stmt.Exec(value1)
 	return err
 }
 
-func metadataResults(rows *sql.Rows) (EasyStoreObject, error) {
+func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
+	_, err := stmt.Exec(value1, value2)
+	return err
+}
+
+func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 	results := easyStoreObjectImpl{}
 	count := 0
 
@@ -214,7 +270,7 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 
 	for rows.Next() {
 		blob := easyStoreBlobImpl{}
-		err := rows.Scan(&blob.name, &blob.mimeType, &blob.created, &blob.modified)
+		err := rows.Scan(&blob.name, &blob.mimeType, &blob.payload, &blob.created, &blob.modified)
 		if err != nil {
 			return nil, err
 		}
