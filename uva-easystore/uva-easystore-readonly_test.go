@@ -6,6 +6,7 @@ package uva_easystore
 
 import (
 	"errors"
+	"io"
 	"testing"
 )
 
@@ -61,20 +62,7 @@ func TestDefaultGetById(t *testing.T) {
 		t.Fatalf("Expected: '%s', got '%s'\n", goodId, obj.Id())
 	}
 
-	// does it have fields
-	if len(obj.Fields().fields) == 0 {
-		t.Fatalf("Expected: fields, got none\n")
-	}
-
-	// does it have metadata
-	if obj.Metadata() == nil {
-		t.Fatalf("Expected: metadata, got none\n")
-	}
-
-	// does it have files
-	if len(obj.Files()) == 0 {
-		t.Fatalf("Expected: files, got none\n")
-	}
+	validateObject(t, obj, AllComponents)
 }
 
 func TestDefaultGetByIds(t *testing.T) {
@@ -122,10 +110,40 @@ func TestDefaultGetByIds(t *testing.T) {
 		if o.Id() != goodId {
 			t.Fatalf("Expected: '%s', got '%s'\n", goodId, o.Id())
 		}
+		validateObject(t, o, NoComponents)
 	}
 }
 
 func TestDefaultGetByFields(t *testing.T) {
+	esro := testSetupReadonly(t)
+	fields := EasyStoreObjectFields{}
+	fields.fields = make(map[string]string)
+	fields.fields["thekey"] = "thevalue"
+
+	//empty fields, should be all items
+	iter, err := esro.GetByFields(fields, NoComponents)
+	if err != nil {
+		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+	}
+
+	// ensure we received some objects
+	if iter.Count() == 0 {
+		t.Fatalf("Expected: objects but got none\n")
+	}
+
+	// go through the list of objects and validate
+	o, err := iter.Next()
+	for err == nil {
+		validateObject(t, o, NoComponents)
+		o, err = iter.Next()
+	}
+
+	if errors.Is(err, io.EOF) != true {
+		t.Fatalf("Expected: '%s', got '%s'\n", io.EOF, err)
+	}
+}
+
+func TestDefaultGetByEmptyFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := EasyStoreObjectFields{}
 
@@ -140,6 +158,16 @@ func TestDefaultGetByFields(t *testing.T) {
 		t.Fatalf("Expected: objects but got none\n")
 	}
 
+	// go through the list of objects and validate
+	o, err := iter.Next()
+	for err == nil {
+		validateObject(t, o, NoComponents)
+		o, err = iter.Next()
+	}
+
+	if errors.Is(err, io.EOF) != true {
+		t.Fatalf("Expected: '%s', got '%s'\n", io.EOF, err)
+	}
 }
 
 //

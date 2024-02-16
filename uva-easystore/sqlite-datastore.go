@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/exp/maps"
 	"os"
 )
 
@@ -102,7 +103,7 @@ func (s *storage) AddObject(obj EasyStoreObject) error {
 // GetBlobsByOid -- get all blob data associated with the specified object
 func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = ?", oid)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = ? and name != ?", oid, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +202,26 @@ func (s *storage) DeleteObjectByOid(oid string) error {
 
 // GetIdsByFields -- get a list of ids that have the supplied fields/values
 func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error) {
-	return nil, ErrNotImplemented
+
+	query := "select distinct(oid) from fields"
+	var err error
+	var rows *sql.Rows
+	// just support 2 cases, no fields which means all objects or 1 set of fields
+	if len(fields.fields) == 0 {
+		rows, err = s.Query(query)
+	} else {
+		query = fmt.Sprintf("%s where name = ? and value = ?", query)
+		key := maps.Keys(fields.fields)[0]
+		value := fields.fields[key]
+		rows, err = s.Query(query, key, value)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return idResults(rows)
 }
 
 //
@@ -281,6 +301,32 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 		}
 
 		results = append(results, blob)
+		count++
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// check for not found
+	if count == 0 {
+		return nil, ErrNoResults
+	}
+
+	return results, nil
+}
+
+func idResults(rows *sql.Rows) ([]string, error) {
+	results := make([]string, 0)
+	count := 0
+
+	for rows.Next() {
+		var id string
+		err := rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, id)
 		count++
 	}
 	if err := rows.Err(); err != nil {

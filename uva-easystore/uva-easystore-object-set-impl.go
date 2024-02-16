@@ -16,14 +16,14 @@ type easyStoreObjectSetImpl struct {
 
 // factory for our easystore object set interface
 func newEasyStoreObjectSet(objs []EasyStoreObject) EasyStoreObjectSet {
-	return easyStoreObjectSetImpl{current: 0, objects: objs}
+	return &easyStoreObjectSetImpl{current: 0, objects: objs}
 }
 
-func (impl easyStoreObjectSetImpl) Count() uint {
+func (impl *easyStoreObjectSetImpl) Count() uint {
 	return uint(len(impl.objects))
 }
 
-func (impl easyStoreObjectSetImpl) Next() (EasyStoreObject, error) {
+func (impl *easyStoreObjectSetImpl) Next() (EasyStoreObject, error) {
 	if impl.current == uint(len(impl.objects)) {
 		return nil, io.EOF
 	}

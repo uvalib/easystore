@@ -45,6 +45,87 @@ func testSetup(t *testing.T) EasyStore {
 	return es
 }
 
+func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents) {
+
+	// test the contents of the object
+	if len(obj.Id()) == 0 {
+		t.Fatalf("object id is empty\n")
+	}
+
+	// should it have fields
+	fieldCount := len(obj.Fields().fields)
+	if (which & Fields) == Fields {
+		if fieldCount != 0 {
+			for n, v := range obj.Fields().fields {
+				if len(n) == 0 {
+					t.Fatalf("object field key is empty\n")
+				}
+				if len(v) == 0 {
+					t.Fatalf("object field value is empty\n")
+				}
+			}
+		} else {
+			t.Fatalf("expected object fields but got none\n")
+		}
+	} else {
+		if fieldCount != 0 {
+			t.Fatalf("unexpected object fields\n")
+		}
+	}
+
+	// should it have metadata
+	md := obj.Metadata()
+	if (which & Metadata) == Metadata {
+		if md != nil {
+			if len(md.MimeType()) == 0 {
+				t.Fatalf("object mime type is empty\n")
+			}
+			if md.Created().IsZero() == true {
+				t.Fatalf("object create time is empty\n")
+			}
+			if md.Modified().IsZero() == true {
+				t.Fatalf("object modified time is empty\n")
+			}
+		} else {
+			t.Fatalf("expected object metadata but got none\n")
+		}
+	} else {
+		if md != nil {
+			t.Fatalf("unexpected object metadata\n")
+		}
+	}
+
+	// should it have files
+	fileCount := len(obj.Files())
+	if (which & Files) == Files {
+		if fileCount != 0 {
+			for _, f := range obj.Files() {
+				if len(f.Name()) == 0 {
+					t.Fatalf("file name is empty\n")
+				}
+				if len(f.MimeType()) == 0 {
+					t.Fatalf("file mime type is empty\n")
+				}
+				if len(f.Url()) == 0 {
+					t.Fatalf("file url is empty\n")
+				}
+				if f.Created().IsZero() == true {
+					t.Fatalf("file create time is empty\n")
+				}
+				if f.Modified().IsZero() == true {
+					t.Fatalf("file modified time is empty\n")
+				}
+			}
+		} else {
+			t.Fatalf("expected object files but got none\n")
+		}
+	} else {
+		if fileCount != 0 {
+			t.Fatalf("unexpected object files\n")
+		}
+	}
+}
+
 //
 // end of file
 //
