@@ -23,33 +23,6 @@ func TestSimpleCreate(t *testing.T) {
 	validateObject(t, o, BaseComponent)
 }
 
-func TestMetadataCreate(t *testing.T) {
-	es := testSetup(t)
-	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
-
-	// add some metadata
-	mimeType := "application/json"
-	obj.metadata = newEasyStoreMetadata(mimeType, jsonPayload)
-
-	// create the new object
-	o, err := es.Create(obj)
-	if err != nil {
-		t.Fatalf("expected 'OK' but got '%s'\n", err)
-	}
-
-	// validate the object we got in return
-	validateObject(t, o, Metadata)
-
-	if o.Metadata().MimeType() != mimeType {
-		t.Fatalf("expected '%s' but got '%s'\n", mimeType, o.Metadata().MimeType())
-	}
-
-	if bytes.Equal(o.Metadata().Payload(), jsonPayload) == false {
-		t.Fatalf("expected '%s' but got '%s'\n", jsonPayload, string(o.Metadata().Payload()))
-	}
-}
-
 func TestFieldsCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
@@ -102,6 +75,33 @@ func TestFilesCreate(t *testing.T) {
 	}
 	if o.Files()[1].Name() != "file2.txt" {
 		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[0].Name())
+	}
+}
+
+func TestMetadataCreate(t *testing.T) {
+	es := testSetup(t)
+	o := newTestObject("")
+	obj := o.(easyStoreObjectImpl)
+
+	// add some metadata
+	mimeType := "application/json"
+	obj.metadata = newEasyStoreMetadata(mimeType, jsonPayload)
+
+	// create the new object
+	o, err := es.Create(obj)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// validate the object we got in return
+	validateObject(t, o, Metadata)
+
+	if o.Metadata().MimeType() != mimeType {
+		t.Fatalf("expected '%s' but got '%s'\n", mimeType, o.Metadata().MimeType())
+	}
+
+	if bytes.Equal(o.Metadata().Payload(), jsonPayload) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", jsonPayload, string(o.Metadata().Payload()))
 	}
 }
 
