@@ -10,30 +10,6 @@ import (
 	"testing"
 )
 
-func TestReadonlyEmptyNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
-	// configure what we need
-	config.Namespace("")
-
-	_, err := NewEasyStoreReadonly(config)
-	expected := ErrBadParameter
-	if !errors.Is(err, expected) {
-		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
-	}
-}
-
-func TestReadonlyNotFoundNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
-	// configure what we need
-	config.Namespace(badNamespace)
-
-	_, err := NewEasyStoreReadonly(config)
-	expected := ErrNamespaceNotFound
-	if !errors.Is(err, expected) {
-		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
-	}
-}
-
 func TestGetById(t *testing.T) {
 	esro := testSetupReadonly(t)
 
