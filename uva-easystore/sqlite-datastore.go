@@ -163,11 +163,11 @@ func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
 // DeleteBlobsByOid -- delete all blob data associated with the specified object
 func (s *storage) DeleteBlobsByOid(oid string) error {
 
-	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = ?")
+	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = ? and name != ?")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy1(stmt, oid)
+	return execPreparedBy2(stmt, oid, blobMetadataName)
 }
 
 // DeleteFieldsByOid -- delete all field data associated with the specified object
@@ -183,11 +183,11 @@ func (s *storage) DeleteFieldsByOid(oid string) error {
 // DeleteMetadataByOid -- delete all field data associated with the specified object
 func (s *storage) DeleteMetadataByOid(oid string) error {
 
-	stmt, err := s.Prepare("DELETE FROM blob WHERE oid = ? AND name = ?")
+	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = ? AND name = ?")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy1(stmt, oid)
+	return execPreparedBy2(stmt, oid, blobMetadataName)
 }
 
 // DeleteObjectByOid -- delete all field data associated with the specified object

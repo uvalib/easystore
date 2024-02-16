@@ -45,7 +45,7 @@ func TestSimpleCreate(t *testing.T) {
 	}
 
 	// validate the object we got in return
-	validateObject(t, o, NoComponents)
+	validateObject(t, o, BaseComponent)
 }
 
 func TestMetadataCreate(t *testing.T) {
@@ -127,6 +127,37 @@ func TestFilesCreate(t *testing.T) {
 	}
 	if o.Files()[1].Name() != "file2.txt" {
 		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[0].Name())
+	}
+}
+
+func TestSimpleDelete(t *testing.T) {
+	es := testSetup(t)
+	o := newTestObject("")
+
+	// create the new object
+	_, err := es.Create(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// we can get it
+	_, err = es.GetById(o.Id(), BaseComponent)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// now delete it
+	_, err = es.Delete(o, BaseComponent)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// now we cant
+	_, err = es.GetById(o.Id(), BaseComponent)
+	if errors.Is(err, ErrObjectNotFound) == false {
+		if err != nil {
+			t.Fatalf("expected '%s' but got '%s'\n", ErrObjectNotFound, err)
+		}
 	}
 }
 

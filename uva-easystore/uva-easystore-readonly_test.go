@@ -38,14 +38,14 @@ func TestGetById(t *testing.T) {
 	esro := testSetupReadonly(t)
 
 	// empty id
-	_, err := esro.GetById("", NoComponents)
+	_, err := esro.GetById("", BaseComponent)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// bad id (not found)
-	_, err = esro.GetById(badId, NoComponents)
+	_, err = esro.GetById(badId, BaseComponent)
 	expected = ErrObjectNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -70,7 +70,7 @@ func TestGetByIds(t *testing.T) {
 
 	// bad id (not found)
 	ids := []string{badId}
-	_, err := esro.GetByIds(ids, NoComponents)
+	_, err := esro.GetByIds(ids, BaseComponent)
 	expected := ErrObjectNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -78,7 +78,7 @@ func TestGetByIds(t *testing.T) {
 
 	// good id
 	ids = []string{goodId}
-	iter, err := esro.GetByIds(ids, NoComponents)
+	iter, err := esro.GetByIds(ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -96,7 +96,7 @@ func TestGetByIds(t *testing.T) {
 
 	// good and bad id
 	ids = []string{goodId, badId}
-	iter, err = esro.GetByIds(ids, NoComponents)
+	iter, err = esro.GetByIds(ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -110,7 +110,7 @@ func TestGetByIds(t *testing.T) {
 		if o.Id() != goodId {
 			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
 		}
-		validateObject(t, o, NoComponents)
+		validateObject(t, o, BaseComponent)
 	}
 }
 
@@ -121,7 +121,7 @@ func TestGetByFields(t *testing.T) {
 	fields["thekey"] = "thevalue"
 
 	//empty fields, should be all items
-	iter, err := esro.GetByFields(fields, NoComponents)
+	iter, err := esro.GetByFields(fields, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -134,7 +134,7 @@ func TestGetByFields(t *testing.T) {
 	// go through the list of objects and validate
 	o, err := iter.Next()
 	for err == nil {
-		validateObject(t, o, NoComponents)
+		validateObject(t, o, BaseComponent)
 		o, err = iter.Next()
 	}
 
@@ -148,7 +148,7 @@ func TestGetByEmptyFields(t *testing.T) {
 	fields := EasyStoreObjectFields{}
 
 	//empty fields, should be all items
-	iter, err := esro.GetByFields(fields, NoComponents)
+	iter, err := esro.GetByFields(fields, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -161,7 +161,7 @@ func TestGetByEmptyFields(t *testing.T) {
 	// go through the list of objects and validate
 	o, err := iter.Next()
 	for err == nil {
-		validateObject(t, o, NoComponents)
+		validateObject(t, o, BaseComponent)
 		o, err = iter.Next()
 	}
 

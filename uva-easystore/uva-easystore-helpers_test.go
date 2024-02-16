@@ -85,28 +85,6 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 		}
 	}
 
-	// should it have metadata
-	md := obj.Metadata()
-	if (which & Metadata) == Metadata {
-		if md != nil {
-			if len(md.MimeType()) == 0 {
-				t.Fatalf("object mime type is empty\n")
-			}
-			if md.Created().IsZero() == true {
-				t.Fatalf("object create time is empty\n")
-			}
-			if md.Modified().IsZero() == true {
-				t.Fatalf("object modified time is empty\n")
-			}
-		} else {
-			t.Fatalf("expected object metadata but got none\n")
-		}
-	} else {
-		if md != nil {
-			t.Fatalf("unexpected object metadata\n")
-		}
-	}
-
 	// should it have files
 	fileCount := len(obj.Files())
 	if (which & Files) == Files {
@@ -134,6 +112,28 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	} else {
 		if fileCount != 0 {
 			t.Fatalf("unexpected object files\n")
+		}
+	}
+
+	// should it have metadata
+	md := obj.Metadata()
+	if (which & Metadata) == Metadata {
+		if md != nil {
+			if len(md.MimeType()) == 0 {
+				t.Fatalf("object mime type is empty\n")
+			}
+			if md.Created().IsZero() == true {
+				t.Fatalf("object create time is empty\n")
+			}
+			if md.Modified().IsZero() == true {
+				t.Fatalf("object modified time is empty\n")
+			}
+		} else {
+			t.Fatalf("expected object metadata but got none\n")
+		}
+	} else {
+		if md != nil {
+			t.Fatalf("unexpected object metadata\n")
 		}
 	}
 }

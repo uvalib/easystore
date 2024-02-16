@@ -31,10 +31,10 @@ type EasyStoreComponents uint
 
 // Note that an object can have no fields, no fields and no files
 const (
-	NoComponents EasyStoreComponents = 0x00  // no additional components
-	Fields                           = 0x01  // fields component
-	Metadata                         = 0x10  // opaque fields component
-	Files                            = 0x100 // file details
+	BaseComponent EasyStoreComponents = 0x00  // no additional components
+	Fields                            = 0x01  // fields component
+	Files                             = 0x10  // file details
+	Metadata                          = 0x100 // opaque fields component
 
 	AllComponents = 0x111 // all components
 )
