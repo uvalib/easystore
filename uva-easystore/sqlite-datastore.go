@@ -6,7 +6,9 @@ package uva_easystore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/exp/maps"
 	"os"
@@ -56,7 +58,7 @@ func (s *storage) AddBlob(oid string, blob EasyStoreBlob) error {
 	}
 
 	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), "dummy payload")
-	return err
+	return errorMapper(err)
 }
 
 // AddFields -- add a new fields object
@@ -70,7 +72,7 @@ func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
 	for n, v := range fields {
 		_, err = stmt.Exec(oid, n, v)
 		if err != nil {
-			return err
+			return errorMapper(err)
 		}
 	}
 	return nil
@@ -85,7 +87,7 @@ func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
 	}
 
 	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.Payload())
-	return err
+	return errorMapper(err)
 }
 
 // AddObject -- add a new metadata object
@@ -97,7 +99,7 @@ func (s *storage) AddObject(obj EasyStoreObject) error {
 	}
 
 	_, err = stmt.Exec(obj.Id(), obj.AccessId())
-	return err
+	return errorMapper(err)
 }
 
 // GetBlobsByOid -- get all blob data associated with the specified object
@@ -255,7 +257,7 @@ func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNoResults
+		return nil, ErrNotFound
 	}
 
 	return &results, nil
@@ -283,7 +285,7 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNoResults
+		return nil, ErrNotFound
 	}
 
 	return &results, nil
@@ -309,7 +311,7 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNoResults
+		return nil, ErrNotFound
 	}
 
 	return results, nil
@@ -335,10 +337,23 @@ func idResults(rows *sql.Rows) ([]string, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNoResults
+		return nil, ErrNotFound
 	}
 
 	return results, nil
+}
+
+// handles unwrapping certain classes of errors
+func errorMapper(err error) error {
+	if err != nil {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) {
+			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
+				return ErrAlreadyExists
+			}
+		}
+	}
+	return err
 }
 
 //

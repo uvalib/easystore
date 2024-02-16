@@ -87,7 +87,7 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 		if err == nil {
 			objs = append(objs, o)
 		} else {
-			if errors.Is(err, ErrObjectNotFound) {
+			if errors.Is(err, ErrNotFound) {
 				// do nothing, this is OK
 			} else {
 				return nil, err
@@ -97,7 +97,7 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 
 	// bail out if we did not find any
 	if len(objs) == 0 {
-		return nil, ErrObjectNotFound
+		return nil, ErrNotFound
 	}
 
 	// fully populate the objects
@@ -125,7 +125,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 	ids, err := impl.store.GetIdsByFields(fields)
 	if err != nil {
 		// known error
-		if errors.Is(err, ErrNoResults) {
+		if errors.Is(err, ErrNotFound) {
 			logInfo(impl.config.log, fmt.Sprintf("no objects found"))
 		} else {
 			return nil, err
@@ -134,7 +134,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 
 	// bail out if we did not find any
 	if len(ids) == 0 {
-		return nil, ErrObjectNotFound
+		return nil, ErrNotFound
 	}
 
 	// our results set
@@ -153,7 +153,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 
 	// bail out if we did not find any
 	if len(objs) == 0 {
-		return nil, ErrObjectNotFound
+		return nil, ErrNotFound
 	}
 
 	// fully populate the objects
@@ -180,9 +180,9 @@ func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
 	o, err := impl.store.GetObjectByOid(id)
 	if err != nil {
 		// known error
-		if errors.Is(err, ErrNoResults) {
+		if errors.Is(err, ErrNotFound) {
 			logInfo(impl.config.log, fmt.Sprintf("no object found for oid [%s]", id))
-			return nil, ErrObjectNotFound
+			return nil, ErrNotFound
 		} else {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 			obj.fields = *fields
 		} else {
 			// known error
-			if errors.Is(err, ErrNoResults) {
+			if errors.Is(err, ErrNotFound) {
 				logInfo(impl.config.log, fmt.Sprintf("no fields found for oid [%s]", obj.id))
 			} else {
 				return nil, err
@@ -219,7 +219,7 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 			obj.files = blobs
 		} else {
 			// known error
-			if errors.Is(err, ErrNoResults) {
+			if errors.Is(err, ErrNotFound) {
 				logInfo(impl.config.log, fmt.Sprintf("no blobs found for oid [%s]", obj.id))
 			} else {
 				return nil, err
@@ -235,7 +235,7 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 			obj.metadata = md
 		} else {
 			// known error
-			if errors.Is(err, ErrNoResults) {
+			if errors.Is(err, ErrNotFound) {
 				logInfo(impl.config.log, fmt.Sprintf("no metadata found for oid [%s]", obj.id))
 			} else {
 				return nil, err

@@ -33,9 +33,9 @@ func TestSimpleDelete(t *testing.T) {
 
 	// now we cant
 	_, err = es.GetById(o.Id(), BaseComponent)
-	if errors.Is(err, ErrObjectNotFound) == false {
+	if errors.Is(err, ErrNotFound) == false {
 		if err != nil {
-			t.Fatalf("expected '%s' but got '%s'\n", ErrObjectNotFound, err)
+			t.Fatalf("expected '%s' but got '%s'\n", ErrNotFound, err)
 		}
 	}
 }

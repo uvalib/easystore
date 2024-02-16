@@ -5,12 +5,8 @@
 package uva_easystore
 
 import (
-	// needed
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-var ErrNoResults = fmt.Errorf("no results")
 
 // our storage interface
 type DataStore interface {

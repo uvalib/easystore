@@ -21,10 +21,9 @@ import (
 var ErrNotImplemented = fmt.Errorf("not implemented")
 var ErrBadParameter = fmt.Errorf("bad parameter")
 var ErrNamespaceNotFound = fmt.Errorf("the namespace does not exist")
-var ErrObjectNotFound = fmt.Errorf("the object does not exist")
-var ErrBlobNotFound = fmt.Errorf("the blob does not exist")
+var ErrNotFound = fmt.Errorf("the object does not exist")
 var ErrStaleObject = fmt.Errorf("the object is stale")
-var ErrDuplicateId = fmt.Errorf("the object already exists")
+var ErrAlreadyExists = fmt.Errorf("the object already exists")
 
 // EasyStoreComponents - the components that can appear in an object
 type EasyStoreComponents uint

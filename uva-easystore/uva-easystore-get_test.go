@@ -22,7 +22,7 @@ func TestGetById(t *testing.T) {
 
 	// bad id (not found)
 	_, err = esro.GetById(badId, BaseComponent)
-	expected = ErrObjectNotFound
+	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
@@ -47,7 +47,7 @@ func TestGetByIds(t *testing.T) {
 	// bad id (not found)
 	ids := []string{badId}
 	_, err := esro.GetByIds(ids, BaseComponent)
-	expected := ErrObjectNotFound
+	expected := ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}

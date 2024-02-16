@@ -6,10 +6,11 @@ package uva_easystore
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 )
 
-func TestSimpleCreate(t *testing.T) {
+func TestObjectCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
 
@@ -21,6 +22,24 @@ func TestSimpleCreate(t *testing.T) {
 
 	// validate the object we got in return
 	validateObject(t, o, BaseComponent)
+}
+
+func TestDuplicateObjectCreate(t *testing.T) {
+	es := testSetup(t)
+	o := newTestObject("")
+
+	// create the new object
+	o, err := es.Create(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// try and create it again
+	expected := ErrAlreadyExists
+	o, err = es.Create(o)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
 }
 
 func TestFieldsCreate(t *testing.T) {
@@ -75,6 +94,23 @@ func TestFilesCreate(t *testing.T) {
 	}
 	if o.Files()[1].Name() != "file2.txt" {
 		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[0].Name())
+	}
+}
+
+func TestDuplicateFilesCreate(t *testing.T) {
+	es := testSetup(t)
+	o := newTestObject("")
+	obj := o.(easyStoreObjectImpl)
+
+	// add some files
+	f1 := newEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	obj.files = []EasyStoreBlob{f1, f1}
+
+	// create the new object
+	expected := ErrAlreadyExists
+	o, err := es.Create(obj)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 }
 

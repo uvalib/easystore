@@ -14,8 +14,8 @@ import (
 // test invariants
 var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
-var goodId = "1234567890"
-var badId = "blablabla"
+var goodId = "oid:494af4cda213"
+var badId = "oid:blablabla"
 var jsonPayload = []byte("{}")
 
 func newTestObject(id string) EasyStoreObject {

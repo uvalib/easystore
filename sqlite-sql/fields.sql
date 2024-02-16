@@ -23,7 +23,7 @@ CREATE INDEX fields_oid_idx ON fields(oid);
 CREATE UNIQUE INDEX fields_distinct_idx ON fields(oid, name);
 
 -- add some dummy data for testing
-INSERT INTO fields(oid,name,value) values('1234567890', 'thekey', 'thevalue');
+INSERT INTO fields(oid,name,value) values('oid:494af4cda213', 'thekey', 'thevalue');
 
 --
 -- end of file
