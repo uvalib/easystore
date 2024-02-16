@@ -174,14 +174,14 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 
 func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
 
-	logDebug(impl.config.log, fmt.Sprintf("getting id [%s]", id))
+	logDebug(impl.config.log, fmt.Sprintf("getting oid [%s]", id))
 
 	// get the base object (always required)
 	o, err := impl.store.GetObjectByOid(id)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNoResults) {
-			logInfo(impl.config.log, fmt.Sprintf("no object found for id [%s]", id))
+			logInfo(impl.config.log, fmt.Sprintf("no object found for oid [%s]", id))
 			return nil, ErrObjectNotFound
 		} else {
 			return nil, err
@@ -197,13 +197,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then get the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
+		logDebug(impl.config.log, fmt.Sprintf("getting metadata for oid [%s]", obj.id))
 		md, err := impl.store.GetMetadataByOid(obj.id)
 		if err == nil {
 			obj.metadata = md
 		} else {
 			// known error
 			if errors.Is(err, ErrNoResults) {
-				logInfo(impl.config.log, fmt.Sprintf("no metadata found for id [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no metadata found for oid [%s]", obj.id))
 			} else {
 				return nil, err
 			}
@@ -212,14 +213,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then get the fields (if required)
 	if (which & Fields) == Fields {
-		logDebug(impl.config.log, fmt.Sprintf("getting fields for id [%s]", obj.id))
+		logDebug(impl.config.log, fmt.Sprintf("getting fields for oid [%s]", obj.id))
 		fields, err := impl.store.GetFieldsByOid(obj.id)
 		if err == nil {
 			obj.fields = *fields
 		} else {
 			// known error
 			if errors.Is(err, ErrNoResults) {
-				logInfo(impl.config.log, fmt.Sprintf("no fields found for id [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no fields found for oid [%s]", obj.id))
 			} else {
 				return nil, err
 			}
@@ -228,14 +229,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// lastly, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.log, fmt.Sprintf("getting files for id [%s]", obj.id))
+		logDebug(impl.config.log, fmt.Sprintf("getting files for oid [%s]", obj.id))
 		blobs, err := impl.store.GetBlobsByOid(obj.id)
 		if err == nil {
 			obj.files = blobs
 		} else {
 			// known error
 			if errors.Is(err, ErrNoResults) {
-				logInfo(impl.config.log, fmt.Sprintf("no blobs found for id [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no blobs found for oid [%s]", obj.id))
 			} else {
 				return nil, err
 			}

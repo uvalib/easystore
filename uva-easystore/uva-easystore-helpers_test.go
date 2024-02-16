@@ -5,7 +5,9 @@
 package uva_easystore
 
 import (
-	"github.com/google/uuid"
+	"encoding/hex"
+	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -14,9 +16,19 @@ var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
 var goodId = "1234567890"
 var badId = "blablabla"
+var jsonPayload = []byte("{}")
 
-func uniqueId() string {
-	return uuid.New().String()
+func newTestObject(id string) EasyStoreObject {
+	if len(id) == 0 {
+		id = newUniqueId()
+	}
+	return NewEasyStoreObject(id)
+}
+
+func newUniqueId() string {
+	b := make([]byte, 6) // equals 12 characters
+	rand.Read(b)
+	return fmt.Sprintf("oid:%s", hex.EncodeToString(b))
 }
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
@@ -53,10 +65,10 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	}
 
 	// should it have fields
-	fieldCount := len(obj.Fields().fields)
+	fieldCount := len(obj.Fields())
 	if (which & Fields) == Fields {
 		if fieldCount != 0 {
-			for n, v := range obj.Fields().fields {
+			for n, v := range obj.Fields() {
 				if len(n) == 0 {
 					t.Fatalf("object field key is empty\n")
 				}

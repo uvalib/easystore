@@ -22,7 +22,7 @@ CREATE INDEX metadata_oid_idx ON metadata(oid);
 CREATE UNIQUE INDEX metadata_distinct_idx ON metadata(oid);
 
 -- add some dummy data for testing
-INSERT INTO metadata(oid, accessid) values('1234567890', '13d95c74-ce2d-4316-9c9c-26b6487ca3b3');
+INSERT INTO metadata(oid, accessid) values('1234567890', 'aid:a90f18cde697');
 
 --
 -- end of file

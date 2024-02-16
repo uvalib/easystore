@@ -67,7 +67,7 @@ func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
 		return err
 	}
 
-	for n, v := range fields.fields {
+	for n, v := range fields {
 		_, err = stmt.Exec(oid, n, v)
 		if err != nil {
 			return err
@@ -79,7 +79,7 @@ func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
 // AddMetadata -- add a new metadata object
 func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
 
-	stmt, err := s.Prepare("INSERT INTO blob( oid, name, mimetype, payload ) VALUES( ?,?,?,? )")
+	stmt, err := s.Prepare("INSERT INTO blobs( oid, name, mimetype, payload ) VALUES( ?,?,?,? )")
 	if err != nil {
 		return err
 	}
@@ -207,12 +207,12 @@ func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error)
 	var err error
 	var rows *sql.Rows
 	// just support 2 cases, no fields which means all objects or 1 set of fields
-	if len(fields.fields) == 0 {
+	if len(fields) == 0 {
 		rows, err = s.Query(query)
 	} else {
 		query = fmt.Sprintf("%s where name = ? and value = ?", query)
-		key := maps.Keys(fields.fields)[0]
-		value := fields.fields[key]
+		key := maps.Keys(fields)[0]
+		value := fields[key]
 		rows, err = s.Query(query, key, value)
 	}
 
@@ -264,7 +264,7 @@ func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 
 	results := EasyStoreObjectFields{}
-	results.fields = make(map[string]string)
+	//results.fields = make(map[string]string)
 	count := 0
 
 	for rows.Next() {
@@ -274,7 +274,7 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 			return nil, err
 		}
 
-		results.fields[name] = value
+		results[name] = value
 		count++
 	}
 	if err := rows.Err(); err != nil {

@@ -17,6 +17,11 @@ type easyStoreBlobImpl struct {
 	modified time.Time // last modified time
 }
 
+// factory for our easystore blob interface
+func newEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
+	return &easyStoreBlobImpl{name: name, mimeType: mimeType, payload: payload}
+}
+
 func (impl easyStoreBlobImpl) Name() string {
 	return impl.name
 }

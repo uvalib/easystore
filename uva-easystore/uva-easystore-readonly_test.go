@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestEmptyNamespace(t *testing.T) {
+func TestReadonlyEmptyNamespace(t *testing.T) {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
 	config.Namespace("")
@@ -18,11 +18,11 @@ func TestEmptyNamespace(t *testing.T) {
 	_, err := NewEasyStoreReadonly(config)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
-		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 }
 
-func TestNotFoundNamespace(t *testing.T) {
+func TestReadonlyNotFoundNamespace(t *testing.T) {
 	config := DefaultEasyStoreConfig()
 	// configure what we need
 	config.Namespace(badNamespace)
@@ -30,42 +30,42 @@ func TestNotFoundNamespace(t *testing.T) {
 	_, err := NewEasyStoreReadonly(config)
 	expected := ErrNamespaceNotFound
 	if !errors.Is(err, expected) {
-		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 }
 
-func TestDefaultGetById(t *testing.T) {
+func TestGetById(t *testing.T) {
 	esro := testSetupReadonly(t)
 
 	// empty id
 	_, err := esro.GetById("", NoComponents)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
-		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// bad id (not found)
 	_, err = esro.GetById(badId, NoComponents)
 	expected = ErrObjectNotFound
 	if !errors.Is(err, expected) {
-		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// good id
 	obj, err := esro.GetById(goodId, AllComponents)
 	if err != nil {
-		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// test the contents of the object
 	if obj.Id() != goodId {
-		t.Fatalf("Expected: '%s', got '%s'\n", goodId, obj.Id())
+		t.Fatalf("expected '%s' but got '%s'\n", goodId, obj.Id())
 	}
 
 	validateObject(t, obj, AllComponents)
 }
 
-func TestDefaultGetByIds(t *testing.T) {
+func TestGetByIds(t *testing.T) {
 	esro := testSetupReadonly(t)
 
 	// bad id (not found)
@@ -73,24 +73,24 @@ func TestDefaultGetByIds(t *testing.T) {
 	_, err := esro.GetByIds(ids, NoComponents)
 	expected := ErrObjectNotFound
 	if !errors.Is(err, expected) {
-		t.Fatalf("Expected: '%s', got '%s'\n", expected, err)
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// good id
 	ids = []string{goodId}
 	iter, err := esro.GetByIds(ids, NoComponents)
 	if err != nil {
-		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// ensure we received 1 object
 	if iter.Count() == 1 {
 		o, err := iter.Next()
 		if err != nil {
-			t.Fatalf("Expected: 'OK', got '%s'\n", err)
+			t.Fatalf("expected 'OK' but got '%s'\n", err)
 		}
 		if o.Id() != goodId {
-			t.Fatalf("Expected: '%s', got '%s'\n", goodId, o.Id())
+			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
 		}
 	}
 
@@ -98,37 +98,37 @@ func TestDefaultGetByIds(t *testing.T) {
 	ids = []string{goodId, badId}
 	iter, err = esro.GetByIds(ids, NoComponents)
 	if err != nil {
-		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// ensure we received 1 object
 	if iter.Count() == 1 {
 		o, err := iter.Next()
 		if err != nil {
-			t.Fatalf("Expected: 'OK', got '%s'\n", err)
+			t.Fatalf("expected 'OK' but got '%s'\n", err)
 		}
 		if o.Id() != goodId {
-			t.Fatalf("Expected: '%s', got '%s'\n", goodId, o.Id())
+			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
 		}
 		validateObject(t, o, NoComponents)
 	}
 }
 
-func TestDefaultGetByFields(t *testing.T) {
+func TestGetByFields(t *testing.T) {
 	esro := testSetupReadonly(t)
-	fields := EasyStoreObjectFields{}
-	fields.fields = make(map[string]string)
-	fields.fields["thekey"] = "thevalue"
+	fields := DefaultEasyStoreFields()
+	//fields = make(map[string]string)
+	fields["thekey"] = "thevalue"
 
 	//empty fields, should be all items
 	iter, err := esro.GetByFields(fields, NoComponents)
 	if err != nil {
-		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// ensure we received some objects
 	if iter.Count() == 0 {
-		t.Fatalf("Expected: objects but got none\n")
+		t.Fatalf("expected objects but got none\n")
 	}
 
 	// go through the list of objects and validate
@@ -139,23 +139,23 @@ func TestDefaultGetByFields(t *testing.T) {
 	}
 
 	if errors.Is(err, io.EOF) != true {
-		t.Fatalf("Expected: '%s', got '%s'\n", io.EOF, err)
+		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
 	}
 }
 
-func TestDefaultGetByEmptyFields(t *testing.T) {
+func TestGetByEmptyFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := EasyStoreObjectFields{}
 
 	//empty fields, should be all items
 	iter, err := esro.GetByFields(fields, NoComponents)
 	if err != nil {
-		t.Fatalf("Expected: 'OK', got '%s'\n", err)
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// ensure we received some objects
 	if iter.Count() == 0 {
-		t.Fatalf("Expected: objects but got none\n")
+		t.Fatalf("expected objects but got none\n")
 	}
 
 	// go through the list of objects and validate
@@ -166,7 +166,7 @@ func TestDefaultGetByEmptyFields(t *testing.T) {
 	}
 
 	if errors.Is(err, io.EOF) != true {
-		t.Fatalf("Expected: '%s', got '%s'\n", io.EOF, err)
+		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
 	}
 }
 

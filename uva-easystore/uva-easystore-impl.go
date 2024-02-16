@@ -44,7 +44,49 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		return nil, ErrBadParameter
 	}
 
-	return nil, ErrNotImplemented
+	which := NoComponents
+	logInfo(impl.config.log, fmt.Sprintf("creating new oid [%s]", obj.Id()))
+
+	// add the object
+	err := impl.store.AddObject(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	// do we add metadata
+	if obj.Metadata() != nil {
+		logDebug(impl.config.log, fmt.Sprintf("adding metadata for oid [%s]", obj.Id()))
+		err = impl.store.AddMetadata(obj.Id(), obj.Metadata())
+		if err != nil {
+			return nil, err
+		}
+		which += Metadata
+	}
+
+	// do we add fields
+	if len(obj.Fields()) != 0 {
+		logDebug(impl.config.log, fmt.Sprintf("adding fields for oid [%s]", obj.Id()))
+		err = impl.store.AddFields(obj.Id(), obj.Fields())
+		if err != nil {
+			return nil, err
+		}
+		which += Fields
+	}
+
+	// do we add files
+	if len(obj.Files()) != 0 {
+		logDebug(impl.config.log, fmt.Sprintf("adding files for oid [%s]", obj.Id()))
+		for _, b := range obj.Files() {
+			err = impl.store.AddBlob(obj.Id(), b)
+			if err != nil {
+				return nil, err
+			}
+		}
+		which += Files
+	}
+
+	// get the full object
+	return impl.GetById(obj.Id(), which)
 }
 
 func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {

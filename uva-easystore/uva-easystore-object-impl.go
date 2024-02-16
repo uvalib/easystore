@@ -5,6 +5,9 @@
 package uva_easystore
 
 import (
+	"encoding/hex"
+	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -21,7 +24,10 @@ type easyStoreObjectImpl struct {
 
 // factory for our easystore object interface
 func newEasyStoreObject(id string) EasyStoreObject {
-	return easyStoreObjectImpl{}
+	return easyStoreObjectImpl{
+		id:       id,
+		accessId: newAccessId(),
+	}
 }
 
 func (impl easyStoreObjectImpl) Id() string {
@@ -50,6 +56,12 @@ func (impl easyStoreObjectImpl) Metadata() EasyStoreMetadata {
 
 func (impl easyStoreObjectImpl) Files() []EasyStoreBlob {
 	return impl.files
+}
+
+func newAccessId() string {
+	b := make([]byte, 6) // equals 12 characters
+	rand.Read(b)
+	return fmt.Sprintf("aid:%s", hex.EncodeToString(b))
 }
 
 //

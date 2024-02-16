@@ -40,9 +40,7 @@ const (
 )
 
 // EasyStoreObjectFields - zero or more name/value pairs
-type EasyStoreObjectFields struct {
-	fields map[string]string // name value pairs
-}
+type EasyStoreObjectFields map[string]string // name value pairs
 
 // EasyStoreCommon - common fields that appear in objects and blobs
 type EasyStoreCommon interface {
@@ -153,6 +151,12 @@ func NewEasyStoreObject(id string) EasyStoreObject {
 // DefaultEasyStoreConfig - factory for the default easystore configuration object
 func DefaultEasyStoreConfig() EasyStoreConfig {
 	return newDefaultEasyStoreConfig()
+}
+
+func DefaultEasyStoreFields() EasyStoreObjectFields {
+	f := EasyStoreObjectFields{}
+	//f.fields = make(map[string]string)
+	return f
 }
 
 //

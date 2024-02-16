@@ -16,6 +16,11 @@ type easyStoreMetadataImpl struct {
 	modified time.Time // last modified time
 }
 
+// factory for our easystore metadata interface
+func newEasyStoreMetadata(mimeType string, payload []byte) EasyStoreMetadata {
+	return &easyStoreMetadataImpl{mimeType: mimeType, payload: payload}
+}
+
 func (impl easyStoreMetadataImpl) MimeType() string {
 	return impl.mimeType
 }
