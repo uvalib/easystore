@@ -106,7 +106,65 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 		return nil, ErrBadParameter
 	}
 
-	return nil, ErrNotImplemented
+	// do we update fields
+	if (which & Fields) == Fields {
+		logDebug(impl.config.log, fmt.Sprintf("updating fields for oid [%s]", obj.Id()))
+		// delete the current fields
+		err := impl.store.DeleteFieldsByOid(obj.Id())
+		if err != nil {
+			return nil, err
+		}
+
+		// if we have new fields, add them
+		if len(obj.Fields()) != 0 {
+			err := impl.store.AddFields(obj.Id(), obj.Fields())
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// do we update files
+	if (which & Files) == Files {
+		logDebug(impl.config.log, fmt.Sprintf("updating files for oid [%s]", obj.Id()))
+		// delete the current files
+		err := impl.store.DeleteBlobsByOid(obj.Id())
+		if err != nil {
+			return nil, err
+		}
+
+		// if we have new files, add them
+		if len(obj.Files()) != 0 {
+			for _, b := range obj.Files() {
+				err = impl.store.AddBlob(obj.Id(), b)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	// do we update metadata
+	if (which & Metadata) == Metadata {
+		logDebug(impl.config.log, fmt.Sprintf("updating metadata for oid [%s]", obj.Id()))
+		// delete the current metadata
+		err := impl.store.DeleteMetadataByOid(obj.Id())
+		if err != nil {
+			return nil, err
+		}
+
+		// if we have new metadata, add it
+		if obj.Metadata() != nil {
+			err := impl.store.AddMetadata(obj.Id(), obj.Metadata())
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	}
+
+	// return the original object
+	return obj, nil
 }
 
 func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
