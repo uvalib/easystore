@@ -6,6 +6,10 @@ package uvaeasystore
 
 import "log"
 
+//
+// private helpers
+//
+
 func logDebug(log *log.Logger, msg string) {
 	if log != nil {
 		log.Printf("DEBUG: %s", msg)

@@ -126,6 +126,13 @@ type EasyStoreImplConfig interface {
 	// fill this in later, may end up hidden
 }
 
+// EasyStoreSerializer - user to serialize and deserialize our objects
+type EasyStoreSerializer interface {
+	ObjectSerialize(EasyStoreObject) interface{}
+	FieldsSerialize(EasyStoreObjectFields) interface{}
+	BlobSerialize(EasyStoreBlob) interface{}
+}
+
 // NewEasyStore - factory for our EasyStore interface
 func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
 
@@ -152,10 +159,16 @@ func DefaultEasyStoreConfig() EasyStoreConfig {
 	return newDefaultEasyStoreConfig()
 }
 
+// DefaultEasyStoreFields - factory for the default easystore fields object
 func DefaultEasyStoreFields() EasyStoreObjectFields {
 	f := EasyStoreObjectFields{}
 	//f.fields = make(map[string]string)
 	return f
+}
+
+// DefaultEasyStoreSerializer - factory for the default easystore serializer
+func DefaultEasyStoreSerializer() EasyStoreSerializer {
+	return newEasyStoreSerializer()
 }
 
 //
