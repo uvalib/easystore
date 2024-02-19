@@ -47,6 +47,17 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
 }
 
+func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
+
+	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	return fmt.Sprintf(template,
+		o.MimeType(),
+		o.Payload(),
+		o.Created().UTC(),
+		o.Modified().UTC(),
+	)
+}
+
 func newEasyStoreSerializer() EasyStoreSerializer {
 	return &easyStoreSerializerImpl{}
 }
