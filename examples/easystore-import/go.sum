@@ -1,0 +1,10 @@
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219190906-68c90bfc9203 h1:fxrYmhuiehlOpjOwZnBXnrtf+V8Dg+YlFr0KU0i3kMo=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219190906-68c90bfc9203/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219230342-466874be5783 h1:0uxhwFQr9/24rth7PmD62VbiuUdRyHJzR9jNc7a/wgA=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219230342-466874be5783/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219231807-53c7eff19818 h1:H4a69hIJj/BlPh1fWU02y8yFb4/k9RH+O0VHiNGjedc=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219231807-53c7eff19818/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
+golang.org/x/exp v0.0.0-20240213143201-ec583247a57a h1:HinSgX1tJRX3KsL//Gxynpw5CTOAIPhgL4W8PNiIpVE=
+golang.org/x/exp v0.0.0-20240213143201-ec583247a57a/go.mod h1:CxmFvTBINI24O/j8iY7H1xHzx2i4OsyguNBmN/uPtqc=
