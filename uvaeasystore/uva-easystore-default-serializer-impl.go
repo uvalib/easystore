@@ -137,19 +137,17 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 
 func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 
-	//fmt.Printf("deserialize: %s", i)
-
 	// assume we are being passed a string
 	s, ok := i.(string)
 	if ok != true {
-		//fmt.Printf("cast error")
+		fmt.Printf("cast error deserializing: %s", i)
 		return nil, ErrDeserialize
 	}
 
 	// deserialize to a map
 	var objmap map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error")
+		fmt.Printf("unmarshal error deserializing: %s", i)
 		return nil, ErrDeserialize
 	}
 
@@ -158,19 +156,17 @@ func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 
 func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 
-	//fmt.Printf("deserialize: %s", i)
-
 	// assume we are being passed a string
 	s, ok := i.(string)
 	if ok != true {
-		//fmt.Printf("cast error")
+		fmt.Printf("cast error deserializing: %s", i)
 		return nil, ErrDeserialize
 	}
 
 	// deserialize to a map
 	var objmap []map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error")
+		fmt.Printf("unmarshal error deserializing: %s", i)
 		return nil, ErrDeserialize
 	}
 
