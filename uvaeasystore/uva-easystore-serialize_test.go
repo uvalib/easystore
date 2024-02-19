@@ -36,7 +36,7 @@ func TestObjectDeserialize(t *testing.T) {
 }
 
 func TestBlobSerialize(t *testing.T) {
-	b := newEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	b := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
 	s := DefaultEasyStoreSerializer()
 
 	i := s.BlobSerialize(b)
@@ -47,7 +47,7 @@ func TestBlobSerialize(t *testing.T) {
 }
 
 func TestBlobDeserialize(t *testing.T) {
-	b := newEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	b := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
 	s := DefaultEasyStoreSerializer()
 
 	i := s.BlobSerialize(b)

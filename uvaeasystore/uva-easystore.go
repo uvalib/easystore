@@ -24,6 +24,7 @@ var ErrNamespaceNotFound = fmt.Errorf("the namespace does not exist")
 var ErrNotFound = fmt.Errorf("the object does not exist")
 var ErrStaleObject = fmt.Errorf("the object is stale")
 var ErrAlreadyExists = fmt.Errorf("the object already exists")
+var ErrDeserialize = fmt.Errorf("deserialization error")
 
 // EasyStoreComponents - the components that can appear in an object
 type EasyStoreComponents uint
@@ -138,6 +139,10 @@ type EasyStoreSerializer interface {
 	ObjectSerialize(EasyStoreObject) interface{}
 }
 
+//
+// factory methods
+//
+
 // NewEasyStore - factory for our EasyStore interface
 func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
 
@@ -154,9 +159,14 @@ func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 	return esro, err
 }
 
-// NewEasyStoreObject - factory for our easystore object (really a helper)
+// NewEasyStoreObject - factory for our easystore object
 func NewEasyStoreObject(id string) EasyStoreObject {
 	return newEasyStoreObject(id)
+}
+
+// NewEasyStoreBlob - factory for our easystore blob object
+func NewEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
+	return newEasyStoreBlob(name, mimeType, payload)
 }
 
 // DefaultEasyStoreConfig - factory for the default easystore configuration object
@@ -167,7 +177,6 @@ func DefaultEasyStoreConfig() EasyStoreConfig {
 // DefaultEasyStoreFields - factory for the default easystore fields object
 func DefaultEasyStoreFields() EasyStoreObjectFields {
 	f := EasyStoreObjectFields{}
-	//f.fields = make(map[string]string)
 	return f
 }
 

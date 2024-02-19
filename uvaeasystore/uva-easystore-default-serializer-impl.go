@@ -5,8 +5,10 @@
 package uvaeasystore
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"io"
+	"time"
 )
 
 // this is our easystore blob implementation
@@ -24,12 +26,27 @@ func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface
 	)
 }
 
-func (impl easyStoreSerializerImpl) ObjectDeserialize(interface{}) (EasyStoreObject, error) {
-	return nil, io.EOF
+func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreObject, error) {
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	o := newEasyStoreObject(omap["id"].(string))
+	obj := o.(easyStoreObjectImpl)
+	obj.accessId = omap["accessid"].(string)
+	obj.created, obj.modified, err = timestampExtract(omap)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
 }
 
 func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) interface{} {
-	nvTemplate := "{\"name\",\"%s\",\"value\",\"%s\"}"
+	nvTemplate := "{\"%s\":\"%s\"}"
 	arrTemplate := "[%s]"
 	fields := ""
 	for n, v := range f {
@@ -41,13 +58,27 @@ func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) int
 	return fmt.Sprintf(arrTemplate, fields)
 }
 
-func (impl easyStoreSerializerImpl) FieldsDeserialize(interface{}) (EasyStoreObjectFields, error) {
-	return nil, io.EOF
+func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreObjectFields, error) {
+
+	// convert to an array of maps
+	omap, err := interfaceToArrayMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	f := DefaultEasyStoreFields()
+	for _, nv := range omap {
+		for n, v := range nv {
+			f[n] = v.(string)
+		}
+	}
+
+	return f, nil
 }
 
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
-	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"url\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	return fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
@@ -58,8 +89,20 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
 }
 
-func (impl easyStoreSerializerImpl) BlobDeserialize(interface{}) (EasyStoreBlob, error) {
-	return nil, io.EOF
+func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlob, error) {
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	b := newEasyStoreBlob(
+		omap["name"].(string),
+		omap["mime-type"].(string),
+		[]byte(omap["payload"].(string)))
+
+	return b, nil
 }
 
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
@@ -67,14 +110,87 @@ func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) inter
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	return fmt.Sprintf(template,
 		o.MimeType(),
-		o.Payload(),
+		base64.StdEncoding.EncodeToString(o.Payload()),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
 }
 
-func (impl easyStoreSerializerImpl) MetadataDeserialize(interface{}) (EasyStoreMetadata, error) {
-	return nil, io.EOF
+func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStoreMetadata, error) {
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	payload, _ := base64.StdEncoding.DecodeString(omap["payload"].(string))
+	md := newEasyStoreMetadata(omap["mime-type"].(string), payload)
+	meta := md.(*easyStoreMetadataImpl)
+	meta.created, meta.modified, err = timestampExtract(omap)
+	if err != nil {
+		return nil, err
+	}
+
+	return meta, nil
+}
+
+func interfaceToMap(i interface{}) (map[string]interface{}, error) {
+
+	//fmt.Printf("deserialize: %s", i)
+
+	// assume we are being passed a string
+	s, ok := i.(string)
+	if ok != true {
+		//fmt.Printf("cast error")
+		return nil, ErrDeserialize
+	}
+
+	// deserialize to a map
+	var objmap map[string]interface{}
+	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
+		//fmt.Printf("unmarshal error")
+		return nil, ErrDeserialize
+	}
+
+	return objmap, nil
+}
+
+func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
+
+	//fmt.Printf("deserialize: %s", i)
+
+	// assume we are being passed a string
+	s, ok := i.(string)
+	if ok != true {
+		//fmt.Printf("cast error")
+		return nil, ErrDeserialize
+	}
+
+	// deserialize to a map
+	var objmap []map[string]interface{}
+	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
+		//fmt.Printf("unmarshal error")
+		return nil, ErrDeserialize
+	}
+
+	return objmap, nil
+}
+
+func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error) {
+
+	created, err1 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["created"].(string))
+	modified, err2 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["modified"].(string))
+
+	if err1 != nil {
+		return time.Now(), time.Now(), err1
+	}
+
+	if err2 != nil {
+		return time.Now(), time.Now(), err2
+	}
+
+	return created, modified, nil
 }
 
 func newEasyStoreSerializer() EasyStoreSerializer {

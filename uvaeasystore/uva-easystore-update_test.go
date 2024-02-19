@@ -69,8 +69,8 @@ func TestUpdateFiles(t *testing.T) {
 	}
 
 	// add some files
-	f1 := newEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
-	f2 := newEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
+	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	f2 := NewEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
 	obj.files = []EasyStoreBlob{f1, f2}
 
 	// update the object
