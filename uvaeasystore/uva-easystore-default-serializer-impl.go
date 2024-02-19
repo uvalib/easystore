@@ -4,7 +4,10 @@
 
 package uvaeasystore
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // this is our easystore blob implementation
 type easyStoreSerializerImpl struct {
@@ -21,6 +24,10 @@ func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface
 	)
 }
 
+func (impl easyStoreSerializerImpl) ObjectDeserialize(interface{}) (EasyStoreObject, error) {
+	return nil, io.EOF
+}
+
 func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) interface{} {
 	nvTemplate := "{\"name\",\"%s\",\"value\",\"%s\"}"
 	arrTemplate := "[%s]"
@@ -32,6 +39,10 @@ func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) int
 		fields += fmt.Sprintf(nvTemplate, n, v)
 	}
 	return fmt.Sprintf(arrTemplate, fields)
+}
+
+func (impl easyStoreSerializerImpl) FieldsDeserialize(interface{}) (EasyStoreObjectFields, error) {
+	return nil, io.EOF
 }
 
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
@@ -47,6 +58,10 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
 }
 
+func (impl easyStoreSerializerImpl) BlobDeserialize(interface{}) (EasyStoreBlob, error) {
+	return nil, io.EOF
+}
+
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
 
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
@@ -56,6 +71,10 @@ func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) inter
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
+}
+
+func (impl easyStoreSerializerImpl) MetadataDeserialize(interface{}) (EasyStoreMetadata, error) {
+	return nil, io.EOF
 }
 
 func newEasyStoreSerializer() EasyStoreSerializer {

@@ -126,12 +126,16 @@ type EasyStoreImplConfig interface {
 	// fill this in later, may end up hidden
 }
 
-// EasyStoreSerializer - user to serialize and deserialize our objects
+// EasyStoreSerializer - used to serialize and deserialize our objects
 type EasyStoreSerializer interface {
-	ObjectSerialize(EasyStoreObject) interface{}
+	BlobDeserialize(interface{}) (EasyStoreBlob, error)
 	BlobSerialize(EasyStoreBlob) interface{}
+	FieldsDeserialize(interface{}) (EasyStoreObjectFields, error)
 	FieldsSerialize(EasyStoreObjectFields) interface{}
+	MetadataDeserialize(interface{}) (EasyStoreMetadata, error)
 	MetadataSerialize(EasyStoreMetadata) interface{}
+	ObjectDeserialize(interface{}) (EasyStoreObject, error)
+	ObjectSerialize(EasyStoreObject) interface{}
 }
 
 // NewEasyStore - factory for our EasyStore interface

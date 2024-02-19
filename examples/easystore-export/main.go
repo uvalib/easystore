@@ -65,7 +65,7 @@ func main() {
 }
 
 func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.EasyStoreSerializer, outdir string) {
-	log.Printf("INFO: exporting: %s", obj.Id())
+	log.Printf("INFO: exporting %s", obj.Id())
 
 	// export base object
 	i := serializer.ObjectSerialize(obj)
