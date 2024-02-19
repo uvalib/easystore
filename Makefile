@@ -4,7 +4,7 @@ GOGET = $(GOCMD) get
 GOMOD = $(GOCMD) mod
 GOFMT = $(GOCMD) fmt
 GOVET = $(GOCMD) vet
-PACKAGENAME = uva-easystore
+PACKAGENAME = uvaeasystore
 
 build: test
 

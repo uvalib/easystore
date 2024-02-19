@@ -2,7 +2,7 @@
 //
 //
 
-package uva_easystore
+package uvaeasystore
 
 import (
 	_ "github.com/mattn/go-sqlite3"

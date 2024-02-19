@@ -8,7 +8,7 @@
 // and zero or more binary objects (referred to as files).
 //
 
-package uva_easystore
+package uvaeasystore
 
 import (
 	"fmt"
