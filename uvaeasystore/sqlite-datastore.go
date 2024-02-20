@@ -349,7 +349,8 @@ func errorMapper(err error) error {
 		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) {
 			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
-				return ErrAlreadyExists
+				//return ErrAlreadyExists
+				return fmt.Errorf("%q: %w", sqliteErr.Error(), ErrAlreadyExists)
 			}
 		}
 	}
