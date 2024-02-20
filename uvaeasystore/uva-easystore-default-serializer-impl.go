@@ -147,15 +147,17 @@ func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 	// assume we are being passed a []byte
 	s, ok := i.([]byte)
 	if ok != true {
-		fmt.Printf("cast error deserializing: %s", i)
-		return nil, ErrDeserialize
+		//fmt.Printf("cast error deserializing: %s", i)
+		//return nil, ErrDeserialize
+		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
 	}
 
 	// deserialize to a map
 	var objmap map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		fmt.Printf("unmarshal error deserializing: %s", i)
-		return nil, ErrDeserialize
+		//fmt.Printf("unmarshal error deserializing: %s", i)
+		//return nil, ErrDeserialize
+		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
 	}
 
 	return objmap, nil
@@ -166,15 +168,17 @@ func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 	// assume we are being passed a []byte
 	s, ok := i.([]byte)
 	if ok != true {
-		fmt.Printf("cast error deserializing: %s", i)
-		return nil, ErrDeserialize
+		//fmt.Printf("cast error deserializing: %s", i)
+		//return nil, ErrDeserialize
+		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
 	}
 
 	// deserialize to a map
 	var objmap []map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		fmt.Printf("unmarshal error deserializing: %s", i)
-		return nil, ErrDeserialize
+		//fmt.Printf("unmarshal error deserializing: %s", i)
+		//return nil, ErrDeserialize
+		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
 	}
 
 	return objmap, nil

@@ -257,7 +257,7 @@ func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("%q: %w", "object(s) not found", ErrNotFound)
 	}
 
 	return &results, nil
@@ -285,7 +285,7 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("%q: %w", "fields(s) not found", ErrNotFound)
 	}
 
 	return &results, nil
@@ -311,7 +311,7 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("%q: %w", "blobs(s) not found", ErrNotFound)
 	}
 
 	return results, nil
@@ -337,7 +337,7 @@ func idResults(rows *sql.Rows) ([]string, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("%q: %w", "id(s) not found", ErrNotFound)
 	}
 
 	return results, nil
