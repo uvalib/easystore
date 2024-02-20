@@ -83,12 +83,16 @@ type EasyStore interface {
 
 // EasyStoreObject - the objects stored in the easystore
 type EasyStoreObject interface {
-	Id() string                    // object Id
-	AccessId() string              // object access handle
+	Id() string       // object Id
+	AccessId() string // object access handle
+
 	Fields() EasyStoreObjectFields // the fields
 	Metadata() EasyStoreMetadata   // the opaque metadata
+	Files() []EasyStoreBlob        // the associated file(s)
 
-	Files() []EasyStoreBlob // the associated file(s)
+	SetFields(EasyStoreObjectFields) // the fields
+	SetMetadata(EasyStoreMetadata)   // the opaque metadata
+	SetFiles([]EasyStoreBlob)        // the associated file(s)
 
 	EasyStoreCommon // any common fields
 }
@@ -140,7 +144,7 @@ type EasyStoreSerializer interface {
 }
 
 //
-// factory methods
+// factory/helper methods
 //
 
 // NewEasyStore - factory for our EasyStore interface

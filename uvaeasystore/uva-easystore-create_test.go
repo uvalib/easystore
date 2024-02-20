@@ -45,41 +45,41 @@ func TestDuplicateObjectCreate(t *testing.T) {
 func TestFieldsCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some fields
-	obj.fields = DefaultEasyStoreFields()
-	obj.fields["field1"] = "value1"
-	obj.fields["field2"] = "value2"
+	fields := DefaultEasyStoreFields()
+	fields["field1"] = "value1"
+	fields["field2"] = "value2"
+	o.SetFields(fields)
 
 	// create the new object
-	o, err := es.Create(obj)
+	o, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// validate the object we got in return
 	validateObject(t, o, Fields)
-	if obj.fields["field1"] != "value1" {
-		t.Fatalf("expected 'value1' but got '%s'\n", obj.fields["field1"])
+	if o.Fields()["field1"] != "value1" {
+		t.Fatalf("expected 'value1' but got '%s'\n", o.Fields()["field1"])
 	}
-	if obj.fields["field2"] != "value2" {
-		t.Fatalf("expected 'value2' but got '%s'\n", obj.fields["field2"])
+	if o.Fields()["field2"] != "value2" {
+		t.Fatalf("expected 'value2' but got '%s'\n", o.Fields()["field2"])
 	}
 }
 
 func TestFilesCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
 	f2 := NewEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
-	obj.files = []EasyStoreBlob{f1, f2}
+	files := []EasyStoreBlob{f1, f2}
+	o.SetFiles(files)
 
 	// create the new object
-	o, err := es.Create(obj)
+	o, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -93,22 +93,22 @@ func TestFilesCreate(t *testing.T) {
 		t.Fatalf("expected 'file1.txt' but got '%s'\n", o.Files()[0].Name())
 	}
 	if o.Files()[1].Name() != "file2.txt" {
-		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[0].Name())
+		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[1].Name())
 	}
 }
 
 func TestDuplicateFilesCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
-	obj.files = []EasyStoreBlob{f1, f1}
+	files := []EasyStoreBlob{f1, f1}
+	o.SetFiles(files)
 
 	// create the new object
 	expected := ErrAlreadyExists
-	o, err := es.Create(obj)
+	o, err := es.Create(o)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
@@ -117,14 +117,14 @@ func TestDuplicateFilesCreate(t *testing.T) {
 func TestMetadataCreate(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some metadata
 	mimeType := "application/json"
-	obj.metadata = newEasyStoreMetadata(mimeType, jsonPayload)
+	metadata := newEasyStoreMetadata(mimeType, jsonPayload)
+	o.SetMetadata(metadata)
 
 	// create the new object
-	o, err := es.Create(obj)
+	o, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

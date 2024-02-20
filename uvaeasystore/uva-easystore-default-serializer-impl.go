@@ -36,7 +36,7 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 	}
 
 	o := newEasyStoreObject(omap["id"].(string))
-	obj := o.(easyStoreObjectImpl)
+	obj := o.(*easyStoreObjectImpl)
 	obj.accessId = omap["accessid"].(string)
 	obj.created, obj.modified, err = timestampExtract(omap)
 	if err != nil {

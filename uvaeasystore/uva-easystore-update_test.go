@@ -11,10 +11,9 @@ import (
 func TestUpdateFields(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// create the new object with no fields
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -26,12 +25,13 @@ func TestUpdateFields(t *testing.T) {
 	}
 
 	// add some fields
-	obj.fields = DefaultEasyStoreFields()
-	obj.fields["field1"] = "value1"
-	obj.fields["field2"] = "value2"
+	fields := DefaultEasyStoreFields()
+	fields["field1"] = "value1"
+	fields["field2"] = "value2"
+	o.SetFields(fields)
 
 	// update the object
-	_, err = es.Update(obj, Fields)
+	_, err = es.Update(o, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -54,10 +54,9 @@ func TestUpdateFields(t *testing.T) {
 func TestUpdateFiles(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// create the new object with no files
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -71,10 +70,11 @@ func TestUpdateFiles(t *testing.T) {
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
 	f2 := NewEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
-	obj.files = []EasyStoreBlob{f1, f2}
+	files := []EasyStoreBlob{f1, f2}
+	o.SetFiles(files)
 
 	// update the object
-	_, err = es.Update(obj, Files)
+	_, err = es.Update(o, Files)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -97,10 +97,9 @@ func TestUpdateFiles(t *testing.T) {
 func TestUpdateMetadata(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// create the new object with no fields
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -113,10 +112,11 @@ func TestUpdateMetadata(t *testing.T) {
 
 	// add some metadata
 	mimeType := "application/json"
-	obj.metadata = newEasyStoreMetadata(mimeType, jsonPayload)
+	metadata := newEasyStoreMetadata(mimeType, jsonPayload)
+	o.SetMetadata(metadata)
 
 	// update the object
-	_, err = es.Update(obj, Metadata)
+	_, err = es.Update(o, Metadata)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

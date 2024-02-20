@@ -43,15 +43,15 @@ func TestSimpleDelete(t *testing.T) {
 func TestFieldsDelete(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some fields
-	obj.fields = DefaultEasyStoreFields()
-	obj.fields["field1"] = "value1"
-	obj.fields["field2"] = "value2"
+	fields := DefaultEasyStoreFields()
+	fields["field1"] = "value1"
+	fields["field2"] = "value2"
+	o.SetFields(fields)
 
 	// create the new object
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -82,15 +82,15 @@ func TestFieldsDelete(t *testing.T) {
 func TestFilesDelete(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
 	f2 := NewEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
-	obj.files = []EasyStoreBlob{f1, f2}
+	files := []EasyStoreBlob{f1, f2}
+	o.SetFiles(files)
 
 	// create the new object
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -121,14 +121,14 @@ func TestFilesDelete(t *testing.T) {
 func TestMetadataDelete(t *testing.T) {
 	es := testSetup(t)
 	o := newTestObject("")
-	obj := o.(easyStoreObjectImpl)
 
 	// add some metadata
 	mimeType := "application/json"
-	obj.metadata = newEasyStoreMetadata(mimeType, jsonPayload)
+	metadata := newEasyStoreMetadata(mimeType, jsonPayload)
+	o.SetMetadata(metadata)
 
 	// create the new object
-	_, err := es.Create(obj)
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

@@ -192,19 +192,16 @@ func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
 
 func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// we know it's one of these
-	obj, _ := eso.(*easyStoreObjectImpl)
-
 	// first get the fields (if required)
 	if (which & Fields) == Fields {
-		logDebug(impl.config.log, fmt.Sprintf("getting fields for oid [%s]", obj.id))
-		fields, err := impl.store.GetFieldsByOid(obj.id)
+		logDebug(impl.config.log, fmt.Sprintf("getting fields for oid [%s]", eso.Id()))
+		fields, err := impl.store.GetFieldsByOid(eso.Id())
 		if err == nil {
-			obj.fields = *fields
+			eso.SetFields(*fields)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no fields found for oid [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no fields found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}
@@ -213,14 +210,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.log, fmt.Sprintf("getting files for oid [%s]", obj.id))
-		blobs, err := impl.store.GetBlobsByOid(obj.id)
+		logDebug(impl.config.log, fmt.Sprintf("getting files for oid [%s]", eso.Id()))
+		blobs, err := impl.store.GetBlobsByOid(eso.Id())
 		if err == nil {
-			obj.files = blobs
+			eso.SetFiles(blobs)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no blobs found for oid [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no blobs found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}
@@ -229,14 +226,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// lastly the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.log, fmt.Sprintf("getting metadata for oid [%s]", obj.id))
-		md, err := impl.store.GetMetadataByOid(obj.id)
+		logDebug(impl.config.log, fmt.Sprintf("getting metadata for oid [%s]", eso.Id()))
+		md, err := impl.store.GetMetadataByOid(eso.Id())
 		if err == nil {
-			obj.metadata = md
+			eso.SetMetadata(md)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no metadata found for oid [%s]", obj.id))
+				logInfo(impl.config.log, fmt.Sprintf("no metadata found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}
