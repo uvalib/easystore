@@ -18,12 +18,13 @@ type easyStoreSerializerImpl struct {
 func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface{} {
 
 	template := "{\"id\":\"%s\",\"accessid\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
-	return fmt.Sprintf(template,
+	str := fmt.Sprintf(template,
 		o.Id(),
 		o.AccessId(),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
+	return []byte(str)
 }
 
 func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreObject, error) {
@@ -55,7 +56,8 @@ func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) int
 		}
 		fields += fmt.Sprintf(nvTemplate, n, v)
 	}
-	return fmt.Sprintf(arrTemplate, fields)
+	str := fmt.Sprintf(arrTemplate, fields)
+	return []byte(str)
 }
 
 func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreObjectFields, error) {
@@ -79,14 +81,14 @@ func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreO
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
 	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
-	return fmt.Sprintf(template,
+	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
 		b.Url(),
 		b.Created().UTC(),
 		b.Modified().UTC(),
 	)
-
+	return []byte(str)
 }
 
 func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlob, error) {
@@ -108,12 +110,13 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
 
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
-	return fmt.Sprintf(template,
+	str := fmt.Sprintf(template,
 		o.MimeType(),
 		base64.StdEncoding.EncodeToString(o.Payload()),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
+	return []byte(str)
 }
 
 func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStoreMetadata, error) {
@@ -135,10 +138,14 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 	return meta, nil
 }
 
+//
+// private methods
+//
+
 func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 
-	// assume we are being passed a string
-	s, ok := i.(string)
+	// assume we are being passed a []byte
+	s, ok := i.([]byte)
 	if ok != true {
 		fmt.Printf("cast error deserializing: %s", i)
 		return nil, ErrDeserialize
@@ -156,8 +163,8 @@ func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 
 func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 
-	// assume we are being passed a string
-	s, ok := i.(string)
+	// assume we are being passed a []byte
+	s, ok := i.([]byte)
 	if ok != true {
 		fmt.Printf("cast error deserializing: %s", i)
 		return nil, ErrDeserialize
