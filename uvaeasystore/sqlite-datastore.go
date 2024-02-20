@@ -205,14 +205,14 @@ func (s *storage) DeleteObjectByOid(oid string) error {
 // GetIdsByFields -- get a list of ids that have the supplied fields/values
 func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error) {
 
-	query := "select distinct(oid) from fields"
 	var err error
 	var rows *sql.Rows
 	// just support 2 cases, no fields which means all objects or 1 set of fields
 	if len(fields) == 0 {
+		query := "SELECT distinct(oid) FROM metadata"
 		rows, err = s.Query(query)
 	} else {
-		query = fmt.Sprintf("%s where name = ? and value = ?", query)
+		query := "SELECT distinct(oid) FROM fields WHERE name = ? AND value = ?"
 		key := maps.Keys(fields)[0]
 		value := fields[key]
 		rows, err = s.Query(query, key, value)

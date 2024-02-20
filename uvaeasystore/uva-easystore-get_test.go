@@ -97,7 +97,7 @@ func TestGetByFields(t *testing.T) {
 	fields["thekey"] = "thevalue"
 
 	//empty fields, should be all items
-	iter, err := esro.GetByFields(fields, BaseComponent)
+	iter, err := esro.GetByFields(fields, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -110,7 +110,7 @@ func TestGetByFields(t *testing.T) {
 	// go through the list of objects and validate
 	o, err := iter.Next()
 	for err == nil {
-		validateObject(t, o, BaseComponent)
+		validateObject(t, o, Fields)
 		o, err = iter.Next()
 	}
 
