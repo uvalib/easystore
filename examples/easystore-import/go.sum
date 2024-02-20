@@ -14,5 +14,7 @@ github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220193258-65bde4ea9244 h1:P
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220193258-65bde4ea9244/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220195606-0c55e7f36589 h1:h6pkg6l3u75kXSWCRR2y/YvKTzNKBuqp1/KDbBrqUqQ=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220195606-0c55e7f36589/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220202614-2a232136a51a h1:1mNVZIqfpbVALklkJZMVeZkgbC685YATYSwJ66UnLH0=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220202614-2a232136a51a/go.mod h1:IWeqAmpXeiGbQSnXY2UCDZYjshdEYJxVEpcwJF7Vp9A=
 golang.org/x/exp v0.0.0-20240213143201-ec583247a57a h1:HinSgX1tJRX3KsL//Gxynpw5CTOAIPhgL4W8PNiIpVE=
 golang.org/x/exp v0.0.0-20240213143201-ec583247a57a/go.mod h1:CxmFvTBINI24O/j8iY7H1xHzx2i4OsyguNBmN/uPtqc=
