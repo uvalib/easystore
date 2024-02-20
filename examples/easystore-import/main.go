@@ -88,14 +88,14 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 		fields, err := serializer.FieldsDeserialize(buf)
 		if err == nil {
 			obj.SetFields(fields)
-			log.Printf("DEBUG: imported fields for [%s]", obj.Id())
+			log.Printf("DEBUG: ==> imported fields for [%s]", obj.Id())
 		} else {
 			log.Fatalf("ERROR: deserializing fields (%s)", err.Error())
 		}
 
 	} else {
 		if errors.Is(err, os.ErrNotExist) == true {
-			log.Printf("DEBUG: no fields for [%s]", obj.Id())
+			//log.Printf("DEBUG: no fields for [%s]", obj.Id())
 		} else {
 			log.Fatalf("ERROR: loading fields file (%s)", err.Error())
 		}
@@ -107,13 +107,13 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 		metadata, err := serializer.MetadataDeserialize(buf)
 		if err == nil {
 			obj.SetMetadata(metadata)
-			log.Printf("DEBUG: imported metadata for [%s]", obj.Id())
+			log.Printf("DEBUG: ==> imported metadata for [%s]", obj.Id())
 		} else {
 			log.Fatalf("ERROR: deserializing metadata (%s)", err.Error())
 		}
 	} else {
 		if errors.Is(err, os.ErrNotExist) == true {
-			log.Printf("DEBUG: no metadata for [%s]", obj.Id())
+			//log.Printf("DEBUG: no metadata for [%s]", obj.Id())
 		} else {
 			log.Fatalf("ERROR: loading metadata file (%s)", err.Error())
 		}
@@ -126,10 +126,11 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 		// for each possible blob file
 		blobs := make([]uvaeasystore.EasyStoreBlob, 0)
 		ix := 0
+		var blob uvaeasystore.EasyStoreBlob
 		buf, err = os.ReadFile(fmt.Sprintf("%s/blob-%03d.json", indir, ix+1))
 		for err == nil {
 
-			blob, err := serializer.BlobDeserialize(buf)
+			blob, err = serializer.BlobDeserialize(buf)
 			if err != nil {
 				log.Fatalf("ERROR: deserializing blob (%s)", err.Error())
 			}
@@ -140,13 +141,13 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 		}
 		if errors.Is(err, os.ErrNotExist) == true {
 			obj.SetFiles(blobs)
-			log.Printf("DEBUG: loaded %d blob(s) for [%s]", ix, obj.Id())
+			log.Printf("DEBUG: ==> imported %d blob(s) for [%s]", ix, obj.Id())
 		} else {
 			log.Fatalf("ERROR: loading blob file(s) (%s)", err.Error())
 		}
 	} else {
 		if errors.Is(err, os.ErrNotExist) == true {
-			log.Printf("DEBUG: no blobs for [%s]", obj.Id())
+			//log.Printf("DEBUG: no blobs for [%s]", obj.Id())
 		} else {
 			log.Fatalf("ERROR: loading blob file(s) (%s)", err.Error())
 		}
