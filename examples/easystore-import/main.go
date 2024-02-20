@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"io"
@@ -34,27 +35,30 @@ func main() {
 	serializer := uvaeasystore.DefaultEasyStoreSerializer()
 
 	ix := 0
+	var obj uvaeasystore.EasyStoreObject
 	for true {
 		dirname := fmt.Sprintf("%s/export-%03d", indir, ix)
 
 		// load the object
-		obj, err := makeObject(serializer, dirname)
+		obj, err = makeObject(serializer, dirname)
 		if err != nil {
+			//log.Printf("ERROR: %s", err.Error())
 			break
 		}
 
 		_, err = es.Create(obj)
 		if err != nil {
+			//log.Printf("ERROR: %s", err.Error())
 			break
 		}
 
 		ix++
 	}
 
-	if err == io.EOF {
+	if err == nil || err == io.EOF {
 		log.Printf("INFO: terminate normally, imported %d objects", ix)
 	} else {
-		log.Printf("ERROR: terminate with %s", err.Error())
+		log.Printf("ERROR: terminate with '%s'", err.Error())
 	}
 }
 
@@ -80,32 +84,73 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 
 	// import fields if they exist
 	buf, err = os.ReadFile(fmt.Sprintf("%s/fields.json", indir))
-	if err != nil {
-		log.Fatalf("ERROR: reading file (%s)", err.Error())
-	} else {
-		_, err := serializer.FieldsDeserialize(buf)
-		if err != nil {
+	if err == nil {
+		fields, err := serializer.FieldsDeserialize(buf)
+		if err == nil {
+			obj.SetFields(fields)
+			log.Printf("DEBUG: imported fields for [%s]", obj.Id())
+		} else {
 			log.Fatalf("ERROR: deserializing fields (%s)", err.Error())
+		}
+
+	} else {
+		if errors.Is(err, os.ErrNotExist) == true {
+			log.Printf("DEBUG: no fields for [%s]", obj.Id())
+		} else {
+			log.Fatalf("ERROR: loading fields file (%s)", err.Error())
 		}
 	}
 
-	// export metadata if it exists
-	//	if obj.Metadata() != nil {
-	//		i = serializer.MetadataSerialize(obj.Metadata())
-	//		err = os.ReadFile(fmt.Sprintf("%s/metadata.json", outdir), i.(string))
-	//		if err != nil {
-	//			log.Fatalf("ERROR: writing file (%s)", err.Error())
-	//		}
-	//	}
-	//
-	//	// export files of they exist
-	//	for ix, f := range obj.Files() {
-	//		i = serializer.BlobSerialize(f)
-	//		err = os.ReadFile(fmt.Sprintf("%s/blob-%03d.json", outdir, ix+1), i.(string))
-	//		if err != nil {
-	//			log.Fatalf("ERROR: writing file (%s)", err.Error())
-	//		}
-	//	}
+	// import metadata if it exists
+	buf, err = os.ReadFile(fmt.Sprintf("%s/metadata.json", indir))
+	if err == nil {
+		metadata, err := serializer.MetadataDeserialize(buf)
+		if err == nil {
+			obj.SetMetadata(metadata)
+			log.Printf("DEBUG: imported metadata for [%s]", obj.Id())
+		} else {
+			log.Fatalf("ERROR: deserializing metadata (%s)", err.Error())
+		}
+	} else {
+		if errors.Is(err, os.ErrNotExist) == true {
+			log.Printf("DEBUG: no metadata for [%s]", obj.Id())
+		} else {
+			log.Fatalf("ERROR: loading metadata file (%s)", err.Error())
+		}
+	}
+
+	// import files if they exist
+	buf, err = os.ReadFile(fmt.Sprintf("%s/blob-001.json", indir))
+	if err == nil {
+
+		// for each possible blob file
+		blobs := make([]uvaeasystore.EasyStoreBlob, 0)
+		ix := 0
+		buf, err = os.ReadFile(fmt.Sprintf("%s/blob-%03d.json", indir, ix+1))
+		for err == nil {
+
+			blob, err := serializer.BlobDeserialize(buf)
+			if err != nil {
+				log.Fatalf("ERROR: deserializing blob (%s)", err.Error())
+			}
+
+			blobs = append(blobs, blob)
+			ix++
+			buf, err = os.ReadFile(fmt.Sprintf("%s/blob-%03d.json", indir, ix+1))
+		}
+		if errors.Is(err, os.ErrNotExist) == true {
+			obj.SetFiles(blobs)
+			log.Printf("DEBUG: loaded %d blob(s) for [%s]", ix, obj.Id())
+		} else {
+			log.Fatalf("ERROR: loading blob file(s) (%s)", err.Error())
+		}
+	} else {
+		if errors.Is(err, os.ErrNotExist) == true {
+			log.Printf("DEBUG: no blobs for [%s]", obj.Id())
+		} else {
+			log.Fatalf("ERROR: loading blob file(s) (%s)", err.Error())
+		}
+	}
 
 	return obj, nil
 }

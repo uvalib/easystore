@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-export
 
 go 1.21.7
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240219182411-ef8952b4ad34
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240220193258-65bde4ea9244
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect

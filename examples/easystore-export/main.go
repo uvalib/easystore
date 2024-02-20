@@ -69,14 +69,14 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 
 	// export base object
 	i := serializer.ObjectSerialize(obj)
-	err := outputFile(fmt.Sprintf("%s/object.json", outdir), i.(string))
+	err := outputFile(fmt.Sprintf("%s/object.json", outdir), i.([]byte))
 	if err != nil {
 		log.Fatalf("ERROR: writing file (%s)", err.Error())
 	}
 
 	// export fields if they exist
 	i = serializer.FieldsSerialize(obj.Fields())
-	err = outputFile(fmt.Sprintf("%s/fields.json", outdir), i.(string))
+	err = outputFile(fmt.Sprintf("%s/fields.json", outdir), i.([]byte))
 	if err != nil {
 		log.Fatalf("ERROR: writing file (%s)", err.Error())
 	}
@@ -84,7 +84,7 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 	// export metadata if it exists
 	if obj.Metadata() != nil {
 		i = serializer.MetadataSerialize(obj.Metadata())
-		err = outputFile(fmt.Sprintf("%s/metadata.json", outdir), i.(string))
+		err = outputFile(fmt.Sprintf("%s/metadata.json", outdir), i.([]byte))
 		if err != nil {
 			log.Fatalf("ERROR: writing file (%s)", err.Error())
 		}
@@ -93,14 +93,14 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 	// export files of they exist
 	for ix, f := range obj.Files() {
 		i = serializer.BlobSerialize(f)
-		err = outputFile(fmt.Sprintf("%s/blob-%03d.json", outdir, ix+1), i.(string))
+		err = outputFile(fmt.Sprintf("%s/blob-%03d.json", outdir, ix+1), i.([]byte))
 		if err != nil {
 			log.Fatalf("ERROR: writing file (%s)", err.Error())
 		}
 	}
 }
 
-func outputFile(name string, contents string) error {
+func outputFile(name string, contents []byte) error {
 
 	payloadFile, err := os.Create(name)
 	if err != nil {
@@ -109,7 +109,7 @@ func outputFile(name string, contents string) error {
 	defer payloadFile.Close()
 
 	// write the payload
-	_, err = payloadFile.Write([]byte(contents))
+	_, err = payloadFile.Write(contents)
 	if err != nil {
 		return err
 	}
