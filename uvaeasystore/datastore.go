@@ -6,6 +6,7 @@ package uvaeasystore
 
 import (
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 )
 
 // our storage interface
@@ -35,9 +36,9 @@ type DataStore interface {
 }
 
 // our factory
-func NewDatastore(namespace string) (DataStore, error) {
+func NewDatastore(namespace string, log *log.Logger) (DataStore, error) {
 	// mock implementation here if necessary
-	return newSqliteStore(namespace)
+	return newSqliteStore(namespace, log)
 }
 
 //

@@ -23,7 +23,7 @@ func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 	}
 
 	// create the data store for this namespace
-	s, err := NewDatastore(c.namespace)
+	s, err := NewDatastore(c.namespace, c.log)
 	if err != nil {
 		return nil, err
 	}

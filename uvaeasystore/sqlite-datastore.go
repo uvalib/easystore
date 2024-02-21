@@ -11,6 +11,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/exp/maps"
+	"log"
 	"os"
 )
 
@@ -18,14 +19,17 @@ var blobMetadataName = "metadata.secret.hidden"
 
 // this is our DB implementation
 type storage struct {
+	log *log.Logger
 	*sql.DB
 }
 
 // newSqliteStore -- create a sqlite version of the DataStore
-func newSqliteStore(namespace string) (DataStore, error) {
+func newSqliteStore(namespace string, log *log.Logger) (DataStore, error) {
 
 	// temp location for now
 	dataSourceName := fmt.Sprintf("/tmp/%s.db", namespace)
+
+	logDebug(log, fmt.Sprintf("using [%s] for storage", dataSourceName))
 
 	// make sure it exists so we do not create an empty schema
 	_, err := os.Stat(dataSourceName)
@@ -41,7 +45,7 @@ func newSqliteStore(namespace string) (DataStore, error) {
 		return nil, err
 	}
 
-	return &storage{db}, nil
+	return &storage{log, db}, nil
 }
 
 // Check -- check our database health
@@ -113,7 +117,7 @@ func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 	}
 	defer rows.Close()
 
-	return blobResults(rows)
+	return blobResults(rows, s.log)
 }
 
 // GetFieldsByOid -- get all field data associated with the specified object
@@ -125,7 +129,7 @@ func (s *storage) GetFieldsByOid(oid string) (*EasyStoreObjectFields, error) {
 	}
 	defer rows.Close()
 
-	return fieldResults(rows)
+	return fieldResults(rows, s.log)
 }
 
 // GetMetadataByOid -- get all field data associated with the specified object
@@ -137,7 +141,7 @@ func (s *storage) GetMetadataByOid(oid string) (EasyStoreMetadata, error) {
 	}
 	defer rows.Close()
 
-	br, err := blobResults(rows)
+	br, err := blobResults(rows, s.log)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +165,7 @@ func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
 	}
 	defer rows.Close()
 
-	return objectResults(rows)
+	return objectResults(rows, s.log)
 }
 
 // DeleteBlobsByOid -- delete all blob data associated with the specified object
@@ -225,7 +229,7 @@ func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error)
 	}
 	defer rows.Close()
 
-	return idResults(rows)
+	return idResults(rows, s.log)
 }
 
 //
@@ -242,7 +246,7 @@ func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
 	return err
 }
 
-func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
+func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
 	results := easyStoreObjectImpl{}
 	count := 0
 
@@ -262,11 +266,11 @@ func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 		return nil, fmt.Errorf("%q: %w", "object(s) not found", ErrNotFound)
 	}
 
-	//fmt.Printf("found %d object(s)\n", count)
+	logDebug(log, fmt.Sprintf("found %d object(s)", count))
 	return &results, nil
 }
 
-func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
+func fieldResults(rows *sql.Rows, log *log.Logger) (*EasyStoreObjectFields, error) {
 
 	results := EasyStoreObjectFields{}
 	//results.fields = make(map[string]string)
@@ -291,11 +295,11 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 		return nil, fmt.Errorf("%q: %w", "fields(s) not found", ErrNotFound)
 	}
 
-	//fmt.Printf("found %d fields(s)\n", count)
+	logDebug(log, fmt.Sprintf("found %d fields(s)", count))
 	return &results, nil
 }
 
-func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
+func blobResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) {
 	results := make([]EasyStoreBlob, 0)
 	count := 0
 
@@ -318,11 +322,11 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 		return nil, fmt.Errorf("%q: %w", "blobs(s) not found", ErrNotFound)
 	}
 
-	//fmt.Printf("found %d blobs(s)\n", count)
+	logDebug(log, fmt.Sprintf("found %d blobs(s)", count))
 	return results, nil
 }
 
-func idResults(rows *sql.Rows) ([]string, error) {
+func idResults(rows *sql.Rows, log *log.Logger) ([]string, error) {
 	results := make([]string, 0)
 	count := 0
 
@@ -345,7 +349,7 @@ func idResults(rows *sql.Rows) ([]string, error) {
 		return nil, fmt.Errorf("%q: %w", "id(s) not found", ErrNotFound)
 	}
 
-	//fmt.Printf("found %d id(s)\n", count)
+	logDebug(log, fmt.Sprintf("found %d id(s)", count))
 	return results, nil
 }
 
