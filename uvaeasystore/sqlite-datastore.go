@@ -57,7 +57,8 @@ func (s *storage) AddBlob(oid string, blob EasyStoreBlob) error {
 		return err
 	}
 
-	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), "dummy payload")
+	// always store the payload in its native format
+	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), blob.PayloadNative())
 	return errorMapper(err)
 }
 
@@ -86,7 +87,8 @@ func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
 		return err
 	}
 
-	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.Payload())
+	// always store the payload in its native format
+	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.PayloadNative())
 	return errorMapper(err)
 }
 
@@ -260,6 +262,7 @@ func objectResults(rows *sql.Rows) (EasyStoreObject, error) {
 		return nil, fmt.Errorf("%q: %w", "object(s) not found", ErrNotFound)
 	}
 
+	//fmt.Printf("found %d object(s)\n", count)
 	return &results, nil
 }
 
@@ -288,6 +291,7 @@ func fieldResults(rows *sql.Rows) (*EasyStoreObjectFields, error) {
 		return nil, fmt.Errorf("%q: %w", "fields(s) not found", ErrNotFound)
 	}
 
+	//fmt.Printf("found %d fields(s)\n", count)
 	return &results, nil
 }
 
@@ -314,6 +318,7 @@ func blobResults(rows *sql.Rows) ([]EasyStoreBlob, error) {
 		return nil, fmt.Errorf("%q: %w", "blobs(s) not found", ErrNotFound)
 	}
 
+	//fmt.Printf("found %d blobs(s)\n", count)
 	return results, nil
 }
 
@@ -340,6 +345,7 @@ func idResults(rows *sql.Rows) ([]string, error) {
 		return nil, fmt.Errorf("%q: %w", "id(s) not found", ErrNotFound)
 	}
 
+	//fmt.Printf("found %d id(s)\n", count)
 	return results, nil
 }
 

@@ -210,7 +210,7 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.log, fmt.Sprintf("getting files for oid [%s]", eso.Id()))
+		logDebug(impl.config.log, fmt.Sprintf("getting blobs for oid [%s]", eso.Id()))
 		blobs, err := impl.store.GetBlobsByOid(eso.Id())
 		if err == nil {
 			eso.SetFiles(blobs)

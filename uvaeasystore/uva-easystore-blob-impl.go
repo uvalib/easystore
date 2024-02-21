@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"encoding/base64"
 	"time"
 )
 
@@ -19,7 +20,11 @@ type easyStoreBlobImpl struct {
 
 // factory for our easystore blob interface
 func newEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
-	return &easyStoreBlobImpl{name: name, mimeType: mimeType, payload: payload}
+	p := payload
+	if payload != nil {
+		p = []byte(base64.StdEncoding.EncodeToString(payload))
+	}
+	return &easyStoreBlobImpl{name: name, mimeType: mimeType, payload: p}
 }
 
 func (impl easyStoreBlobImpl) Name() string {
@@ -34,9 +39,14 @@ func (impl easyStoreBlobImpl) Url() string {
 	return "https://does.not.work.fu"
 }
 
-//func (impl easyStoreBlobImpl) Payload() []byte {
-//	return nil
-//}
+func (impl easyStoreBlobImpl) Payload() []byte {
+	b, _ := base64.StdEncoding.DecodeString(string(impl.payload))
+	return b
+}
+
+func (impl easyStoreBlobImpl) PayloadNative() []byte {
+	return impl.payload
+}
 
 //func (impl easyStoreBlobImpl) Read(buf []byte) (int, error) { return 0, nil }
 

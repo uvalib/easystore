@@ -44,7 +44,6 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		return nil, ErrBadParameter
 	}
 
-	which := BaseComponent
 	logInfo(impl.config.log, fmt.Sprintf("creating new oid [%s]", obj.Id()))
 
 	// add the object
@@ -60,7 +59,6 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		if err != nil {
 			return nil, err
 		}
-		which += Metadata
 	}
 
 	// do we add fields
@@ -70,7 +68,6 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		if err != nil {
 			return nil, err
 		}
-		which += Fields
 	}
 
 	// do we add files
@@ -82,11 +79,10 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 				return nil, err
 			}
 		}
-		which += Files
 	}
 
 	// get the full object
-	return impl.GetById(obj.Id(), which)
+	return impl.GetById(obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -163,8 +159,8 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 	}
 
-	// return the original object
-	return obj, nil
+	// get the full object
+	return impl.GetById(obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {

@@ -16,7 +16,7 @@ var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
 var goodId = "oid:494af4cda213"
 var badId = "oid:blablabla"
-var jsonPayload = []byte("{}")
+var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 func newTestObject(id string) EasyStoreObject {
 	if len(id) == 0 {
@@ -96,6 +96,9 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 				if len(f.MimeType()) == 0 {
 					t.Fatalf("file mime type is empty\n")
 				}
+				if len(f.Payload()) == 0 {
+					t.Fatalf("file payload is empty\n")
+				}
 				if len(f.Url()) == 0 {
 					t.Fatalf("file url is empty\n")
 				}
@@ -120,13 +123,16 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	if (which & Metadata) == Metadata {
 		if md != nil {
 			if len(md.MimeType()) == 0 {
-				t.Fatalf("object mime type is empty\n")
+				t.Fatalf("metadata mime type is empty\n")
+			}
+			if len(md.Payload()) == 0 {
+				t.Fatalf("metadata payload is empty\n")
 			}
 			if md.Created().IsZero() == true {
-				t.Fatalf("object create time is empty\n")
+				t.Fatalf("metadata create time is empty\n")
 			}
 			if md.Modified().IsZero() == true {
-				t.Fatalf("object modified time is empty\n")
+				t.Fatalf("metadata modified time is empty\n")
 			}
 		} else {
 			t.Fatalf("expected object metadata but got none\n")
@@ -135,6 +141,12 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 		if md != nil {
 			t.Fatalf("unexpected object metadata\n")
 		}
+	}
+}
+
+func testEqual(t *testing.T, expected string, actual string) {
+	if expected != actual {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, actual)
 	}
 }
 

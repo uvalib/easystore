@@ -5,7 +5,6 @@
 package uvaeasystore
 
 import (
-	"bytes"
 	"errors"
 	"testing"
 )
@@ -60,12 +59,8 @@ func TestFieldsCreate(t *testing.T) {
 
 	// validate the object we got in return
 	validateObject(t, o, Fields)
-	if o.Fields()["field1"] != "value1" {
-		t.Fatalf("expected 'value1' but got '%s'\n", o.Fields()["field1"])
-	}
-	if o.Fields()["field2"] != "value2" {
-		t.Fatalf("expected 'value2' but got '%s'\n", o.Fields()["field2"])
-	}
+	testEqual(t, "value1", o.Fields()["field1"])
+	testEqual(t, "value2", o.Fields()["field2"])
 }
 
 func TestFilesCreate(t *testing.T) {
@@ -89,12 +84,8 @@ func TestFilesCreate(t *testing.T) {
 	if len(o.Files()) != 2 {
 		t.Fatalf("expected '2' but got '%d'\n", len(o.Files()))
 	}
-	if o.Files()[0].Name() != "file1.txt" {
-		t.Fatalf("expected 'file1.txt' but got '%s'\n", o.Files()[0].Name())
-	}
-	if o.Files()[1].Name() != "file2.txt" {
-		t.Fatalf("expected 'file2.txt' but got '%s'\n", o.Files()[1].Name())
-	}
+	testEqual(t, "file1.txt", o.Files()[0].Name())
+	testEqual(t, "file2.txt", o.Files()[1].Name())
 }
 
 func TestDuplicateFilesCreate(t *testing.T) {
@@ -132,13 +123,8 @@ func TestMetadataCreate(t *testing.T) {
 	// validate the object we got in return
 	validateObject(t, o, Metadata)
 
-	if o.Metadata().MimeType() != mimeType {
-		t.Fatalf("expected '%s' but got '%s'\n", mimeType, o.Metadata().MimeType())
-	}
-
-	if bytes.Equal(o.Metadata().Payload(), jsonPayload) == false {
-		t.Fatalf("expected '%s' but got '%s'\n", jsonPayload, string(o.Metadata().Payload()))
-	}
+	testEqual(t, mimeType, o.Metadata().MimeType())
+	testEqual(t, string(jsonPayload), string(o.Metadata().Payload()))
 }
 
 //

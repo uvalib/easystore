@@ -84,7 +84,7 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
-		b.Url(),
+		base64.StdEncoding.EncodeToString(b.Payload()),
 		b.Created().UTC(),
 		b.Modified().UTC(),
 	)
@@ -99,10 +99,11 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		return nil, err
 	}
 
+	payload, _ := base64.StdEncoding.DecodeString(omap["payload"].(string))
 	b := newEasyStoreBlob(
 		omap["name"].(string),
 		omap["mime-type"].(string),
-		[]byte(omap["payload"].(string)))
+		payload)
 
 	return b, nil
 }
