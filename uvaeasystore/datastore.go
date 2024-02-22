@@ -40,7 +40,7 @@ func NewDatastore(config EasyStoreConfig) (DataStore, error) {
 	// mock implementation here if necessary
 
 	// check for a sqlite configuration
-	_, ok := config.(datastoreSqliteConfig)
+	_, ok := config.(DatastoreSqliteConfig)
 	if ok == true {
 		return newSqliteStore(config)
 	}

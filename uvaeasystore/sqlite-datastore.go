@@ -12,18 +12,18 @@ import (
 	"os"
 )
 
-// this is our sqlite configuration implementation
-type datastoreSqliteConfig struct {
+// DatastoreSqliteConfig -- this is our sqlite configuration implementation
+type DatastoreSqliteConfig struct {
 	namespace  string      // source file name
 	filesystem string      // the storage filesystem
 	log        *log.Logger // the logger
 }
 
-func (impl datastoreSqliteConfig) Logger() *log.Logger {
+func (impl DatastoreSqliteConfig) Logger() *log.Logger {
 	return impl.log
 }
 
-func (impl datastoreSqliteConfig) SetLogger(log *log.Logger) {
+func (impl DatastoreSqliteConfig) SetLogger(log *log.Logger) {
 	impl.log = log
 }
 
@@ -31,7 +31,7 @@ func (impl datastoreSqliteConfig) SetLogger(log *log.Logger) {
 func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 
 	// make sure its one of these
-	c, ok := config.(datastoreSqliteConfig)
+	c, ok := config.(DatastoreSqliteConfig)
 	if ok == false {
 		return nil, fmt.Errorf("%q: %w", "bad configuration, not a datastoreSqliteConfig", ErrBadParameter)
 	}
