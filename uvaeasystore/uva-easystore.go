@@ -123,15 +123,8 @@ type EasyStoreMetadata interface {
 
 // EasyStoreConfig - the configuration structure
 type EasyStoreConfig interface {
-	Namespace(string)   // easystore goodNamespace
-	Logger(*log.Logger) // logging support
-
-	EasyStoreImplConfig
-}
-
-// EasyStoreImplConfig - the implementation configuration structure
-type EasyStoreImplConfig interface {
-	// fill this in later, may end up hidden
+	Logger() *log.Logger   // logging support
+	SetLogger(*log.Logger) // logging support
 }
 
 // EasyStoreSerializer - used to serialize and deserialize our objects
@@ -174,11 +167,6 @@ func NewEasyStoreObject(id string) EasyStoreObject {
 // NewEasyStoreBlob - factory for our easystore blob object
 func NewEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
 	return newEasyStoreBlob(name, mimeType, payload)
-}
-
-// DefaultEasyStoreConfig - factory for the default easystore configuration object
-func DefaultEasyStoreConfig() EasyStoreConfig {
-	return newDefaultEasyStoreConfig()
 }
 
 // DefaultEasyStoreFields - factory for the default easystore fields object

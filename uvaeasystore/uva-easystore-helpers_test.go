@@ -12,6 +12,7 @@ import (
 )
 
 // test invariants
+var filesystem = "/tmp"
 var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
 var goodId = "oid:494af4cda213"
@@ -32,10 +33,12 @@ func newUniqueId() string {
 }
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(goodNamespace)
-	//config.Logger(log.Default())
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  goodNamespace,
+		//log:        log.Default(),
+	}
 
 	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {
@@ -45,10 +48,12 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 }
 
 func testSetup(t *testing.T) EasyStore {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(goodNamespace)
-	//config.Logger(log.Default())
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  goodNamespace,
+		//log:        log.Default(),
+	}
 
 	es, err := NewEasyStore(config)
 	if err != nil {

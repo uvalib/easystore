@@ -11,29 +11,21 @@ import (
 
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
-	config *easyStoreConfigImpl // configuration info
-	store  DataStore            // storage/persistence implementation
+	config EasyStoreConfig // configuration info
+	store  DataStore       // storage/persistence implementation
 }
 
 // factory for our easystore interface
 func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
-	// we know it's one of these
-	c, _ := config.(*easyStoreConfigImpl)
-
-	// validate the namespace
-	if len(c.namespace) == 0 {
-		return nil, ErrBadParameter
-	}
-
 	// create the data store for this namespace
-	s, err := NewDatastore(c.namespace, c.log)
+	s, err := NewDatastore(config)
 	if err != nil {
 		return nil, err
 	}
 
-	logInfo(c.log, fmt.Sprintf("new readonly easystore (ns: %s)", c.namespace))
-	return easyStoreReadonlyImpl{config: c, store: s}, nil
+	logInfo(config.Logger(), fmt.Sprintf("new readonly easystore"))
+	return easyStoreReadonlyImpl{config: config, store: s}, nil
 }
 
 func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -119,14 +111,14 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 		return nil, ErrBadParameter
 	}
 
-	logDebug(impl.config.log, fmt.Sprintf("getting by fields"))
+	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))
 
 	// first get the base objects (always required)
 	ids, err := impl.store.GetIdsByFields(fields)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
-			logInfo(impl.config.log, fmt.Sprintf("no objects found"))
+			logInfo(impl.config.Logger(), fmt.Sprintf("no objects found"))
 		} else {
 			return nil, err
 		}
@@ -174,14 +166,14 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 
 func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
 
-	logDebug(impl.config.log, fmt.Sprintf("getting oid [%s]", id))
+	logDebug(impl.config.Logger(), fmt.Sprintf("getting oid [%s]", id))
 
 	// get the base object (always required)
 	o, err := impl.store.GetObjectByOid(id)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
-			logInfo(impl.config.log, fmt.Sprintf("no object found for oid [%s]", id))
+			logInfo(impl.config.Logger(), fmt.Sprintf("no object found for oid [%s]", id))
 			return nil, ErrNotFound
 		} else {
 			return nil, err
@@ -194,14 +186,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// first get the fields (if required)
 	if (which & Fields) == Fields {
-		logDebug(impl.config.log, fmt.Sprintf("getting fields for oid [%s]", eso.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for oid [%s]", eso.Id()))
 		fields, err := impl.store.GetFieldsByOid(eso.Id())
 		if err == nil {
 			eso.SetFields(*fields)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no fields found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no fields found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}
@@ -210,14 +202,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.log, fmt.Sprintf("getting blobs for oid [%s]", eso.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for oid [%s]", eso.Id()))
 		blobs, err := impl.store.GetBlobsByOid(eso.Id())
 		if err == nil {
 			eso.SetFiles(blobs)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no blobs found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no blobs found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}
@@ -226,14 +218,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// lastly the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.log, fmt.Sprintf("getting metadata for oid [%s]", eso.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for oid [%s]", eso.Id()))
 		md, err := impl.store.GetMetadataByOid(eso.Id())
 		if err == nil {
 			eso.SetMetadata(md)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.log, fmt.Sprintf("no metadata found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no metadata found for oid [%s]", eso.Id()))
 			} else {
 				return nil, err
 			}

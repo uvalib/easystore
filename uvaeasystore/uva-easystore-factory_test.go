@@ -10,9 +10,11 @@ import (
 )
 
 func TestReadonlyEmptyNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace("")
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  "",
+	}
 
 	_, err := NewEasyStoreReadonly(config)
 	expected := ErrBadParameter
@@ -22,9 +24,11 @@ func TestReadonlyEmptyNamespace(t *testing.T) {
 }
 
 func TestReadonlyNotFoundNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(badNamespace)
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  badNamespace,
+	}
 
 	_, err := NewEasyStoreReadonly(config)
 	expected := ErrNamespaceNotFound
@@ -34,9 +38,11 @@ func TestReadonlyNotFoundNamespace(t *testing.T) {
 }
 
 func TestEmptyNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace("")
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  "",
+	}
 
 	_, err := NewEasyStore(config)
 	expected := ErrBadParameter
@@ -46,9 +52,11 @@ func TestEmptyNamespace(t *testing.T) {
 }
 
 func TestNotFoundNamespace(t *testing.T) {
-	config := DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(badNamespace)
+	config := datastoreSqliteConfig{
+		filesystem: filesystem,
+		namespace:  badNamespace,
+	}
 
 	_, err := NewEasyStore(config)
 	expected := ErrNamespaceNotFound

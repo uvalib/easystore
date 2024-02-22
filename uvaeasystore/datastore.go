@@ -6,7 +6,6 @@ package uvaeasystore
 
 import (
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 )
 
 // our storage interface
@@ -36,10 +35,17 @@ type DataStore interface {
 }
 
 // our factory
-func NewDatastore(namespace string, log *log.Logger) (DataStore, error) {
+func NewDatastore(config EasyStoreConfig) (DataStore, error) {
+
 	// mock implementation here if necessary
-	//return newPostgresStore(namespace, log)
-	return newSqliteStore(namespace, log)
+
+	// check for a sqlite configuration
+	_, ok := config.(datastoreSqliteConfig)
+	if ok == true {
+		return newSqliteStore(config)
+	}
+
+	return nil, ErrNotImplemented
 }
 
 //
