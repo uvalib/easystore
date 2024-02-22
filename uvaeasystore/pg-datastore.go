@@ -41,6 +41,12 @@ func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastorePostgresConfig", ErrBadParameter)
 	}
 
+	// validate our configuration
+	err := validatePostgresConfig(c)
+	if err != nil {
+		return nil, err
+	}
+
 	logDebug(config.Logger(), fmt.Sprintf("using [postgres:%s/%s] for storage", c.DbHost, c.DbName))
 
 	// connect to database (postgres)
@@ -56,6 +62,35 @@ func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	return &storage{c.Log, db}, nil
+}
+
+func validatePostgresConfig(config DatastorePostgresConfig) error {
+
+	if len(config.DbHost) == 0 {
+		return fmt.Errorf("%q: %w", "config.DbHost is blank", ErrBadParameter)
+	}
+
+	if len(config.DbName) == 0 {
+		return fmt.Errorf("%q: %w", "config.DbName is blank", ErrBadParameter)
+	}
+
+	if len(config.DbUser) == 0 {
+		return fmt.Errorf("%q: %w", "config.DbUser is blank", ErrBadParameter)
+	}
+
+	if len(config.DbPassword) == 0 {
+		return fmt.Errorf("%q: %w", "config.DbPassword is blank", ErrBadParameter)
+	}
+
+	if config.DbPort == 0 {
+		return fmt.Errorf("%q: %w", "config.DbPort is 0", ErrBadParameter)
+	}
+
+	if config.DbTimeout == 0 {
+		return fmt.Errorf("%q: %w", "config.DbTimeout is 0", ErrBadParameter)
+	}
+
+	return nil
 }
 
 //

@@ -37,15 +37,16 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	// validate our configuration
-	if len(c.Filesystem) == 0 || len(c.Namespace) == 0 {
-		return nil, ErrBadParameter
+	err := validateSqliteConfig(c)
+	if err != nil {
+		return nil, err
 	}
 
 	dataSourceName := fmt.Sprintf("%s/%s.db", c.Filesystem, c.Namespace)
 	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", dataSourceName))
 
 	// make sure it exists so we do not create an empty schema
-	_, err := os.Stat(dataSourceName)
+	_, err = os.Stat(dataSourceName)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
@@ -59,6 +60,19 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	return &storage{c.Log, db}, nil
+}
+
+func validateSqliteConfig(config DatastoreSqliteConfig) error {
+
+	if len(config.Filesystem) == 0 {
+		return fmt.Errorf("%q: %w", "config.Filesystem is blank", ErrBadParameter)
+	}
+
+	if len(config.Namespace) == 0 {
+		return fmt.Errorf("%q: %w", "config.Namespace is blank", ErrBadParameter)
+	}
+
+	return nil
 }
 
 //
