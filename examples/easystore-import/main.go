@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 )
 
 // main entry point
@@ -27,7 +28,15 @@ func main() {
 		//Log:        log.Default(),
 	}
 
-	log.Printf("INFO: creating easystore, namespace: %s", namespace)
+	//config := uvaeasystore.DatastorePostgresConfig{
+	//	DbHost:     os.Getenv("DBHOST"),
+	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//	DbName:     os.Getenv("DBNAME"),
+	//	DbUser:     os.Getenv("DBUSER"),
+	//	DbPassword: os.Getenv("DBPASSWD"),
+	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//	//  Log:        Log.Default(),
+	//}
 
 	es, err := uvaeasystore.NewEasyStore(config)
 	if err != nil {
@@ -157,6 +166,17 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 	}
 
 	return obj, nil
+}
+
+func asIntWithDefault(str string, def int) int {
+	if len(str) == 0 {
+		return def
+	}
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return def
+	}
+	return i
 }
 
 //

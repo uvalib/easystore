@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"testing"
 )
 
@@ -40,6 +41,16 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 		//Log:        Log.Default(),
 	}
 
+	//config := DatastorePostgresConfig{
+	//	DbHost:     os.Getenv("DBHOST"),
+	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//	DbName:     os.Getenv("DBNAME"),
+	//	DbUser:     os.Getenv("DBUSER"),
+	//	DbPassword: os.Getenv("DBPASSWD"),
+	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//  Log:        Log.Default(),
+	//}
+
 	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {
 		t.Fatalf("%t\n", err)
@@ -54,6 +65,16 @@ func testSetup(t *testing.T) EasyStore {
 		Namespace:  goodNamespace,
 		//Log:        Log.Default(),
 	}
+
+	//config := DatastorePostgresConfig{
+	//	DbHost:     os.Getenv("DBHOST"),
+	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//	DbName:     os.Getenv("DBNAME"),
+	//	DbUser:     os.Getenv("DBUSER"),
+	//	DbPassword: os.Getenv("DBPASSWD"),
+	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//  Log:        Log.Default(),
+	//}
 
 	es, err := NewEasyStore(config)
 	if err != nil {
@@ -153,6 +174,17 @@ func testEqual(t *testing.T, expected string, actual string) {
 	if expected != actual {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, actual)
 	}
+}
+
+func asIntWithDefault(str string, def int) int {
+	if len(str) == 0 {
+		return def
+	}
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return def
+	}
+	return i
 }
 
 //
