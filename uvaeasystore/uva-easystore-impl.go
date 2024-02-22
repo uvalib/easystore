@@ -14,7 +14,7 @@ type easyStoreImpl struct {
 // factory for our easystore interface
 func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 
-	// create the data store for this namespace
+	// create the data store for this Namespace
 	s, err := NewDatastore(config)
 	if err != nil {
 		return nil, err

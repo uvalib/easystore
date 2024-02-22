@@ -14,17 +14,17 @@ import (
 
 // DatastoreSqliteConfig -- this is our sqlite configuration implementation
 type DatastoreSqliteConfig struct {
-	namespace  string      // source file name
-	filesystem string      // the storage filesystem
-	log        *log.Logger // the logger
+	Namespace  string      // source file name
+	Filesystem string      // the storage Filesystem
+	Log        *log.Logger // the logger
 }
 
 func (impl DatastoreSqliteConfig) Logger() *log.Logger {
-	return impl.log
+	return impl.Log
 }
 
 func (impl DatastoreSqliteConfig) SetLogger(log *log.Logger) {
-	impl.log = log
+	impl.Log = log
 }
 
 // newSqliteStore -- create a sqlite version of the DataStore
@@ -37,11 +37,11 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	// validate our configuration
-	if len(c.filesystem) == 0 || len(c.namespace) == 0 {
+	if len(c.Filesystem) == 0 || len(c.Namespace) == 0 {
 		return nil, ErrBadParameter
 	}
 
-	dataSourceName := fmt.Sprintf("%s/%s.db", c.filesystem, c.namespace)
+	dataSourceName := fmt.Sprintf("%s/%s.db", c.Filesystem, c.Namespace)
 	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", dataSourceName))
 
 	// make sure it exists so we do not create an empty schema
@@ -58,7 +58,7 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	return &storage{c.log, db}, nil
+	return &storage{c.Log, db}, nil
 }
 
 //

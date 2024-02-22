@@ -35,9 +35,9 @@ func newUniqueId() string {
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  goodNamespace,
-		//log:        log.Default(),
+		Filesystem: filesystem,
+		Namespace:  goodNamespace,
+		//Log:        Log.Default(),
 	}
 
 	esro, err := NewEasyStoreReadonly(config)
@@ -50,9 +50,9 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 func testSetup(t *testing.T) EasyStore {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  goodNamespace,
-		//log:        log.Default(),
+		Filesystem: filesystem,
+		Namespace:  goodNamespace,
+		//Log:        Log.Default(),
 	}
 
 	es, err := NewEasyStore(config)

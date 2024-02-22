@@ -12,8 +12,8 @@ import (
 func TestReadonlyEmptyNamespace(t *testing.T) {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  "",
+		Filesystem: filesystem,
+		Namespace:  "",
 	}
 
 	_, err := NewEasyStoreReadonly(config)
@@ -26,8 +26,8 @@ func TestReadonlyEmptyNamespace(t *testing.T) {
 func TestReadonlyNotFoundNamespace(t *testing.T) {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  badNamespace,
+		Filesystem: filesystem,
+		Namespace:  badNamespace,
 	}
 
 	_, err := NewEasyStoreReadonly(config)
@@ -40,8 +40,8 @@ func TestReadonlyNotFoundNamespace(t *testing.T) {
 func TestEmptyNamespace(t *testing.T) {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  "",
+		Filesystem: filesystem,
+		Namespace:  "",
 	}
 
 	_, err := NewEasyStore(config)
@@ -54,8 +54,8 @@ func TestEmptyNamespace(t *testing.T) {
 func TestNotFoundNamespace(t *testing.T) {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		filesystem: filesystem,
-		namespace:  badNamespace,
+		Filesystem: filesystem,
+		Namespace:  badNamespace,
 	}
 
 	_, err := NewEasyStore(config)

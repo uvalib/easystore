@@ -18,7 +18,7 @@ type easyStoreReadonlyImpl struct {
 // factory for our easystore interface
 func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
-	// create the data store for this namespace
+	// create the data store for this Namespace
 	s, err := NewDatastore(config)
 	if err != nil {
 		return nil, err
