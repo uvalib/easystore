@@ -33,7 +33,7 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 	// make sure its one of these
 	c, ok := config.(DatastoreSqliteConfig)
 	if ok == false {
-		return nil, fmt.Errorf("%q: %w", "bad configuration, not a datastoreSqliteConfig", ErrBadParameter)
+		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastoreSqliteConfig", ErrBadParameter)
 	}
 
 	// validate our configuration

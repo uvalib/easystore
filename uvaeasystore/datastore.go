@@ -37,12 +37,18 @@ type DataStore interface {
 // our factory
 func NewDatastore(config EasyStoreConfig) (DataStore, error) {
 
-	// mock implementation here if necessary
+	// add a mock implementation here if necessary
 
 	// check for a sqlite configuration
 	_, ok := config.(DatastoreSqliteConfig)
 	if ok == true {
 		return newSqliteStore(config)
+	}
+
+	// check for postgres configuration
+	_, ok = config.(DatastorePostgresConfig)
+	if ok == true {
+		return newPostgresStore(config)
 	}
 
 	return nil, ErrNotImplemented
