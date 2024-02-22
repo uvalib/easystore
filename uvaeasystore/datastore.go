@@ -38,6 +38,7 @@ type DataStore interface {
 // our factory
 func NewDatastore(namespace string, log *log.Logger) (DataStore, error) {
 	// mock implementation here if necessary
+	//return newPostgresStore(namespace, log)
 	return newSqliteStore(namespace, log)
 }
 
