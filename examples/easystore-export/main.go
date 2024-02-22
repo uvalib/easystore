@@ -11,19 +11,22 @@ import (
 // main entry point
 func main() {
 
-	if len(os.Args) != 3 {
-		log.Fatalf("ERROR: use: %s <namespace> <export dir>", os.Args[0])
+	if len(os.Args) != 4 {
+		log.Fatalf("ERROR: use: %s <filesystem> <namespace> <export dir>", os.Args[0])
 	}
 
-	namespace := os.Args[1]
-	outdir := os.Args[2]
+	filesystem := os.Args[1]
+	namespace := os.Args[2]
+	outdir := os.Args[3]
 
-	config := uvaeasystore.DefaultEasyStoreConfig()
 	// configure what we need
-	config.Namespace(namespace)
-	//config.Logger(log.Default())
+	config := uvaeasystore.DatastoreSqliteConfig{
+		Filesystem: filesystem,
+		Namespace:  namespace,
+		//Log:        log.Default(),
+	}
 
-	log.Printf("INFO: creating easystore, namespace: %s", namespace)
+	//log.Printf("INFO: creating easystore, namespace: %s", namespace)
 
 	esro, err := uvaeasystore.NewEasyStoreReadonly(config)
 	if err != nil {
