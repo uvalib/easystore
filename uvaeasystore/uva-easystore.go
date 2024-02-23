@@ -29,12 +29,12 @@ var ErrDeserialize = fmt.Errorf("deserialization error")
 // EasyStoreComponents - the components that can appear in an object
 type EasyStoreComponents uint
 
-// Note that an object can have no fields, no fields and no files
+// Note that an object can have no fields, no metadata and no files
 const (
 	BaseComponent EasyStoreComponents = 0x00  // no additional components
 	Fields                            = 0x01  // fields component
 	Files                             = 0x10  // file details
-	Metadata                          = 0x100 // opaque fields component
+	Metadata                          = 0x100 // opaque metadata component
 
 	AllComponents = 0x111 // all components
 )
