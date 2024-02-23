@@ -1,0 +1,8 @@
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240222183035-2475c5671f9d h1:gKyLxIWEg/oB85650dHF7/BaC6pMmguRWRg9TYsKdCo=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240222183035-2475c5671f9d/go.mod h1:hyU5YmCyEUXNEXcuIRS7oQ24P9gmAjo5Dfh0ECMROS0=
+golang.org/x/exp v0.0.0-20240213143201-ec583247a57a h1:HinSgX1tJRX3KsL//Gxynpw5CTOAIPhgL4W8PNiIpVE=
+golang.org/x/exp v0.0.0-20240213143201-ec583247a57a/go.mod h1:CxmFvTBINI24O/j8iY7H1xHzx2i4OsyguNBmN/uPtqc=
