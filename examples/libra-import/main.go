@@ -88,12 +88,18 @@ func main() {
 
 			_, err = es.Create(obj)
 			if err != nil {
-				log.Printf("WARNING: importing object (%s), continuing", err.Error())
+				log.Printf("WARNING: importing oid [%s] (%s), continuing", obj.Id(), err.Error())
 				errCount++
 				continue
 			} else {
 				okCount++
 			}
+
+			// while we are developing
+			//if okCount >= 10 {
+			//	log.Printf("DEBUG: terminating after %d object(s)", okCount)
+			//	break
+			//}
 		}
 	}
 

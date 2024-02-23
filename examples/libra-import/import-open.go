@@ -40,14 +40,14 @@ func makeObjectFromOpen(serializer uvaeasystore.EasyStoreSerializer, indir strin
 	obj.SetMetadata(metadata)
 
 	// import files if they exist
-	buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-001.json", indir))
+	buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-1.json", indir))
 	if err == nil {
 
 		// for each possible blob file
 		blobs := make([]uvaeasystore.EasyStoreBlob, 0)
 		ix := 0
 		var blob uvaeasystore.EasyStoreBlob
-		buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-%03d.json", indir, ix+1))
+		buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-%d.json", indir, ix+1))
 		for err == nil {
 
 			blob, err = serializer.BlobDeserialize(buf)
@@ -55,19 +55,24 @@ func makeObjectFromOpen(serializer uvaeasystore.EasyStoreSerializer, indir strin
 				return nil, err
 			}
 
+			blob, err = loadBlobContent(indir, blob)
+			if err != nil {
+				return nil, err
+			}
+
 			blobs = append(blobs, blob)
 			ix++
-			buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-%03d.json", indir, ix+1))
+			buf, err = os.ReadFile(fmt.Sprintf("%s/fileset-%d.json", indir, ix+1))
 		}
 		if errors.Is(err, os.ErrNotExist) == true {
 			obj.SetFiles(blobs)
-			//log.Printf("DEBUG: ==> imported %d blob(s) for [%s]", ix, obj.Id())
+			log.Printf("INFO: ==> imported %d blob(s) for [%s]", ix, obj.Id())
 		} else {
 			return nil, err
 		}
 	} else {
 		if errors.Is(err, os.ErrNotExist) == true {
-			log.Printf("WARNING: no files for [%s]", obj.Id())
+			log.Printf("INFO: no files for [%s]", obj.Id())
 		} else {
 			return nil, err
 		}

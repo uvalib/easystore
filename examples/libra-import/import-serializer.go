@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
+	"strings"
 	"time"
 )
 
@@ -23,20 +24,58 @@ type libraEtdSerializer struct {
 
 func (impl libraOpenSerializer) BlobDeserialize(i interface{}) (uvaeasystore.EasyStoreBlob, error) {
 
-	blob := uvaeasystore.NewEasyStoreBlob("the name", "application/json", []byte("bla bla bla"))
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	// pull the first string from the title array
+	title, err := extractFirstString(omap["title"])
+	if err != nil {
+		return nil, err
+	}
+	blob := libraBlob{
+		name: title,
+	}
 	return blob, nil
 }
 
 func (impl libraOpenSerializer) FieldsDeserialize(i interface{}) (uvaeasystore.EasyStoreObjectFields, error) {
 
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	depositor, err := extractString(omap["depositor"])
+	if err != nil {
+		return nil, err
+	}
+
+	creator, err := extractFirstString(omap["creator"])
+	if err != nil {
+		return nil, err
+	}
+
 	fields := uvaeasystore.DefaultEasyStoreFields()
+	if len(depositor) != 0 {
+		fields["depositor"] = strings.ReplaceAll(depositor, "@virginia.edu", "")
+	}
+	if len(creator) != 0 {
+		fields["creator"] = strings.ReplaceAll(creator, "@virginia.edu", "")
+	}
+
 	return fields, nil
 }
 
 func (impl libraOpenSerializer) MetadataDeserialize(i interface{}) (uvaeasystore.EasyStoreMetadata, error) {
+
+	// all the metadata for now
 	metadata := libraMetadata{
-		mimeType: "application/plain",
-		payload:  []byte("blablabla"),
+		mimeType: "application/json",
+		payload:  i.([]byte),
 	}
 	return metadata, nil
 }
@@ -49,7 +88,12 @@ func (impl libraOpenSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.E
 		return nil, err
 	}
 
-	o := uvaeasystore.NewEasyStoreObject(omap["id"].(string))
+	id, err := extractString(omap["id"])
+	if err != nil {
+		return nil, err
+	}
+
+	o := uvaeasystore.NewEasyStoreObject(id)
 	return o, nil
 }
 
@@ -73,7 +117,10 @@ func (impl libraEtdSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.Ea
 	return nil, uvaeasystore.ErrNotImplemented
 }
 
-// custom metadata container
+//
+// Custom easystore objects
+//
+
 type libraMetadata struct {
 	mimeType string    // mime type (if we know it)
 	payload  []byte    // not exposed
@@ -98,6 +145,42 @@ func (impl libraMetadata) Created() time.Time {
 }
 
 func (impl libraMetadata) Modified() time.Time {
+	return impl.modified
+}
+
+type libraBlob struct {
+	name     string    // source file name
+	mimeType string    // mime type (if we know it)
+	payload  []byte    // not exposed
+	created  time.Time // created time
+	modified time.Time // last modified time
+}
+
+func (impl libraBlob) Name() string {
+	return impl.name
+}
+
+func (impl libraBlob) MimeType() string {
+	return impl.mimeType
+}
+
+func (impl libraBlob) Url() string {
+	return "https://does.not.work.fu"
+}
+
+func (impl libraBlob) Payload() []byte {
+	return impl.payload
+}
+
+func (impl libraBlob) PayloadNative() []byte {
+	return impl.payload
+}
+
+func (impl libraBlob) Created() time.Time {
+	return impl.created
+}
+
+func (impl libraBlob) Modified() time.Time {
 	return impl.modified
 }
 
@@ -146,57 +229,39 @@ func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 	// assume we are being passed a []byte
 	s, ok := i.([]byte)
 	if ok != true {
-		//fmt.Printf("cast error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", uvaeasystore.ErrDeserialize)
 	}
 
 	// deserialize to a map
 	var objmap map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", err.Error(), uvaeasystore.ErrDeserialize)
 	}
 
 	return objmap, nil
 }
 
-func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
-
-	// assume we are being passed a []byte
-	s, ok := i.([]byte)
+func extractFirstString(i interface{}) (string, error) {
+	fields, ok := i.([]interface{})
 	if ok != true {
-		//fmt.Printf("cast error deserializing: %s", i)
-		//return nil, ErrDeserialize
-		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", uvaeasystore.ErrDeserialize)
+		return "", fmt.Errorf("%q: %w", "field is not an array", uvaeasystore.ErrDeserialize)
 	}
-
-	// deserialize to a map
-	var objmap []map[string]interface{}
-	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error deserializing: %s", i)
-		//return nil, ErrDeserialize
-		return nil, fmt.Errorf("%q: %w", err.Error(), uvaeasystore.ErrDeserialize)
+	if len(fields) == 0 {
+		return "", nil
 	}
-
-	return objmap, nil
+	field, ok := fields[0].(string)
+	if ok != true {
+		return "", fmt.Errorf("%q: %w", "field is not a string", uvaeasystore.ErrDeserialize)
+	}
+	return field, nil
 }
 
-func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error) {
-
-	created, err1 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["created"].(string))
-	modified, err2 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["modified"].(string))
-
-	if err1 != nil {
-		return time.Now(), time.Now(), err1
+func extractString(i interface{}) (string, error) {
+	field, ok := i.(string)
+	if ok != true {
+		return "", fmt.Errorf("%q: %w", "field is not a string", uvaeasystore.ErrDeserialize)
 	}
-
-	if err2 != nil {
-		return time.Now(), time.Now(), err2
-	}
-
-	return created, modified, nil
+	return field, nil
 }
 
 //
