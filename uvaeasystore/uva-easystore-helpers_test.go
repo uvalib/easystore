@@ -38,7 +38,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	config := DatastoreSqliteConfig{
 		Filesystem: filesystem,
 		Namespace:  goodNamespace,
-		//Log:        Log.Default(),
+		//Log:        log.Default(),
 	}
 
 	//config := DatastorePostgresConfig{
@@ -48,7 +48,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	//	DbUser:     os.Getenv("DBUSER"),
 	//	DbPassword: os.Getenv("DBPASSWD"),
 	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//  Log:        Log.Default(),
+	//  Log:        log.Default(),
 	//}
 
 	esro, err := NewEasyStoreReadonly(config)
