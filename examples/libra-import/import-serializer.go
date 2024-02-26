@@ -103,19 +103,99 @@ func (impl libraOpenSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.E
 //
 
 func (impl libraEtdSerializer) BlobDeserialize(i interface{}) (uvaeasystore.EasyStoreBlob, error) {
-	return nil, uvaeasystore.ErrNotImplemented
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	// pull the first string from the title array
+	//fmt.Printf("DEBUG: getting title...\n")
+	title, err := extractFirstString(omap["title"])
+	if err != nil {
+		return nil, err
+	}
+	blob := libraBlob{
+		name: title,
+	}
+	return blob, nil
 }
 
 func (impl libraEtdSerializer) FieldsDeserialize(i interface{}) (uvaeasystore.EasyStoreObjectFields, error) {
-	return nil, uvaeasystore.ErrNotImplemented
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	//fmt.Printf("DEBUG: getting depositor...\n")
+	depositor, err := extractString(omap["depositor"])
+	if err != nil {
+		return nil, err
+	}
+
+	//fmt.Printf("DEBUG: getting creator...\n")
+	creator, err := extractString(omap["creator"])
+	if err != nil {
+		return nil, err
+	}
+
+	//fmt.Printf("DEBUG: getting embargo_state...\n")
+	visibility, err := extractString(omap["embargo_state"])
+	if err != nil {
+		return nil, err
+	}
+
+	//fmt.Printf("DEBUG: getting embargo_end_date...\n")
+	embargoRelease, err := extractString(omap["embargo_end_date"])
+	if err != nil {
+		// we can ignore this error
+		embargoRelease = ""
+	}
+
+	fields := uvaeasystore.DefaultEasyStoreFields()
+	fields["visibility"] = visibility
+
+	if len(depositor) != 0 {
+		fields["depositor"] = strings.ReplaceAll(depositor, "@virginia.edu", "")
+	}
+	if len(creator) != 0 {
+		fields["creator"] = strings.ReplaceAll(creator, "@virginia.edu", "")
+	}
+	if len(embargoRelease) != 0 && visibility == "restricted" {
+		fields["embargoRelease"] = embargoRelease
+	}
+
+	return fields, nil
 }
 
 func (impl libraEtdSerializer) MetadataDeserialize(i interface{}) (uvaeasystore.EasyStoreMetadata, error) {
-	return nil, uvaeasystore.ErrNotImplemented
+
+	// all the metadata for now
+	metadata := libraMetadata{
+		mimeType: "application/json",
+		payload:  []byte(base64.StdEncoding.EncodeToString(i.([]byte))),
+	}
+	return metadata, nil
 }
 
 func (impl libraEtdSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.EasyStoreObject, error) {
-	return nil, uvaeasystore.ErrNotImplemented
+
+	// convert to a map
+	omap, err := interfaceToMap(i)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := extractString(omap["id"])
+	if err != nil {
+		return nil, err
+	}
+
+	o := uvaeasystore.NewEasyStoreObject(id)
+	return o, nil
 }
 
 //
@@ -252,7 +332,7 @@ func extractFirstString(i interface{}) (string, error) {
 	}
 	field, ok := fields[0].(string)
 	if ok != true {
-		return "", fmt.Errorf("%q: %w", "field is not a string", uvaeasystore.ErrDeserialize)
+		return "", fmt.Errorf("%q: %w", "first field is not a string", uvaeasystore.ErrDeserialize)
 	}
 	return field, nil
 }

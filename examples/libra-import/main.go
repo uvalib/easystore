@@ -75,7 +75,7 @@ func main() {
 			log.Printf("DEBUG: importing from %s", dirname)
 
 			if mode == "etd" {
-				//obj, err = makeObjectFromEtd(serializer, dirname)
+				obj, err = makeObjectFromEtd(serializer, dirname)
 			} else {
 				obj, err = makeObjectFromOpen(serializer, dirname)
 			}
