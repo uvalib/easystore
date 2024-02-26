@@ -15,15 +15,21 @@ func main() {
 
 	var whatCmd string
 	var whereCmd string
+	var debug bool
+	var logger *log.Logger
 
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
+	flag.BoolVar(&debug, "debug", false, "Debugging information")
 	flag.Parse()
 
+	if debug == true {
+		logger = log.Default()
+	}
 	config := uvaeasystore.DatastoreSqliteConfig{
 		Filesystem: os.Getenv("SQLITEDIR"),
 		Namespace:  os.Getenv("SQLITEFILE"),
-		//Log:        log.Default(),
+		Log:        logger,
 	}
 
 	//config := uvaeasystore.DatastorePostgresConfig{
@@ -33,7 +39,7 @@ func main() {
 	//	DbUser:     os.Getenv("DBUSER"),
 	//	DbPassword: os.Getenv("DBPASSWD"),
 	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        Log.Default(),
+	//	//  Log:        logger,
 	//}
 
 	// what are we querying for
@@ -62,15 +68,19 @@ func main() {
 
 	// process results as appropriate
 	if results.Count() != 0 {
-		log.Printf("INFO: located %d object(s)...", results.Count())
+		total := results.Count()
+		current := 1
+		log.Printf("INFO: located %d object(s)...", total)
 		var obj uvaeasystore.EasyStoreObject
 		obj, err = results.Next()
 		for err == nil {
+			fmt.Printf("  ===> Id: %s (%d of %d)\n", obj.Id(), current, total)
 			err = outputObject(obj, what)
 			if err != nil {
 				log.Fatalf("ERROR: outputting result object (%s)", err.Error())
 			}
 			obj, err = results.Next()
+			current++
 		}
 	} else {
 		log.Printf("INFO: no objects found, terminating")
@@ -103,7 +113,6 @@ func queryEasyStore(esro uvaeasystore.EasyStoreReadonly, what uvaeasystore.EasyS
 
 func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreComponents) error {
 
-	fmt.Printf("  ===> Id: %s\n", obj.Id())
 	//fmt.Printf("       accessId: %s\n", obj.AccessId())
 
 	if what&uvaeasystore.Fields == uvaeasystore.Fields {
