@@ -1,5 +1,13 @@
-Make sure utils are installed:
+Make sure dependencies are installed.
+
+For macOS:
 brew install sqlite3 sqlite-utils
+
+For alpine:
+apk add git make go gcc sqlite-dev musl-dev
+
+For Debian:
+apt install git make gcc sqlite3
 
 To create the schema:
 sqlite3 /tmp/libraopen.db < db/sqlite/blobs.sql
