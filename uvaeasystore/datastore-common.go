@@ -87,7 +87,7 @@ func (s *storage) AddObject(obj EasyStoreObject) error {
 // GetBlobsByOid -- get all blob data associated with the specified object
 func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name != $2", oid, blobMetadataName)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name != $2 ORDER BY updated_at", oid, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 // GetFieldsByOid -- get all field data associated with the specified object
 func (s *storage) GetFieldsByOid(oid string) (*EasyStoreObjectFields, error) {
 
-	rows, err := s.Query("SELECT name, value FROM fields WHERE oid = $1", oid)
+	rows, err := s.Query("SELECT name, value FROM fields WHERE oid = $1 ORDER BY updated_at", oid)
 	if err != nil {
 		return nil, err
 	}
@@ -191,10 +191,10 @@ func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error)
 	var rows *sql.Rows
 	// just support 2 cases, no fields which means all objects or 1 set of fields
 	if len(fields) == 0 {
-		query := "SELECT distinct(oid) FROM metadata"
+		query := "SELECT distinct(oid) FROM metadata ORDER BY updated_at"
 		rows, err = s.Query(query)
 	} else {
-		query := "SELECT distinct(oid) FROM fields WHERE name = $1 AND value = $2"
+		query := "SELECT distinct(oid) FROM fields WHERE name = $1 AND value = $2 ORDER BY updated_at"
 		key := maps.Keys(fields)[0]
 		value := fields[key]
 		rows, err = s.Query(query, key, value)
