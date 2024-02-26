@@ -113,12 +113,13 @@ func queryEasyStore(esro uvaeasystore.EasyStoreReadonly, what uvaeasystore.EasyS
 
 func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreComponents) error {
 
-	//fmt.Printf("       accessId: %s\n", obj.AccessId())
+	fmt.Printf("       created: %s\n", obj.Created())
+	fmt.Printf("       updated: %s\n", obj.Modified())
 
 	if what&uvaeasystore.Fields == uvaeasystore.Fields {
 		if len(obj.Fields()) != 0 {
 			for n, v := range obj.Fields() {
-				fmt.Printf("       field %s=%s\n", n, v)
+				fmt.Printf("       field: %s=%s\n", n, v)
 			}
 		} else {
 			fmt.Printf("       no fields\n")
