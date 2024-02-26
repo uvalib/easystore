@@ -30,6 +30,16 @@ func makeObjectFromOpen(serializer uvaeasystore.EasyStoreSerializer, indir strin
 	if err != nil {
 		return nil, err
 	}
+
+	// get extras that do not appear in the work.json file
+	visibility := libraOpenVisibility(indir)
+	embargoRelease := libraOpenEmbargo(indir)
+	if len(visibility) != 0 {
+		fields["visibility"] = visibility
+	}
+	if len(embargoRelease) != 0 && visibility == "restricted" {
+		fields["embargoRelease"] = embargoRelease
+	}
 	obj.SetFields(fields)
 
 	// import metadata
@@ -79,6 +89,44 @@ func makeObjectFromOpen(serializer uvaeasystore.EasyStoreSerializer, indir strin
 	}
 
 	return obj, nil
+}
+
+func libraOpenVisibility(indir string) string {
+	buf, err := os.ReadFile(fmt.Sprintf("%s/visibility.json", indir))
+	if err != nil {
+		// assume no visibility information
+		return ""
+	}
+	omap, err := interfaceToMap(buf)
+	if err != nil {
+		// assume no visibility information
+		return ""
+	}
+	str, err := extractString(omap["visibility"])
+	if err != nil {
+		// assume no visibility information
+		return ""
+	}
+	return str
+}
+
+func libraOpenEmbargo(indir string) string {
+	buf, err := os.ReadFile(fmt.Sprintf("%s/embargo.json", indir))
+	if err != nil {
+		// assume no embargo information
+		return ""
+	}
+	omap, err := interfaceToMap(buf)
+	if err != nil {
+		// assume no embargo information
+		return ""
+	}
+	str, err := extractString(omap["embargo_release_date"])
+	if err != nil {
+		// assume no embargo information
+		return ""
+	}
+	return str
 }
 
 //
