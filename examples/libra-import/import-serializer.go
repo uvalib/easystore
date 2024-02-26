@@ -5,6 +5,7 @@
 package main
 
 import (
+	"encoding/base64"
 	//"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -75,7 +76,7 @@ func (impl libraOpenSerializer) MetadataDeserialize(i interface{}) (uvaeasystore
 	// all the metadata for now
 	metadata := libraMetadata{
 		mimeType: "application/json",
-		payload:  i.([]byte),
+		payload:  []byte(base64.StdEncoding.EncodeToString(i.([]byte))),
 	}
 	return metadata, nil
 }
