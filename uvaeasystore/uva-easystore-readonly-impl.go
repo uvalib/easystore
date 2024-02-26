@@ -93,15 +93,16 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 	}
 
 	// fully populate the objects
-	for ix, o := range objs {
-		var err error
-		objs[ix], err = impl.populateObject(o, which)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//for ix, o := range objs {
+	//	var err error
+	//	objs[ix], err = impl.populateObject(o, which)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
-	return newEasyStoreObjectSet(objs), nil
+	// we get objects only when they are required
+	return newEasyStoreObjectSet(impl, objs, which), nil
 }
 
 func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
@@ -149,15 +150,16 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 	}
 
 	// fully populate the objects
-	for ix, o := range objs {
-		var err error
-		objs[ix], err = impl.populateObject(o, which)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//for ix, o := range objs {
+	//	var err error
+	//	objs[ix], err = impl.populateObject(o, which)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
-	return newEasyStoreObjectSet(objs), nil
+	// we get objects only when they are required
+	return newEasyStoreObjectSet(impl, objs, which), nil
 }
 
 //

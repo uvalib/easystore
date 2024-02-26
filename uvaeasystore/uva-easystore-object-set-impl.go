@@ -10,13 +10,20 @@ import (
 
 // this is our easystore object implementation
 type easyStoreObjectSetImpl struct {
-	current uint              // current object index
-	objects []EasyStoreObject // object list
+	current uint                  // current object index
+	which   EasyStoreComponents   // which components are we requesting
+	objects []EasyStoreObject     // object list
+	store   easyStoreReadonlyImpl // we get objects when required
 }
 
 // factory for our easystore object set interface
-func newEasyStoreObjectSet(objs []EasyStoreObject) EasyStoreObjectSet {
-	return &easyStoreObjectSetImpl{current: 0, objects: objs}
+func newEasyStoreObjectSet(store easyStoreReadonlyImpl, objs []EasyStoreObject, which EasyStoreComponents) EasyStoreObjectSet {
+	return &easyStoreObjectSetImpl{
+		current: 0,
+		which:   which,
+		objects: objs,
+		store:   store,
+	}
 }
 
 func (impl *easyStoreObjectSetImpl) Count() uint {
@@ -30,7 +37,7 @@ func (impl *easyStoreObjectSetImpl) Next() (EasyStoreObject, error) {
 
 	prev := impl.current
 	impl.current++
-	return impl.objects[prev], nil
+	return impl.store.populateObject(impl.objects[prev], impl.which)
 }
 
 //
