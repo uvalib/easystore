@@ -170,6 +170,23 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	}
 }
 
+func ensureObjectHasFields(t *testing.T, obj EasyStoreObject, fields EasyStoreObjectFields) {
+
+	if len(obj.Fields()) == 0 {
+		t.Fatalf("expected object fields but got none\n")
+	}
+
+	if len(fields) == 0 {
+		t.Fatalf("expected reference fields but got none\n")
+	}
+
+	for n, v := range fields {
+		if obj.Fields()[n] != v {
+			t.Fatalf("expected field/value %s=%s but did not get it\n", n, v)
+		}
+	}
+}
+
 func testEqual(t *testing.T, expected string, actual string) {
 	if expected != actual {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, actual)

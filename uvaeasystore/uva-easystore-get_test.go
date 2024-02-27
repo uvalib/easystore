@@ -94,9 +94,8 @@ func TestGetByFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := DefaultEasyStoreFields()
 	//fields = make(map[string]string)
-	fields["thekey"] = "thevalue"
+	fields["key1"] = "value1"
 
-	//empty fields, should be all items
 	iter, err := esro.GetByFields(fields, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
@@ -111,12 +110,26 @@ func TestGetByFields(t *testing.T) {
 	o, err := iter.Next()
 	for err == nil {
 		validateObject(t, o, Fields)
+		ensureObjectHasFields(t, o, fields)
 		o, err = iter.Next()
 	}
 
 	if errors.Is(err, io.EOF) != true {
 		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
 	}
+
+	// enter bad field
+	//fields["key2"] = "value1"
+
+	//iter, err = esro.GetByFields(fields, Fields)
+	//if err != nil {
+	//	t.Fatalf("expected 'OK' but got '%s'\n", err)
+	//}
+
+	// ensure we did not receive objects
+	//if iter.Count() != 0 {
+	//	t.Fatalf("expected no objects but got some\n")
+	//}
 }
 
 func TestGetByEmptyFields(t *testing.T) {
