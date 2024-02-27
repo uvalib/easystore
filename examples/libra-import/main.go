@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
@@ -11,15 +12,22 @@ import (
 // main entry point
 func main() {
 
-	if len(os.Args) != 3 {
-		log.Fatalf("ERROR: use: %s <import dir> <mode, etd|open>", os.Args[0])
+	var inDir string
+	var mode string
+	var debug bool
+	var logger *log.Logger
+
+	flag.StringVar(&inDir, "importdir", "", "Import directory")
+	flag.StringVar(&mode, "mode", "", "Import mode, either 'etd' or 'open'")
+	flag.BoolVar(&debug, "debug", false, "Log debug information")
+	flag.Parse()
+
+	if debug == true {
+		logger = log.Default()
 	}
 
-	inputdir := os.Args[1]
-	mode := os.Args[2]
-
 	// validate
-	_, err := os.Stat(inputdir)
+	_, err := os.Stat(inDir)
 	if err != nil {
 		log.Fatalf("ERROR: import dir does not exist or is not readable (%s)", err.Error())
 	}
@@ -32,7 +40,7 @@ func main() {
 	config := uvaeasystore.DatastoreSqliteConfig{
 		Filesystem: os.Getenv("SQLITEDIR"),
 		Namespace:  os.Getenv("SQLITEFILE"),
-		//Log:        log.Default(),
+		Log:        logger,
 	}
 
 	//config := uvaeasystore.DatastorePostgresConfig{
@@ -42,7 +50,7 @@ func main() {
 	//	DbUser:     os.Getenv("DBUSER"),
 	//	DbPassword: os.Getenv("DBPASSWD"),
 	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        Log.Default(),
+	//	//  Log:        logger,
 	//}
 
 	es, err := uvaeasystore.NewEasyStore(config)
@@ -62,7 +70,7 @@ func main() {
 	errCount := 0
 	var obj uvaeasystore.EasyStoreObject
 
-	items, err := os.ReadDir(inputdir)
+	items, err := os.ReadDir(inDir)
 	if err != nil {
 		log.Fatalf("ERROR: %s", err.Error())
 	}
@@ -71,7 +79,7 @@ func main() {
 	for _, i := range items {
 		if i.IsDir() == true {
 
-			dirname := fmt.Sprintf("%s/%s", inputdir, i.Name())
+			dirname := fmt.Sprintf("%s/%s", inDir, i.Name())
 			log.Printf("DEBUG: importing from %s", dirname)
 
 			if mode == "etd" {

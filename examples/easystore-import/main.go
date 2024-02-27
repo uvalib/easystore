@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"io"
@@ -13,19 +14,23 @@ import (
 // main entry point
 func main() {
 
-	if len(os.Args) != 4 {
-		log.Fatalf("ERROR: use: %s <filesystem> <namespace> <import dir>", os.Args[0])
-	}
+	var inDir string
+	var debug bool
+	var logger *log.Logger
 
-	filesystem := os.Args[1]
-	namespace := os.Args[2]
-	indir := os.Args[3]
+	flag.StringVar(&inDir, "importdir", "", "Import directory")
+	flag.BoolVar(&debug, "debug", false, "Log debug information")
+	flag.Parse()
+
+	if debug == true {
+		logger = log.Default()
+	}
 
 	// configure what we need
 	config := uvaeasystore.DatastoreSqliteConfig{
-		Filesystem: filesystem,
-		Namespace:  namespace,
-		//Log:        log.Default(),
+		Filesystem: os.Getenv("SQLITEDIR"),
+		Namespace:  os.Getenv("SQLITEFILE"),
+		Log:        logger,
 	}
 
 	//config := uvaeasystore.DatastorePostgresConfig{
@@ -35,7 +40,7 @@ func main() {
 	//	DbUser:     os.Getenv("DBUSER"),
 	//	DbPassword: os.Getenv("DBPASSWD"),
 	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        Log.Default(),
+	//	//  Log:        logger,
 	//}
 
 	es, err := uvaeasystore.NewEasyStore(config)
@@ -49,7 +54,7 @@ func main() {
 	ix := 0
 	var obj uvaeasystore.EasyStoreObject
 	for true {
-		dirname := fmt.Sprintf("%s/export-%03d", indir, ix)
+		dirname := fmt.Sprintf("%s/export-%03d", inDir, ix)
 
 		// load the object
 		obj, err = makeObject(serializer, dirname)

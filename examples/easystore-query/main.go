@@ -20,12 +20,13 @@ func main() {
 
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
-	flag.BoolVar(&debug, "debug", false, "Debugging information")
+	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
 
 	if debug == true {
 		logger = log.Default()
 	}
+
 	config := uvaeasystore.DatastoreSqliteConfig{
 		Filesystem: os.Getenv("SQLITEDIR"),
 		Namespace:  os.Getenv("SQLITEFILE"),
