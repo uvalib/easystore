@@ -5,9 +5,8 @@
 package uvaeasystore
 
 import (
-	"encoding/hex"
 	"fmt"
-	"math/rand"
+	"github.com/rs/xid"
 	"strconv"
 	"testing"
 )
@@ -28,9 +27,7 @@ func newTestObject(id string) EasyStoreObject {
 }
 
 func newUniqueId() string {
-	b := make([]byte, 6) // equals 12 characters
-	rand.Read(b)
-	return fmt.Sprintf("oid:%s", hex.EncodeToString(b))
+	return fmt.Sprintf("oid:%s", xid.New().String())
 }
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
