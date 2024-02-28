@@ -3,10 +3,10 @@
 --
 
 -- drop the table if it exists
-DROP TABLE IF EXISTS metadata;
+DROP TABLE IF EXISTS objects;
 
 -- and create the new one
-CREATE TABLE metadata (
+CREATE TABLE objects (
    id         INTEGER PRIMARY KEY,
    oid        VARCHAR( 32 ) NOT NULL DEFAULT '' ,
    accessid   VARCHAR( 64 ) NOT NULL DEFAULT '',
@@ -16,13 +16,13 @@ CREATE TABLE metadata (
 );
 
 -- create the oid index
-CREATE INDEX metadata_oid_idx ON metadata(oid);
+CREATE INDEX object_oid_idx ON objects(oid);
 
 -- create the distinct index
-CREATE UNIQUE INDEX metadata_distinct_idx ON metadata(oid);
+CREATE UNIQUE INDEX objects_distinct_idx ON objects(oid);
 
 -- add some dummy data for testing
-INSERT INTO metadata(oid, accessid) values('oid:494af4cda213', 'aid:a90f18cde697');
+INSERT INTO objects(oid, accessid) values('oid:494af4cda213', 'aid:a90f18cde697');
 
 --
 -- end of file

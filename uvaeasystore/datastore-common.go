@@ -15,7 +15,7 @@ import (
 	"log"
 )
 
-// we store metadata as a blob so need to distinguish it as special
+// we store opaque metadata as a blob so need to distinguish it as special
 var blobMetadataName = "metadata.secret.hidden"
 
 // this is our DB implementation
@@ -72,10 +72,10 @@ func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
 	return errorMapper(err)
 }
 
-// AddObject -- add a new metadata object
+// AddObject -- add a new object
 func (s *storage) AddObject(obj EasyStoreObject) error {
 
-	stmt, err := s.Prepare("INSERT INTO metadata( oid, accessid ) VALUES( $1,$2 )")
+	stmt, err := s.Prepare("INSERT INTO objects( oid, accessid ) VALUES( $1,$2 )")
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (s *storage) GetMetadataByOid(oid string) (EasyStoreMetadata, error) {
 // GetObjectOid -- get all field data associated with the specified object
 func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
 
-	rows, err := s.Query("SELECT oid, accessid, created_at, updated_at FROM metadata WHERE oid = $1 LIMIT 1", oid)
+	rows, err := s.Query("SELECT oid, accessid, created_at, updated_at FROM objects WHERE oid = $1 LIMIT 1", oid)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (s *storage) DeleteMetadataByOid(oid string) error {
 // DeleteObjectByOid -- delete all field data associated with the specified object
 func (s *storage) DeleteObjectByOid(oid string) error {
 
-	stmt, err := s.Prepare("DELETE FROM metadata WHERE oid = $1")
+	stmt, err := s.Prepare("DELETE FROM objects WHERE oid = $1")
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error)
 	var rows *sql.Rows
 	// just support 2 cases, no fields which means all objects or 1 set of fields
 	if len(fields) == 0 {
-		query := "SELECT distinct(oid) FROM metadata ORDER BY updated_at"
+		query := "SELECT distinct(oid) FROM objects ORDER BY updated_at"
 		rows, err = s.Query(query)
 	} else {
 		query := "SELECT distinct(oid) FROM fields WHERE name = $1 AND value = $2 ORDER BY updated_at"
