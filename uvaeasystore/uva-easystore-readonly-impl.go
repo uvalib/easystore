@@ -28,7 +28,7 @@ func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 	return easyStoreReadonlyImpl{config: config, store: s}, nil
 }
 
-func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// validate the id
 	if len(id) == 0 {
@@ -41,7 +41,7 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 	}
 
 	// get the base object
-	o, err := impl.getById(id)
+	o, err := impl.getById(namespace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (impl easyStoreReadonlyImpl) GetById(id string, which EasyStoreComponents) 
 	return impl.populateObject(o, which)
 }
 
-func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// validate the id list
 	if len(ids) == 0 {
@@ -75,7 +75,7 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 	// build our list of objects
 	for _, id := range ids {
 		// get the base object
-		o, err := impl.getById(id)
+		o, err := impl.getById(namespace, id)
 		if err == nil {
 			objs = append(objs, o)
 		} else {
@@ -105,7 +105,7 @@ func (impl easyStoreReadonlyImpl) GetByIds(ids []string, which EasyStoreComponen
 	return newEasyStoreObjectSet(impl, objs, which), nil
 }
 
-func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// validate the component request
 	if which > AllComponents {
@@ -115,7 +115,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))
 
 	// first get the base objects (always required)
-	ids, err := impl.store.GetIdsByFields(fields)
+	ids, err := impl.store.GetIdsByFields(namespace, fields)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
@@ -136,7 +136,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 	// build our list of objects
 	for _, id := range ids {
 		// get the base object
-		o, err := impl.getById(id)
+		o, err := impl.getById(namespace, id)
 		if err == nil {
 			objs = append(objs, o)
 		} else {
@@ -166,12 +166,12 @@ func (impl easyStoreReadonlyImpl) GetByFields(fields EasyStoreObjectFields, whic
 // private methods
 //
 
-func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
+func (impl easyStoreReadonlyImpl) getById(namespace string, id string) (EasyStoreObject, error) {
 
-	logDebug(impl.config.Logger(), fmt.Sprintf("getting oid [%s]", id))
+	logDebug(impl.config.Logger(), fmt.Sprintf("getting ns [%s] oid [%s]", namespace, id))
 
 	// get the base object (always required)
-	o, err := impl.store.GetObjectByOid(id)
+	o, err := impl.store.GetObjectByKey(namespace, id)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
@@ -184,18 +184,18 @@ func (impl easyStoreReadonlyImpl) getById(id string) (EasyStoreObject, error) {
 	return o, nil
 }
 
-func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// first get the fields (if required)
 	if (which & Fields) == Fields {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for oid [%s]", eso.Id()))
-		fields, err := impl.store.GetFieldsByOid(eso.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for oid [%s]", obj.Id()))
+		fields, err := impl.store.GetFieldsByKey(obj.Namespace(), obj.Id())
 		if err == nil {
-			eso.SetFields(*fields)
+			obj.SetFields(*fields)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no fields found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no fields found for oid [%s]", obj.Id()))
 			} else {
 				return nil, err
 			}
@@ -204,14 +204,14 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// then, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for oid [%s]", eso.Id()))
-		blobs, err := impl.store.GetBlobsByOid(eso.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for oid [%s]", obj.Id()))
+		blobs, err := impl.store.GetBlobsByKey(obj.Namespace(), obj.Id())
 		if err == nil {
-			eso.SetFiles(blobs)
+			obj.SetFiles(blobs)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no blobs found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no blobs found for oid [%s]", obj.Id()))
 			} else {
 				return nil, err
 			}
@@ -220,21 +220,21 @@ func (impl easyStoreReadonlyImpl) populateObject(eso EasyStoreObject, which Easy
 
 	// lastly the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for oid [%s]", eso.Id()))
-		md, err := impl.store.GetMetadataByOid(eso.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for oid [%s]", obj.Id()))
+		md, err := impl.store.GetMetadataByKey(obj.Namespace(), obj.Id())
 		if err == nil {
-			eso.SetMetadata(md)
+			obj.SetMetadata(md)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no metadata found for oid [%s]", eso.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no metadata found for oid [%s]", obj.Id()))
 			} else {
 				return nil, err
 			}
 		}
 	}
 
-	return eso, nil
+	return obj, nil
 }
 
 //

@@ -84,8 +84,8 @@ func (s *storage) AddObject(obj EasyStoreObject) error {
 	return errorMapper(err)
 }
 
-// GetBlobsByOid -- get all blob data associated with the specified object
-func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
+// GetBlobsByKey -- get all blob data associated with the specified object
+func (s *storage) GetBlobsByKey(namespace string, oid string) ([]EasyStoreBlob, error) {
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name != $2 ORDER BY updated_at", oid, blobMetadataName)
 	if err != nil {
@@ -96,8 +96,8 @@ func (s *storage) GetBlobsByOid(oid string) ([]EasyStoreBlob, error) {
 	return blobResults(rows, s.log)
 }
 
-// GetFieldsByOid -- get all field data associated with the specified object
-func (s *storage) GetFieldsByOid(oid string) (*EasyStoreObjectFields, error) {
+// GetFieldsByKey -- get all field data associated with the specified object
+func (s *storage) GetFieldsByKey(namespace string, oid string) (*EasyStoreObjectFields, error) {
 
 	rows, err := s.Query("SELECT name, value FROM fields WHERE oid = $1 ORDER BY updated_at", oid)
 	if err != nil {
@@ -108,8 +108,8 @@ func (s *storage) GetFieldsByOid(oid string) (*EasyStoreObjectFields, error) {
 	return fieldResults(rows, s.log)
 }
 
-// GetMetadataByOid -- get all field data associated with the specified object
-func (s *storage) GetMetadataByOid(oid string) (EasyStoreMetadata, error) {
+// GetMetadataByKey -- get all field data associated with the specified object
+func (s *storage) GetMetadataByKey(namespace string, oid string) (EasyStoreMetadata, error) {
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name = $2 LIMIT 1", oid, blobMetadataName)
 	if err != nil {
@@ -132,8 +132,8 @@ func (s *storage) GetMetadataByOid(oid string) (EasyStoreMetadata, error) {
 	return md, nil
 }
 
-// GetObjectOid -- get all field data associated with the specified object
-func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
+// GetObjectByKey -- get all field data associated with the specified object
+func (s *storage) GetObjectByKey(namespace string, oid string) (EasyStoreObject, error) {
 
 	rows, err := s.Query("SELECT oid, accessid, created_at, updated_at FROM objects WHERE oid = $1 LIMIT 1", oid)
 	if err != nil {
@@ -144,8 +144,8 @@ func (s *storage) GetObjectByOid(oid string) (EasyStoreObject, error) {
 	return objectResults(rows, s.log)
 }
 
-// DeleteBlobsByOid -- delete all blob data associated with the specified object
-func (s *storage) DeleteBlobsByOid(oid string) error {
+// DeleteBlobsByKey -- delete all blob data associated with the specified object
+func (s *storage) DeleteBlobsByKey(namespace string, oid string) error {
 
 	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = $1 and name != $2")
 	if err != nil {
@@ -154,8 +154,8 @@ func (s *storage) DeleteBlobsByOid(oid string) error {
 	return execPreparedBy2(stmt, oid, blobMetadataName)
 }
 
-// DeleteFieldsByOid -- delete all field data associated with the specified object
-func (s *storage) DeleteFieldsByOid(oid string) error {
+// DeleteFieldsByKey -- delete all field data associated with the specified object
+func (s *storage) DeleteFieldsByKey(namespace string, oid string) error {
 
 	stmt, err := s.Prepare("DELETE FROM fields WHERE oid = $1")
 	if err != nil {
@@ -164,8 +164,8 @@ func (s *storage) DeleteFieldsByOid(oid string) error {
 	return execPreparedBy1(stmt, oid)
 }
 
-// DeleteMetadataByOid -- delete all field data associated with the specified object
-func (s *storage) DeleteMetadataByOid(oid string) error {
+// DeleteMetadataByKey -- delete all field data associated with the specified object
+func (s *storage) DeleteMetadataByKey(namespace string, oid string) error {
 
 	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = $1 AND name = $2")
 	if err != nil {
@@ -174,8 +174,8 @@ func (s *storage) DeleteMetadataByOid(oid string) error {
 	return execPreparedBy2(stmt, oid, blobMetadataName)
 }
 
-// DeleteObjectByOid -- delete all field data associated with the specified object
-func (s *storage) DeleteObjectByOid(oid string) error {
+// DeleteObjectByKey -- delete all field data associated with the specified object
+func (s *storage) DeleteObjectByKey(namespace string, oid string) error {
 
 	stmt, err := s.Prepare("DELETE FROM objects WHERE oid = $1")
 	if err != nil {
@@ -185,7 +185,7 @@ func (s *storage) DeleteObjectByOid(oid string) error {
 }
 
 // GetIdsByFields -- get a list of ids that have the supplied fields/values
-func (s *storage) GetIdsByFields(fields EasyStoreObjectFields) ([]string, error) {
+func (s *storage) GetIdsByFields(namespace string, fields EasyStoreObjectFields) ([]string, error) {
 
 	var err error
 	var rows *sql.Rows

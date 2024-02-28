@@ -74,7 +74,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 	}
 
 	// get the full object
-	return impl.GetById(obj.Id(), AllComponents)
+	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -98,7 +98,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 	if (which & Fields) == Fields {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating fields for oid [%s]", obj.Id()))
 		// delete the current fields
-		err := impl.store.DeleteFieldsByOid(obj.Id())
+		err := impl.store.DeleteFieldsByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 	if (which & Files) == Files {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating files for oid [%s]", obj.Id()))
 		// delete the current files
-		err := impl.store.DeleteBlobsByOid(obj.Id())
+		err := impl.store.DeleteBlobsByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +136,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 	if (which & Metadata) == Metadata {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating metadata for oid [%s]", obj.Id()))
 		// delete the current metadata
-		err := impl.store.DeleteMetadataByOid(obj.Id())
+		err := impl.store.DeleteMetadataByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +152,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 	}
 
 	// get the full object
-	return impl.GetById(obj.Id(), AllComponents)
+	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -175,7 +175,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	// special case, if we are asking for the base component, it means delete everything
 	if which == BaseComponent {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting oid [%s]", obj.Id()))
-		err := impl.store.DeleteObjectByOid(obj.Id())
+		err := impl.store.DeleteObjectByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +187,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	// do we delete fields
 	if (which & Fields) == Fields {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting fields for oid [%s]", obj.Id()))
-		err := impl.store.DeleteFieldsByOid(obj.Id())
+		err := impl.store.DeleteFieldsByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +196,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	// do we delete files
 	if (which & Files) == Files {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting files for oid [%s]", obj.Id()))
-		err := impl.store.DeleteBlobsByOid(obj.Id())
+		err := impl.store.DeleteBlobsByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -205,7 +205,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	// do we delete metadata
 	if (which & Metadata) == Metadata {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting metadata for oid [%s]", obj.Id()))
-		err := impl.store.DeleteMetadataByOid(obj.Id())
+		err := impl.store.DeleteMetadataByKey(obj.Namespace(), obj.Id())
 		if err != nil {
 			return nil, err
 		}

@@ -2,9 +2,9 @@
 // An easystore is a simple object storage abstraction offering rudimentary find
 // capabilities in addition to CRUD operations.
 //
-// Easystore objects all take a standard form consisting of a unique identifier,
+// Easystore objects all take a standard form consisting of a namespace/identifier pair,
 // zero or more name/value pairs (referred to as fields) which are used in the find
-// operations, an optional (opaque) block of textual fields (used by the caller, not the store)
+// operations, an optional (opaque) block of content (used by the caller, not easystore)
 // and zero or more binary objects (referred to as files).
 //
 
@@ -58,11 +58,11 @@ type EasyStoreObjectSet interface {
 type EasyStoreReadonly interface {
 
 	// get object(s) by identifier
-	GetById(string, EasyStoreComponents) (EasyStoreObject, error)
-	GetByIds([]string, EasyStoreComponents) (EasyStoreObjectSet, error)
+	GetByKey(string, string, EasyStoreComponents) (EasyStoreObject, error)
+	GetByKeys(string, []string, EasyStoreComponents) (EasyStoreObjectSet, error)
 
 	// get object(s) by fields, all specified are combined in an AND operation
-	GetByFields(EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
+	GetByFields(string, EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
 }
 
 // EasyStore - the store abstraction (read/write)
@@ -144,18 +144,12 @@ type EasyStoreSerializer interface {
 
 // NewEasyStore - factory for our EasyStore interface
 func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
-
-	// mock the implementation here if necessary
-	es, err := newEasyStore(config)
-	return es, err
+	return newEasyStore(config)
 }
 
 // NewEasyStoreReadonly - factory for our EasyStoreReadonly interface
 func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
-
-	// mock the implementation here if necessary
-	esro, err := newEasyStoreReadonly(config)
-	return esro, err
+	return newEasyStoreReadonly(config)
 }
 
 // NewEasyStoreObject - factory for our easystore object

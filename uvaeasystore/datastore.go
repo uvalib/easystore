@@ -19,25 +19,23 @@ type DataStore interface {
 	AddObject(EasyStoreObject) error
 
 	// get methods
-	GetBlobsByOid(string) ([]EasyStoreBlob, error)
-	GetFieldsByOid(string) (*EasyStoreObjectFields, error)
-	GetMetadataByOid(string) (EasyStoreMetadata, error)
-	GetObjectByOid(string) (EasyStoreObject, error)
+	GetBlobsByKey(string, string) ([]EasyStoreBlob, error)
+	GetFieldsByKey(string, string) (*EasyStoreObjectFields, error)
+	GetMetadataByKey(string, string) (EasyStoreMetadata, error)
+	GetObjectByKey(string, string) (EasyStoreObject, error)
 
 	// delete methods
-	DeleteBlobsByOid(string) error
-	DeleteFieldsByOid(string) error
-	DeleteMetadataByOid(string) error
-	DeleteObjectByOid(string) error
+	DeleteBlobsByKey(string, string) error
+	DeleteFieldsByKey(string, string) error
+	DeleteMetadataByKey(string, string) error
+	DeleteObjectByKey(string, string) error
 
 	// search methods
-	GetIdsByFields(EasyStoreObjectFields) ([]string, error)
+	GetIdsByFields(string, EasyStoreObjectFields) ([]string, error)
 }
 
 // our factory
 func NewDatastore(config EasyStoreConfig) (DataStore, error) {
-
-	// add a mock implementation here if necessary
 
 	// check for a sqlite configuration
 	_, ok := config.(DatastoreSqliteConfig)
