@@ -23,6 +23,10 @@ type easyStoreObjectImpl struct {
 // factory for our easystore object interface
 func newEasyStoreObject(namespace string, id string) EasyStoreObject {
 
+	// if a namespace is not provided, we use a default
+	if len(namespace) == 0 {
+		namespace = "default"
+	}
 	// if an identifier is not provided, one will be provided for you
 	if len(id) == 0 {
 		id = newObjectId()

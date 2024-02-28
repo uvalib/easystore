@@ -11,7 +11,7 @@ import (
 
 func TestObjectCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
 	o, err := es.Create(o)
@@ -25,7 +25,7 @@ func TestObjectCreate(t *testing.T) {
 
 func TestDuplicateObjectCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
 	o, err := es.Create(o)
@@ -43,7 +43,7 @@ func TestDuplicateObjectCreate(t *testing.T) {
 
 func TestFieldsCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some fields
 	fields := DefaultEasyStoreFields()
@@ -65,7 +65,7 @@ func TestFieldsCreate(t *testing.T) {
 
 func TestFilesCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
@@ -90,7 +90,7 @@ func TestFilesCreate(t *testing.T) {
 
 func TestDuplicateFilesCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
@@ -107,7 +107,7 @@ func TestDuplicateFilesCreate(t *testing.T) {
 
 func TestMetadataCreate(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some metadata
 	mimeType := "application/json"

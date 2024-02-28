@@ -11,7 +11,7 @@ import (
 
 func TestSimpleDelete(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
 	_, err := es.Create(o)
@@ -42,7 +42,7 @@ func TestSimpleDelete(t *testing.T) {
 
 func TestFieldsDelete(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some fields
 	fields := DefaultEasyStoreFields()
@@ -81,7 +81,7 @@ func TestFieldsDelete(t *testing.T) {
 
 func TestFilesDelete(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
 	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
@@ -120,7 +120,7 @@ func TestFilesDelete(t *testing.T) {
 
 func TestMetadataDelete(t *testing.T) {
 	es := testSetup(t)
-	o := newTestObject("")
+	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some metadata
 	mimeType := "application/json"

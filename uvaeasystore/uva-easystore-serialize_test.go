@@ -9,7 +9,7 @@ import (
 )
 
 func TestObjectSerialize(t *testing.T) {
-	obj := newTestObject("")
+	obj := NewEasyStoreObject(goodNamespace, "")
 	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and cast appropriately
@@ -24,7 +24,7 @@ func TestObjectSerialize(t *testing.T) {
 }
 
 func TestObjectDeserialize(t *testing.T) {
-	obj := newTestObject("")
+	obj := NewEasyStoreObject(goodNamespace, "")
 	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize

@@ -18,10 +18,6 @@ var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
 var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
-func newTestObject(id string) EasyStoreObject {
-	return NewEasyStoreObject(goodNamespace, id)
-}
-
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	// configure what we need
 	config := DatastoreSqliteConfig{
