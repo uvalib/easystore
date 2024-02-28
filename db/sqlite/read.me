@@ -10,14 +10,14 @@ For Debian:
 apt install git make gcc sqlite3
 
 To create the schema:
-sqlite3 /tmp/libraopen.db < db/sqlite/blobs.sql
-sqlite3 /tmp/libraopen.db < db/sqlite/fields.sql
-sqlite3 /tmp/libraopen.db < db/sqlite/objects.sql
+sqlite3 /tmp/sqlite.db < db/sqlite/blobs.sql
+sqlite3 /tmp/sqlite.db < db/sqlite/fields.sql
+sqlite3 /tmp/sqlite.db < db/sqlite/objects.sql
 
 To delete the store:
-rm /tmp/libraopen.db
+rm /tmp/sqlite.db
 
 To run queries against the store:
-sqlite-utils /tmp/libraopen.db "select * from blobs"
-sqlite-utils /tmp/libraopen.db "select * from fields"
-sqlite-utils /tmp/libraopen.db "select * from metadata"
+sqlite-utils /tmp/sqlite.db "select * from blobs"
+sqlite-utils /tmp/sqlite.db "select * from fields"
+sqlite-utils /tmp/sqlite.db "select * from objects"

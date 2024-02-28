@@ -20,7 +20,7 @@ import (
 // native ones can also be returned
 var ErrNotImplemented = fmt.Errorf("not implemented")
 var ErrBadParameter = fmt.Errorf("bad parameter")
-var ErrNamespaceNotFound = fmt.Errorf("the Namespace does not exist")
+var ErrFileNotFound = fmt.Errorf("the file does not exist")
 var ErrNotFound = fmt.Errorf("the object does not exist")
 var ErrStaleObject = fmt.Errorf("the object is stale")
 var ErrAlreadyExists = fmt.Errorf("the object already exists")

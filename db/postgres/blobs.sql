@@ -21,8 +21,8 @@ CREATE TABLE blobs (
 CREATE UNIQUE INDEX blobs_distinct_idx ON blobs(oid, name);
 
 -- add some dummy data for testing
-INSERT INTO blobs(oid,name,mimetype,payload) values('oid:494af4cda213', 'metadata.secret.hidden', 'application/json', 'eyJpZCI6MTIzLCJuYW1lIjoidGhlIG5hbWUifQ==');
-INSERT INTO blobs(oid,name,mimetype,payload) values('oid:494af4cda213', 'filename1.txt', 'text/plain', 'eyJpZCI6MTIzLCJuYW1lIjoidGhlIG5hbWUifQ==');
+INSERT INTO blobs(oid,name,mimetype,payload) values('oid:cnfivf6dfnu1a2a5l3fg', 'metadata.secret.hidden', 'application/json', 'eyJpZCI6MTIzLCJuYW1lIjoidGhlIG5hbWUifQ==');
+INSERT INTO blobs(oid,name,mimetype,payload) values('oid:cnfivf6dfnu1a2a5l3fg', 'filename1.txt', 'text/plain', 'eyJpZCI6MTIzLCJuYW1lIjoidGhlIG5hbWUifQ==');
 
 --
 -- end of file

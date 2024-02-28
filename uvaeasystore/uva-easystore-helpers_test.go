@@ -10,10 +10,11 @@ import (
 )
 
 // test invariants
-var filesystem = "/tmp"
+var goodSqliteFilename = "/tmp/sqlite.db"
+var badSqliteFilename = "/tmp/blablabla.db"
+
 var goodNamespace = "libraopen"
-var badNamespace = "blablabla"
-var goodId = "oid:494af4cda213"
+var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
 var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
@@ -24,8 +25,7 @@ func newTestObject(id string) EasyStoreObject {
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		Filesystem: filesystem,
-		Namespace:  goodNamespace,
+		DataSource: goodSqliteFilename,
 		//Log:        log.Default(),
 	}
 
@@ -49,8 +49,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 func testSetup(t *testing.T) EasyStore {
 	// configure what we need
 	config := DatastoreSqliteConfig{
-		Filesystem: filesystem,
-		Namespace:  goodNamespace,
+		DataSource: goodSqliteFilename,
 		//Log:        Log.Default(),
 	}
 

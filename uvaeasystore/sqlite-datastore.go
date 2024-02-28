@@ -14,8 +14,7 @@ import (
 
 // DatastoreSqliteConfig -- this is our sqlite configuration implementation
 type DatastoreSqliteConfig struct {
-	Namespace  string      // source file name
-	Filesystem string      // the storage Filesystem
+	DataSource string      // the storage file name
 	Log        *log.Logger // the logger
 }
 
@@ -42,16 +41,9 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	dataSourceName := fmt.Sprintf("%s/%s.db", c.Filesystem, c.Namespace)
-	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", dataSourceName))
+	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", c.DataSource))
 
-	// make sure it exists so we do not create an empty schema
-	_, err = os.Stat(dataSourceName)
-	if err != nil {
-		return nil, ErrNamespaceNotFound
-	}
-
-	db, err := sql.Open("sqlite3", dataSourceName)
+	db, err := sql.Open("sqlite3", c.DataSource)
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +56,14 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 
 func validateSqliteConfig(config DatastoreSqliteConfig) error {
 
-	if len(config.Filesystem) == 0 {
-		return fmt.Errorf("%q: %w", "config.Filesystem is blank", ErrBadParameter)
+	if len(config.DataSource) == 0 {
+		return fmt.Errorf("%q: %w", "config.DataSource is blank", ErrBadParameter)
 	}
 
-	if len(config.Namespace) == 0 {
-		return fmt.Errorf("%q: %w", "config.Namespace is blank", ErrBadParameter)
+	// make sure it exists
+	_, err := os.Stat(config.DataSource)
+	if err != nil {
+		return fmt.Errorf("%q: %w", err, ErrFileNotFound)
 	}
 
 	return nil

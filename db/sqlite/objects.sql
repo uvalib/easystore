@@ -22,7 +22,7 @@ CREATE INDEX object_oid_idx ON objects(oid);
 CREATE UNIQUE INDEX objects_distinct_idx ON objects(oid);
 
 -- add some dummy data for testing
-INSERT INTO objects(oid, accessid) values('oid:494af4cda213', 'aid:a90f18cde697');
+INSERT INTO objects(oid, accessid) values('oid:cnfivf6dfnu1a2a5l3fg', 'aid:cnfj2umdfnu1dp1130u0');
 
 --
 -- end of file

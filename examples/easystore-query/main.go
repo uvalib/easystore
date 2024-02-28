@@ -28,8 +28,7 @@ func main() {
 	}
 
 	config := uvaeasystore.DatastoreSqliteConfig{
-		Filesystem: os.Getenv("SQLITEDIR"),
-		Namespace:  os.Getenv("SQLITEFILE"),
+		DataSource: os.Getenv("SQLITEFILE"),
 		Log:        logger,
 	}
 
