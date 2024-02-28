@@ -14,8 +14,10 @@ import (
 )
 
 type libraOpenSerializer struct {
+	namespace string // our namespace
 }
 type libraEtdSerializer struct {
+	namespace string // our namespace
 }
 
 //
@@ -93,7 +95,7 @@ func (impl libraOpenSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.E
 		return nil, err
 	}
 
-	o := uvaeasystore.NewEasyStoreObject(id)
+	o := uvaeasystore.NewEasyStoreObject(impl.namespace, id)
 	return o, nil
 }
 
@@ -193,7 +195,7 @@ func (impl libraEtdSerializer) ObjectDeserialize(i interface{}) (uvaeasystore.Ea
 		return nil, err
 	}
 
-	o := uvaeasystore.NewEasyStoreObject(id)
+	o := uvaeasystore.NewEasyStoreObject(impl.namespace, id)
 	return o, nil
 }
 

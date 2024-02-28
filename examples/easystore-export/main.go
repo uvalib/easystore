@@ -13,10 +13,12 @@ import (
 // main entry point
 func main() {
 
+	var namespace string
 	var outDir string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&namespace, "namespace", "", "Namespace to export")
 	flag.StringVar(&outDir, "exportdir", "", "Export directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
@@ -50,7 +52,7 @@ func main() {
 	fields := uvaeasystore.DefaultEasyStoreFields()
 
 	// empty fields, should be all items
-	iter, err := esro.GetByFields(fields, uvaeasystore.AllComponents)
+	iter, err := esro.GetByFields(namespace, fields, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Fatalf("ERROR: getting objects (%s)", err.Error())
 	}
@@ -58,7 +60,7 @@ func main() {
 	log.Printf("INFO: received %d object(s)", iter.Count())
 
 	// use a standard serializer
-	serializer := uvaeasystore.DefaultEasyStoreSerializer(goodNamespace)
+	serializer := uvaeasystore.DefaultEasyStoreSerializer(namespace)
 
 	// go through the list of objects and dump each one
 	o, err := iter.Next()

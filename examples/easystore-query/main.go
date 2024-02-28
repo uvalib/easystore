@@ -13,11 +13,13 @@ import (
 // main entry point
 func main() {
 
+	var namespace string
 	var whatCmd string
 	var whereCmd string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&namespace, "namespace", "", "Namespace to query")
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
@@ -61,7 +63,7 @@ func main() {
 	}
 
 	// issue the query
-	results, err := queryEasyStore(esro, what, whereCmd)
+	results, err := queryEasyStore(namespace, esro, what, whereCmd)
 	if err != nil {
 		log.Fatalf("ERROR: querying easystore (%s)", err.Error())
 	}
@@ -87,14 +89,14 @@ func main() {
 	}
 }
 
-func queryEasyStore(esro uvaeasystore.EasyStoreReadonly, what uvaeasystore.EasyStoreComponents, whereCmd string) (uvaeasystore.EasyStoreObjectSet, error) {
+func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what uvaeasystore.EasyStoreComponents, whereCmd string) (uvaeasystore.EasyStoreObjectSet, error) {
 
 	// query by id
 	if strings.Contains(whereCmd, "oid=") {
 		oid := whereCmd[4:]
 		fmt.Printf("Querying by OID: %s\n", oid)
 		oids := []string{oid}
-		return esro.GetByIds(oids, what)
+		return esro.GetByKeys(namespace, oids, what)
 	}
 
 	// query by fields
@@ -108,7 +110,7 @@ func queryEasyStore(esro uvaeasystore.EasyStoreReadonly, what uvaeasystore.EasyS
 	}
 
 	// return query by fields
-	return esro.GetByFields(fields, what)
+	return esro.GetByFields(namespace, fields, what)
 }
 
 func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreComponents) error {

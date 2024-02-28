@@ -12,11 +12,13 @@ import (
 // main entry point
 func main() {
 
+	var namespace string
 	var inDir string
 	var mode string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&namespace, "namespace", "", "Namespace to import")
 	flag.StringVar(&inDir, "importdir", "", "Import directory")
 	flag.StringVar(&mode, "mode", "", "Import mode, either 'etd' or 'open'")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
@@ -60,9 +62,9 @@ func main() {
 	// use the appropriate serializer
 	var serializer uvaeasystore.EasyStoreSerializer
 	if mode == "etd" {
-		serializer = libraEtdSerializer{}
+		serializer = libraEtdSerializer{namespace: namespace}
 	} else {
-		serializer = libraOpenSerializer{}
+		serializer = libraOpenSerializer{namespace: namespace}
 	}
 
 	okCount := 0

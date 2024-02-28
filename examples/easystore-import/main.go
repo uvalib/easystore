@@ -14,10 +14,12 @@ import (
 // main entry point
 func main() {
 
+	var namespace string
 	var inDir string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&namespace, "namespace", "", "Namespace to import")
 	flag.StringVar(&inDir, "importdir", "", "Import directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
@@ -48,7 +50,7 @@ func main() {
 	}
 
 	// use a standard serializer
-	serializer := uvaeasystore.DefaultEasyStoreSerializer(goodNamespace)
+	serializer := uvaeasystore.DefaultEasyStoreSerializer(namespace)
 
 	ix := 0
 	var obj uvaeasystore.EasyStoreObject
