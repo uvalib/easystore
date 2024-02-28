@@ -38,7 +38,7 @@ func (s *storage) AddBlob(oid string, blob EasyStoreBlob) error {
 	}
 
 	// always store the payload in its native format
-	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), blob.PayloadNative())
+	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), blob.Payload())
 	return errorMapper(err)
 }
 
@@ -68,7 +68,7 @@ func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
 	}
 
 	// always store the payload in its native format
-	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.PayloadNative())
+	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.Payload())
 	return errorMapper(err)
 }
 

@@ -5,7 +5,6 @@
 package uvaeasystore
 
 import (
-	"encoding/base64"
 	"time"
 )
 
@@ -19,11 +18,7 @@ type easyStoreMetadataImpl struct {
 
 // factory for our easystore metadata interface
 func newEasyStoreMetadata(mimeType string, payload []byte) EasyStoreMetadata {
-	p := payload
-	if payload != nil {
-		p = []byte(base64.StdEncoding.EncodeToString(payload))
-	}
-	return &easyStoreMetadataImpl{mimeType: mimeType, payload: p}
+	return &easyStoreMetadataImpl{mimeType: mimeType, payload: payload}
 }
 
 func (impl easyStoreMetadataImpl) MimeType() string {
@@ -31,11 +26,6 @@ func (impl easyStoreMetadataImpl) MimeType() string {
 }
 
 func (impl easyStoreMetadataImpl) Payload() []byte {
-	b, _ := base64.StdEncoding.DecodeString(string(impl.payload))
-	return b
-}
-
-func (impl easyStoreMetadataImpl) PayloadNative() []byte {
 	return impl.payload
 }
 

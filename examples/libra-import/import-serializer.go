@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/base64"
 	//"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -76,7 +75,7 @@ func (impl libraOpenSerializer) MetadataDeserialize(i interface{}) (uvaeasystore
 	// all the metadata for now
 	metadata := libraMetadata{
 		mimeType: "application/json",
-		payload:  []byte(base64.StdEncoding.EncodeToString(i.([]byte))),
+		payload:  i.([]byte),
 	}
 	return metadata, nil
 }
@@ -176,7 +175,7 @@ func (impl libraEtdSerializer) MetadataDeserialize(i interface{}) (uvaeasystore.
 	// all the metadata for now
 	metadata := libraMetadata{
 		mimeType: "application/json",
-		payload:  []byte(base64.StdEncoding.EncodeToString(i.([]byte))),
+		payload:  i.([]byte),
 	}
 	return metadata, nil
 }
@@ -217,10 +216,6 @@ func (impl libraMetadata) Payload() []byte {
 	return impl.payload
 }
 
-func (impl libraMetadata) PayloadNative() []byte {
-	return impl.payload
-}
-
 func (impl libraMetadata) Created() time.Time {
 	return impl.created
 }
@@ -250,10 +245,6 @@ func (impl libraBlob) Url() string {
 }
 
 func (impl libraBlob) Payload() []byte {
-	return impl.payload
-}
-
-func (impl libraBlob) PayloadNative() []byte {
 	return impl.payload
 }
 

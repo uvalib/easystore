@@ -107,17 +107,15 @@ type EasyStoreBlob interface {
 	Url() string // not sure, one of these
 	//io.Reader
 
-	Payload() []byte       // the payload as stored
-	PayloadNative() []byte // may be a native storage format
+	Payload() []byte // the payload as stored
 
 	EasyStoreCommon // any common fields
 }
 
 // EasyStoreMetadata - represents a binary (opaque) object
 type EasyStoreMetadata interface {
-	MimeType() string      // can we type this in some way
-	Payload() []byte       // the payload as stored
-	PayloadNative() []byte // may be a native storage format
+	MimeType() string // can we type this in some way
+	Payload() []byte  // the payload as stored
 
 	EasyStoreCommon // any common fields
 }

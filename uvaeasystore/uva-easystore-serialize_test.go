@@ -149,8 +149,8 @@ func TestMetadataDeserialize(t *testing.T) {
 
 	// add some metadata
 	mimeType := "application/json"
-	payload := "{\"id\":12345}"
-	metadata := newEasyStoreMetadata(mimeType, []byte(payload))
+	payload := []byte("{\"id\":\"xyz\"}")
+	metadata := newEasyStoreMetadata(mimeType, payload)
 	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize

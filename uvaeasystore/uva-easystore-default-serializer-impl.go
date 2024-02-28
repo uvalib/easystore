@@ -5,9 +5,9 @@
 package uvaeasystore
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -85,7 +85,7 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
-		base64.StdEncoding.EncodeToString(b.Payload()),
+		b.Payload(),
 		b.Created().UTC(),
 		b.Modified().UTC(),
 	)
@@ -100,11 +100,10 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		return nil, err
 	}
 
-	payload, _ := base64.StdEncoding.DecodeString(omap["payload"].(string))
 	b := newEasyStoreBlob(
 		omap["name"].(string),
 		omap["mime-type"].(string),
-		payload)
+		[]byte(omap["payload"].(string)))
 
 	return b, nil
 }
@@ -114,7 +113,7 @@ func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) inter
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.MimeType(),
-		base64.StdEncoding.EncodeToString(o.Payload()),
+		jsonEscape(o.Payload()),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
@@ -129,8 +128,7 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 		return nil, err
 	}
 
-	payload, _ := base64.StdEncoding.DecodeString(omap["payload"].(string))
-	md := newEasyStoreMetadata(omap["mime-type"].(string), payload)
+	md := newEasyStoreMetadata(omap["mime-type"].(string), []byte(omap["payload"].(string)))
 	meta := md.(*easyStoreMetadataImpl)
 	meta.created, meta.modified, err = timestampExtract(omap)
 	if err != nil {
@@ -149,16 +147,12 @@ func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 	// assume we are being passed a []byte
 	s, ok := i.([]byte)
 	if ok != true {
-		//fmt.Printf("cast error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
 	}
 
 	// deserialize to a map
 	var objmap map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
 	}
 
@@ -170,16 +164,12 @@ func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 	// assume we are being passed a []byte
 	s, ok := i.([]byte)
 	if ok != true {
-		//fmt.Printf("cast error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
 	}
 
 	// deserialize to a map
 	var objmap []map[string]interface{}
 	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
-		//fmt.Printf("unmarshal error deserializing: %s", i)
-		//return nil, ErrDeserialize
 		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
 	}
 
@@ -200,6 +190,13 @@ func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error)
 	}
 
 	return created, modified, nil
+}
+
+func jsonEscape(buf []byte) []byte {
+
+	b := string(buf)
+	str := strings.Replace(b, "\"", "\\\"", -1)
+	return []byte(str)
 }
 
 func newEasyStoreSerializer(namespace string) EasyStoreSerializer {

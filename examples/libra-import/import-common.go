@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"net/http"
@@ -26,8 +25,7 @@ func loadBlobContent(indir string, blob uvaeasystore.EasyStoreBlob) (uvaeasystor
 
 	// set the fields
 	b.mimeType = http.DetectContentType(buf)
-	// we base64 encode content
-	b.payload = []byte(base64.StdEncoding.EncodeToString(buf))
+	b.payload = buf
 	return b, nil
 }
 
