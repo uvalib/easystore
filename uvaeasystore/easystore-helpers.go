@@ -5,6 +5,8 @@
 package uvaeasystore
 
 import (
+	"fmt"
+	"github.com/rs/xid"
 	"log"
 )
 
@@ -34,6 +36,14 @@ func logInfo(log *log.Logger, msg string) {
 	} else {
 		//fmt.Printf("INFO: %s\n", msg)
 	}
+}
+
+func newAccessId() string {
+	return fmt.Sprintf("aid:%s", xid.New().String())
+}
+
+func newObjectId() string {
+	return fmt.Sprintf("oid:%s", xid.New().String())
 }
 
 //

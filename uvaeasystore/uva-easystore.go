@@ -83,8 +83,9 @@ type EasyStore interface {
 
 // EasyStoreObject - the objects stored in the easystore
 type EasyStoreObject interface {
-	Id() string       // object Id
-	AccessId() string // object access handle
+	Namespace() string // the object namespace
+	Id() string        // object Id
+	AccessId() string  // object access handle
 
 	Fields() EasyStoreObjectFields // the fields
 	Metadata() EasyStoreMetadata   // the opaque metadata
@@ -160,8 +161,8 @@ func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 }
 
 // NewEasyStoreObject - factory for our easystore object
-func NewEasyStoreObject(id string) EasyStoreObject {
-	return newEasyStoreObject(id)
+func NewEasyStoreObject(namespace string, id string) EasyStoreObject {
+	return newEasyStoreObject(namespace, id)
 }
 
 // NewEasyStoreBlob - factory for our easystore blob object
@@ -176,8 +177,8 @@ func DefaultEasyStoreFields() EasyStoreObjectFields {
 }
 
 // DefaultEasyStoreSerializer - factory for the default easystore serializer
-func DefaultEasyStoreSerializer() EasyStoreSerializer {
-	return newEasyStoreSerializer()
+func DefaultEasyStoreSerializer(namespace string) EasyStoreSerializer {
+	return newEasyStoreSerializer(namespace)
 }
 
 //

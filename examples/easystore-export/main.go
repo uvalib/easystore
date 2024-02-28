@@ -59,7 +59,7 @@ func main() {
 	log.Printf("INFO: received %d object(s)", iter.Count())
 
 	// use a standard serializer
-	serializer := uvaeasystore.DefaultEasyStoreSerializer()
+	serializer := uvaeasystore.DefaultEasyStoreSerializer(goodNamespace)
 
 	// go through the list of objects and dump each one
 	o, err := iter.Next()

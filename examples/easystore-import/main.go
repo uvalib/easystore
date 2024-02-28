@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// use a standard serializer
-	serializer := uvaeasystore.DefaultEasyStoreSerializer()
+	serializer := uvaeasystore.DefaultEasyStoreSerializer(goodNamespace)
 
 	ix := 0
 	var obj uvaeasystore.EasyStoreObject

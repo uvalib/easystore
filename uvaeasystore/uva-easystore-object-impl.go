@@ -5,29 +5,37 @@
 package uvaeasystore
 
 import (
-	"encoding/hex"
-	"fmt"
-	"math/rand"
 	"time"
 )
 
 // this is our easystore object implementation
 type easyStoreObjectImpl struct {
-	id       string                // object identifier
-	accessId string                // object access Id (opaque)
-	created  time.Time             // created time
-	modified time.Time             // last modified time
-	fields   EasyStoreObjectFields // object fields
-	metadata EasyStoreMetadata     // object metadata (its an opaque blob)
-	files    []EasyStoreBlob       // object files
+	namespace string                // object namespace
+	id        string                // object identifier
+	accessId  string                // object access Id (opaque)
+	created   time.Time             // created time
+	modified  time.Time             // last modified time
+	fields    EasyStoreObjectFields // object fields
+	metadata  EasyStoreMetadata     // object metadata (its an opaque blob)
+	files     []EasyStoreBlob       // object files
 }
 
 // factory for our easystore object interface
-func newEasyStoreObject(id string) EasyStoreObject {
-	return &easyStoreObjectImpl{
-		id:       id,
-		accessId: newAccessId(),
+func newEasyStoreObject(namespace string, id string) EasyStoreObject {
+
+	// if an identifier is not provided, one will be provided for you
+	if len(id) == 0 {
+		id = newObjectId()
 	}
+	return &easyStoreObjectImpl{
+		namespace: namespace,
+		id:        id,
+		accessId:  newAccessId(),
+	}
+}
+
+func (impl *easyStoreObjectImpl) Namespace() string {
+	return impl.namespace
 }
 
 func (impl *easyStoreObjectImpl) Id() string {
@@ -68,12 +76,6 @@ func (impl *easyStoreObjectImpl) SetMetadata(metadata EasyStoreMetadata) {
 
 func (impl *easyStoreObjectImpl) SetFiles(files []EasyStoreBlob) {
 	impl.files = files
-}
-
-func newAccessId() string {
-	b := make([]byte, 6) // equals 12 characters
-	rand.Read(b)
-	return fmt.Sprintf("aid:%s", hex.EncodeToString(b))
 }
 
 //

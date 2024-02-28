@@ -5,8 +5,6 @@
 package uvaeasystore
 
 import (
-	"fmt"
-	"github.com/rs/xid"
 	"strconv"
 	"testing"
 )
@@ -20,14 +18,7 @@ var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 func newTestObject(id string) EasyStoreObject {
-	if len(id) == 0 {
-		id = newUniqueId()
-	}
-	return NewEasyStoreObject(id)
-}
-
-func newUniqueId() string {
-	return fmt.Sprintf("oid:%s", xid.New().String())
+	return NewEasyStoreObject(goodNamespace, id)
 }
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {

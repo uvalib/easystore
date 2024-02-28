@@ -13,6 +13,7 @@ import (
 
 // this is our easystore blob implementation
 type easyStoreSerializerImpl struct {
+	namespace string // the object namespace
 }
 
 func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface{} {
@@ -35,7 +36,7 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 		return nil, err
 	}
 
-	o := newEasyStoreObject(omap["id"].(string))
+	o := newEasyStoreObject("bla bla bla", omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
 	obj.accessId = omap["accessid"].(string)
 	obj.created, obj.modified, err = timestampExtract(omap)
@@ -201,8 +202,8 @@ func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error)
 	return created, modified, nil
 }
 
-func newEasyStoreSerializer() EasyStoreSerializer {
-	return &easyStoreSerializerImpl{}
+func newEasyStoreSerializer(namespace string) EasyStoreSerializer {
+	return &easyStoreSerializerImpl{namespace: namespace}
 }
 
 //

@@ -10,7 +10,7 @@ import (
 
 func TestObjectSerialize(t *testing.T) {
 	obj := newTestObject("")
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and cast appropriately
 	i := serializer.ObjectSerialize(obj)
@@ -25,7 +25,7 @@ func TestObjectSerialize(t *testing.T) {
 
 func TestObjectDeserialize(t *testing.T) {
 	obj := newTestObject("")
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize
 	i := serializer.ObjectSerialize(obj)
@@ -48,7 +48,7 @@ func TestObjectDeserialize(t *testing.T) {
 
 func TestBlobSerialize(t *testing.T) {
 	blob := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and cast appropriately
 	i := serializer.BlobSerialize(blob)
@@ -63,7 +63,7 @@ func TestBlobSerialize(t *testing.T) {
 
 func TestBlobDeserialize(t *testing.T) {
 	blob := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize
 	i := serializer.BlobSerialize(blob)
@@ -88,7 +88,7 @@ func TestFieldsSerialize(t *testing.T) {
 	fields := DefaultEasyStoreFields()
 	fields["field1"] = "value1"
 	fields["field2"] = "value2"
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and cast appropriately
 	i := serializer.FieldsSerialize(fields)
@@ -105,7 +105,7 @@ func TestFieldsDeserialize(t *testing.T) {
 	fields := DefaultEasyStoreFields()
 	fields["field1"] = "value1"
 	fields["field2"] = "value2"
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize
 	i := serializer.FieldsSerialize(fields)
@@ -132,7 +132,7 @@ func TestMetadataSerialize(t *testing.T) {
 	mimeType := "application/json"
 	payload := "{\"id\":12345}"
 	metadata := newEasyStoreMetadata(mimeType, []byte(payload))
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and cast appropriately
 	i := serializer.MetadataSerialize(metadata)
@@ -151,7 +151,7 @@ func TestMetadataDeserialize(t *testing.T) {
 	mimeType := "application/json"
 	payload := "{\"id\":12345}"
 	metadata := newEasyStoreMetadata(mimeType, []byte(payload))
-	serializer := DefaultEasyStoreSerializer()
+	serializer := DefaultEasyStoreSerializer(goodNamespace)
 
 	// serialize and deserialize
 	i := serializer.MetadataSerialize(metadata)
