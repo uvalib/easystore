@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"os"
 	"strconv"
 	"testing"
 )
@@ -14,26 +15,35 @@ var goodSqliteFilename = "/tmp/sqlite.db"
 var badSqliteFilename = "/tmp/blablabla.db"
 
 var goodNamespace = "libraopen"
+var badNamespace = "blablabla"
 var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
 var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
-func testSetupReadonly(t *testing.T) EasyStoreReadonly {
-	// configure what we need
-	config := DatastoreSqliteConfig{
-		DataSource: goodSqliteFilename,
-		//Log:        log.Default(),
-	}
+// can be "sqlite" or "postgres"
+var datastore = "sqlite"
 
-	//config := DatastorePostgresConfig{
-	//	DbHost:     os.Getenv("DBHOST"),
-	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//	DbName:     os.Getenv("DBNAME"),
-	//	DbUser:     os.Getenv("DBUSER"),
-	//	DbPassword: os.Getenv("DBPASSWD"),
-	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//  Log:        log.Default(),
-	//}
+func testSetupReadonly(t *testing.T) EasyStoreReadonly {
+
+	// configure what we need
+	var config EasyStoreConfig
+	if datastore == "sqlite" {
+		config = DatastoreSqliteConfig{
+			DataSource: goodSqliteFilename,
+			//Log:        log.Default(),
+		}
+	} else {
+
+		config = DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASSWD"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			//Log:        log.Default(),
+		}
+	}
 
 	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {
@@ -43,21 +53,23 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 }
 
 func testSetup(t *testing.T) EasyStore {
-	// configure what we need
-	config := DatastoreSqliteConfig{
-		DataSource: goodSqliteFilename,
-		//Log:        Log.Default(),
+	var config EasyStoreConfig
+	if datastore == "sqlite" {
+		config = DatastoreSqliteConfig{
+			DataSource: goodSqliteFilename,
+			//Log:        log.Default(),
+		}
+	} else {
+		config = DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASSWD"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			//  Log:        log.Default(),
+		}
 	}
-
-	//config := DatastorePostgresConfig{
-	//	DbHost:     os.Getenv("DBHOST"),
-	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//	DbName:     os.Getenv("DBNAME"),
-	//	DbUser:     os.Getenv("DBUSER"),
-	//	DbPassword: os.Getenv("DBPASSWD"),
-	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//  Log:        Log.Default(),
-	//}
 
 	es, err := NewEasyStore(config)
 	if err != nil {

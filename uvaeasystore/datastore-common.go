@@ -30,28 +30,28 @@ func (s *storage) Check() error {
 }
 
 // AddBlob -- add a new blob object
-func (s *storage) AddBlob(oid string, blob EasyStoreBlob) error {
+func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
-	stmt, err := s.Prepare("INSERT INTO blobs( oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4 )")
+	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
 	if err != nil {
 		return err
 	}
 
 	// always store the payload in its native format
-	_, err = stmt.Exec(oid, blob.Name(), blob.MimeType(), blob.Payload())
+	_, err = stmt.Exec(key.namespace, key.objectId, blob.Name(), blob.MimeType(), blob.Payload())
 	return errorMapper(err)
 }
 
 // AddFields -- add a new fields object
-func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
+func (s *storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
 
-	stmt, err := s.Prepare("INSERT INTO fields( oid, name, value ) VALUES( $1,$2,$3 )")
+	stmt, err := s.Prepare("INSERT INTO fields( namespace, oid, name, value ) VALUES( $1,$2,$3,$4 )")
 	if err != nil {
 		return err
 	}
 
 	for n, v := range fields {
-		_, err = stmt.Exec(oid, n, v)
+		_, err = stmt.Exec(key.namespace, key.objectId, n, v)
 		if err != nil {
 			return errorMapper(err)
 		}
@@ -60,34 +60,33 @@ func (s *storage) AddFields(oid string, fields EasyStoreObjectFields) error {
 }
 
 // AddMetadata -- add a new metadata object
-func (s *storage) AddMetadata(oid string, obj EasyStoreMetadata) error {
+func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 
-	stmt, err := s.Prepare("INSERT INTO blobs( oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4 )")
+	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
 	if err != nil {
 		return err
 	}
 
 	// always store the payload in its native format
-	_, err = stmt.Exec(oid, blobMetadataName, obj.MimeType(), obj.Payload())
+	_, err = stmt.Exec(key.namespace, key.objectId, blobMetadataName, obj.MimeType(), obj.Payload())
 	return errorMapper(err)
 }
 
 // AddObject -- add a new object
 func (s *storage) AddObject(obj EasyStoreObject) error {
 
-	stmt, err := s.Prepare("INSERT INTO objects( oid, accessid ) VALUES( $1,$2 )")
+	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, accessid ) VALUES( $1,$2,$3 )")
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(obj.Id(), obj.AccessId())
-	return errorMapper(err)
+	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.AccessId())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
-func (s *storage) GetBlobsByKey(namespace string, oid string) ([]EasyStoreBlob, error) {
+func (s *storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name != $2 ORDER BY updated_at", oid, blobMetadataName)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +96,9 @@ func (s *storage) GetBlobsByKey(namespace string, oid string) ([]EasyStoreBlob, 
 }
 
 // GetFieldsByKey -- get all field data associated with the specified object
-func (s *storage) GetFieldsByKey(namespace string, oid string) (*EasyStoreObjectFields, error) {
+func (s *storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
 
-	rows, err := s.Query("SELECT name, value FROM fields WHERE oid = $1 ORDER BY updated_at", oid)
+	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.namespace, key.objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +108,9 @@ func (s *storage) GetFieldsByKey(namespace string, oid string) (*EasyStoreObject
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
-func (s *storage) GetMetadataByKey(namespace string, oid string) (EasyStoreMetadata, error) {
+func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE oid = $1 and name = $2 LIMIT 1", oid, blobMetadataName)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -133,9 +132,9 @@ func (s *storage) GetMetadataByKey(namespace string, oid string) (EasyStoreMetad
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
-func (s *storage) GetObjectByKey(namespace string, oid string) (EasyStoreObject, error) {
+func (s *storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
-	rows, err := s.Query("SELECT oid, accessid, created_at, updated_at FROM objects WHERE oid = $1 LIMIT 1", oid)
+	rows, err := s.Query("SELECT namespace, oid, accessid, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -145,59 +144,79 @@ func (s *storage) GetObjectByKey(namespace string, oid string) (EasyStoreObject,
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
-func (s *storage) DeleteBlobsByKey(namespace string, oid string) error {
+func (s *storage) DeleteBlobsByKey(key DataStoreKey) error {
 
-	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = $1 and name != $2")
+	stmt, err := s.Prepare("DELETE FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, oid, blobMetadataName)
+	return execPreparedBy3(stmt, key.namespace, key.objectId, blobMetadataName)
 }
 
 // DeleteFieldsByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteFieldsByKey(namespace string, oid string) error {
+func (s *storage) DeleteFieldsByKey(key DataStoreKey) error {
 
-	stmt, err := s.Prepare("DELETE FROM fields WHERE oid = $1")
+	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy1(stmt, oid)
+	return execPreparedBy2(stmt, key.namespace, key.objectId)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteMetadataByKey(namespace string, oid string) error {
+func (s *storage) DeleteMetadataByKey(key DataStoreKey) error {
 
-	stmt, err := s.Prepare("DELETE FROM blobs WHERE oid = $1 AND name = $2")
+	stmt, err := s.Prepare("DELETE FROM blobs WHERE namespace = $1 AND oid = $2 AND name = $3")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, oid, blobMetadataName)
+	return execPreparedBy3(stmt, key.namespace, key.objectId, blobMetadataName)
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteObjectByKey(namespace string, oid string) error {
+func (s *storage) DeleteObjectByKey(key DataStoreKey) error {
 
-	stmt, err := s.Prepare("DELETE FROM objects WHERE oid = $1")
+	stmt, err := s.Prepare("DELETE FROM objects WHERE namespace = $1 AND oid = $2")
 	if err != nil {
 		return err
 	}
-	return execPreparedBy1(stmt, oid)
+	return execPreparedBy2(stmt, key.namespace, key.objectId)
 }
 
-// GetIdsByFields -- get a list of ids that have the supplied fields/values
-func (s *storage) GetIdsByFields(namespace string, fields EasyStoreObjectFields) ([]string, error) {
+// GetKeysByFields -- get a list of keys that have the supplied fields/values
+func (s *storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error) {
+
+	// currently do not support more than 1 field match
+	if len(fields) > 1 {
+		return nil, fmt.Errorf("%q: %w", "no support for multiple field matches", ErrNotImplemented)
+	}
 
 	var err error
 	var rows *sql.Rows
-	// just support 2 cases, no fields which means all objects or 1 set of fields
+	var query string
+	//
+	// support the following cases:
+	// empty namespace (all namespaces) or specified namespace
+	// no fields (all objects) or 1 set of fields
+	//
 	if len(fields) == 0 {
-		query := "SELECT distinct(oid) FROM objects ORDER BY updated_at"
-		rows, err = s.Query(query)
+		if len(namespace) == 0 {
+			query = "SELECT namespace, oid FROM objects ORDER BY namespace, oid"
+			rows, err = s.Query(query)
+		} else {
+			query = "SELECT namespace, oid FROM objects where namespace = $1 ORDER BY namespace, oid"
+			rows, err = s.Query(query, namespace)
+		}
 	} else {
-		query := "SELECT distinct(oid) FROM fields WHERE name = $1 AND value = $2 ORDER BY updated_at"
 		key := maps.Keys(fields)[0]
 		value := fields[key]
-		rows, err = s.Query(query, key, value)
+		if len(namespace) == 0 {
+			query = "SELECT namespace, oid FROM fields WHERE name = $1 AND value = $2 GROUP BY namespace, oid ORDER BY namespace, oid"
+			rows, err = s.Query(query, key, value)
+		} else {
+			query = "SELECT namespace, oid FROM fields WHERE namespace = $1 AND name = $2 AND value = $3 GROUP BY namespace, oid ORDER BY namespace, oid"
+			rows, err = s.Query(query, namespace, key, value)
+		}
 	}
 
 	if err != nil {
@@ -205,21 +224,21 @@ func (s *storage) GetIdsByFields(namespace string, fields EasyStoreObjectFields)
 	}
 	defer rows.Close()
 
-	return idResults(rows, s.log)
+	return keyResults(rows, s.log)
 }
 
 //
 // private implementation methods
 //
 
-func execPreparedBy1(stmt *sql.Stmt, value1 string) error {
-	_, err := stmt.Exec(value1)
-	return err
-}
-
 func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
 	_, err := stmt.Exec(value1, value2)
-	return err
+	return errorMapper(err)
+}
+
+func execPreparedBy3(stmt *sql.Stmt, value1 string, value2 string, value3 string) error {
+	_, err := stmt.Exec(value1, value2, value3)
+	return errorMapper(err)
 }
 
 func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
@@ -227,7 +246,7 @@ func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
 	count := 0
 
 	for rows.Next() {
-		err := rows.Scan(&results.id, &results.accessId, &results.created, &results.modified)
+		err := rows.Scan(&results.namespace, &results.id, &results.accessId, &results.created, &results.modified)
 		if err != nil {
 			return nil, err
 		}
@@ -302,18 +321,19 @@ func blobResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) {
 	return results, nil
 }
 
-func idResults(rows *sql.Rows, log *log.Logger) ([]string, error) {
-	results := make([]string, 0)
+func keyResults(rows *sql.Rows, log *log.Logger) ([]DataStoreKey, error) {
+	results := make([]DataStoreKey, 0)
 	count := 0
 
 	for rows.Next() {
-		var id string
-		err := rows.Scan(&id)
+		var namespace string
+		var oid string
+		err := rows.Scan(&namespace, &oid)
 		if err != nil {
 			return nil, err
 		}
 
-		results = append(results, id)
+		results = append(results, DataStoreKey{namespace, oid})
 		count++
 	}
 	if err := rows.Err(); err != nil {

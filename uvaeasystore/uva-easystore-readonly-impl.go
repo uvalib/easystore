@@ -41,7 +41,7 @@ func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which Ea
 	}
 
 	// get the base object
-	o, err := impl.getById(namespace, id)
+	o, err := impl.getByKey(namespace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 	// build our list of objects
 	for _, id := range ids {
 		// get the base object
-		o, err := impl.getById(namespace, id)
+		o, err := impl.getByKey(namespace, id)
 		if err == nil {
 			objs = append(objs, o)
 		} else {
@@ -92,15 +92,6 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 		return nil, ErrNotFound
 	}
 
-	// fully populate the objects
-	//for ix, o := range objs {
-	//	var err error
-	//	objs[ix], err = impl.populateObject(o, which)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-
 	// we get objects only when they are required
 	return newEasyStoreObjectSet(impl, objs, which), nil
 }
@@ -115,7 +106,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))
 
 	// first get the base objects (always required)
-	ids, err := impl.store.GetIdsByFields(namespace, fields)
+	keys, err := impl.store.GetKeysByFields(namespace, fields)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
@@ -126,7 +117,7 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 	}
 
 	// bail out if we did not find any
-	if len(ids) == 0 {
+	if len(keys) == 0 {
 		return nil, ErrNotFound
 	}
 
@@ -134,9 +125,9 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 	objs := make([]EasyStoreObject, 0)
 
 	// build our list of objects
-	for _, id := range ids {
+	for _, k := range keys {
 		// get the base object
-		o, err := impl.getById(namespace, id)
+		o, err := impl.getByKey(k.namespace, k.objectId)
 		if err == nil {
 			objs = append(objs, o)
 		} else {
@@ -149,15 +140,6 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 		return nil, ErrNotFound
 	}
 
-	// fully populate the objects
-	//for ix, o := range objs {
-	//	var err error
-	//	objs[ix], err = impl.populateObject(o, which)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-
 	// we get objects only when they are required
 	return newEasyStoreObjectSet(impl, objs, which), nil
 }
@@ -166,16 +148,16 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 // private methods
 //
 
-func (impl easyStoreReadonlyImpl) getById(namespace string, id string) (EasyStoreObject, error) {
+func (impl easyStoreReadonlyImpl) getByKey(namespace string, id string) (EasyStoreObject, error) {
 
-	logDebug(impl.config.Logger(), fmt.Sprintf("getting ns [%s] oid [%s]", namespace, id))
+	logDebug(impl.config.Logger(), fmt.Sprintf("getting ns/oid [%s/%s]", namespace, id))
 
 	// get the base object (always required)
-	o, err := impl.store.GetObjectByKey(namespace, id)
+	o, err := impl.store.GetObjectByKey(DataStoreKey{namespace, id})
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
-			logInfo(impl.config.Logger(), fmt.Sprintf("no object found for oid [%s]", id))
+			logInfo(impl.config.Logger(), fmt.Sprintf("no object found for ns/oid [%s/%s]", namespace, id))
 			return nil, ErrNotFound
 		} else {
 			return nil, err
@@ -188,14 +170,14 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 
 	// first get the fields (if required)
 	if (which & Fields) == Fields {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for oid [%s]", obj.Id()))
-		fields, err := impl.store.GetFieldsByKey(obj.Namespace(), obj.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+		fields, err := impl.store.GetFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err == nil {
 			obj.SetFields(*fields)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no fields found for oid [%s]", obj.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no fields found for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 			} else {
 				return nil, err
 			}
@@ -204,14 +186,14 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 
 	// then, the blobs (if required)
 	if (which & Files) == Files {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for oid [%s]", obj.Id()))
-		blobs, err := impl.store.GetBlobsByKey(obj.Namespace(), obj.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+		blobs, err := impl.store.GetBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err == nil {
 			obj.SetFiles(blobs)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no blobs found for oid [%s]", obj.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no blobs found for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 			} else {
 				return nil, err
 			}
@@ -220,14 +202,14 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 
 	// lastly the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for oid [%s]", obj.Id()))
-		md, err := impl.store.GetMetadataByKey(obj.Namespace(), obj.Id())
+		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+		md, err := impl.store.GetMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err == nil {
 			obj.SetMetadata(md)
 		} else {
 			// known error
 			if errors.Is(err, ErrNotFound) {
-				logInfo(impl.config.Logger(), fmt.Sprintf("no metadata found for oid [%s]", obj.Id()))
+				logInfo(impl.config.Logger(), fmt.Sprintf("no metadata found for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 			} else {
 				return nil, err
 			}

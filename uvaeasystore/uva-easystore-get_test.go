@@ -27,6 +27,13 @@ func TestGetById(t *testing.T) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
+	// bad namespace (not found)
+	_, err = esro.GetByKey(badNamespace, goodId, BaseComponent)
+	expected = ErrNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
 	// good id
 	obj, err := esro.GetByKey(goodNamespace, goodId, AllComponents)
 	if err != nil {
@@ -93,9 +100,9 @@ func TestGetByIds(t *testing.T) {
 func TestGetByFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := DefaultEasyStoreFields()
-	//fields = make(map[string]string)
 	fields["key1"] = "value1"
 
+	// search by specific namespace
 	iter, err := esro.GetByFields(goodNamespace, fields, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
@@ -118,18 +125,28 @@ func TestGetByFields(t *testing.T) {
 		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
 	}
 
-	// enter bad field
-	//fields["key2"] = "value1"
+	// search by empty namespace
+	iter, err = esro.GetByFields("", fields, Fields)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
 
-	//iter, err = esro.GetByFields(fields, Fields)
-	//if err != nil {
-	//	t.Fatalf("expected 'OK' but got '%s'\n", err)
-	//}
+	// ensure we received some objects
+	if iter.Count() == 0 {
+		t.Fatalf("expected objects but got none\n")
+	}
 
-	// ensure we did not receive objects
-	//if iter.Count() != 0 {
-	//	t.Fatalf("expected no objects but got some\n")
-	//}
+	// go through the list of objects and validate
+	o, err = iter.Next()
+	for err == nil {
+		validateObject(t, o, Fields)
+		ensureObjectHasFields(t, o, fields)
+		o, err = iter.Next()
+	}
+
+	if errors.Is(err, io.EOF) != true {
+		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
+	}
 }
 
 func TestGetByEmptyFields(t *testing.T) {

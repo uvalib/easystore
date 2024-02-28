@@ -8,30 +8,35 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type DataStoreKey struct {
+	namespace string
+	objectId  string
+}
+
 // our storage interface
 type DataStore interface {
 	Check() error
 
 	// add methods
-	AddBlob(string, EasyStoreBlob) error
-	AddFields(string, EasyStoreObjectFields) error
-	AddMetadata(string, EasyStoreMetadata) error
+	AddBlob(DataStoreKey, EasyStoreBlob) error
+	AddFields(DataStoreKey, EasyStoreObjectFields) error
+	AddMetadata(DataStoreKey, EasyStoreMetadata) error
 	AddObject(EasyStoreObject) error
 
 	// get methods
-	GetBlobsByKey(string, string) ([]EasyStoreBlob, error)
-	GetFieldsByKey(string, string) (*EasyStoreObjectFields, error)
-	GetMetadataByKey(string, string) (EasyStoreMetadata, error)
-	GetObjectByKey(string, string) (EasyStoreObject, error)
+	GetBlobsByKey(DataStoreKey) ([]EasyStoreBlob, error)
+	GetFieldsByKey(DataStoreKey) (*EasyStoreObjectFields, error)
+	GetMetadataByKey(DataStoreKey) (EasyStoreMetadata, error)
+	GetObjectByKey(DataStoreKey) (EasyStoreObject, error)
 
 	// delete methods
-	DeleteBlobsByKey(string, string) error
-	DeleteFieldsByKey(string, string) error
-	DeleteMetadataByKey(string, string) error
-	DeleteObjectByKey(string, string) error
+	DeleteBlobsByKey(DataStoreKey) error
+	DeleteFieldsByKey(DataStoreKey) error
+	DeleteMetadataByKey(DataStoreKey) error
+	DeleteObjectByKey(DataStoreKey) error
 
 	// search methods
-	GetIdsByFields(string, EasyStoreObjectFields) ([]string, error)
+	GetKeysByFields(string, EasyStoreObjectFields) ([]DataStoreKey, error)
 }
 
 // our factory
