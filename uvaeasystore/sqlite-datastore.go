@@ -15,6 +15,8 @@ import (
 // DatastoreSqliteConfig -- this is our sqlite configuration implementation
 type DatastoreSqliteConfig struct {
 	DataSource string      // the storage file name
+	BusName    string      // the message bus name
+	SourceName string      // the event source name
 	Log        *log.Logger // the logger
 }
 
@@ -24,6 +26,22 @@ func (impl DatastoreSqliteConfig) Logger() *log.Logger {
 
 func (impl DatastoreSqliteConfig) SetLogger(log *log.Logger) {
 	impl.Log = log
+}
+
+func (impl DatastoreSqliteConfig) MessageBus() string {
+	return impl.BusName
+}
+
+func (impl DatastoreSqliteConfig) SetMessageBus(busName string) {
+	impl.BusName = busName
+}
+
+func (impl DatastoreSqliteConfig) EventSource() string {
+	return impl.SourceName
+}
+
+func (impl DatastoreSqliteConfig) SetEventSource(sourceName string) {
+	impl.SourceName = sourceName
 }
 
 // newSqliteStore -- create a sqlite version of the DataStore
@@ -58,6 +76,10 @@ func validateSqliteConfig(config DatastoreSqliteConfig) error {
 
 	if len(config.DataSource) == 0 {
 		return fmt.Errorf("%q: %w", "config.DataSource is blank", ErrBadParameter)
+	}
+
+	if len(config.BusName) != 0 && len(config.SourceName) == 0 {
+		return fmt.Errorf("%q: %w", "config.SourceName is blank", ErrBadParameter)
 	}
 
 	// make sure it exists

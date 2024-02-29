@@ -122,8 +122,15 @@ type EasyStoreMetadata interface {
 
 // EasyStoreConfig - the configuration structure
 type EasyStoreConfig interface {
-	Logger() *log.Logger   // logging support
+	// logging support
+	Logger() *log.Logger
 	SetLogger(*log.Logger) // logging support
+
+	// message bus configuration
+	MessageBus() string    // name of the message bus to push telemetry to
+	SetMessageBus(string)  // name of the message bus to push telemetry to
+	EventSource() string   // telemetry events are tagged as coming from this source
+	SetEventSource(string) // telemetry events are tagged as coming from this source
 }
 
 // EasyStoreSerializer - used to serialize and deserialize our objects

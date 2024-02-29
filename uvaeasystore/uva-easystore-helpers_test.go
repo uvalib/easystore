@@ -30,6 +30,8 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	if datastore == "sqlite" {
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
+			//BusName:    "",
+			//SourceName: "",
 			//Log:        log.Default(),
 		}
 	} else {
@@ -41,6 +43,8 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			DbUser:     os.Getenv("DBUSER"),
 			DbPassword: os.Getenv("DBPASSWD"),
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			//BusName:    "",
+			//SourceName: "",
 			//Log:        log.Default(),
 		}
 	}

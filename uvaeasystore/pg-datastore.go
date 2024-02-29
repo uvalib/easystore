@@ -21,6 +21,8 @@ type DatastorePostgresConfig struct {
 	DbUser     string      // database user
 	DbPassword string      // database password
 	DbTimeout  int         // timeout
+	BusName    string      // the message bus name
+	SourceName string      // the event source name
 	Log        *log.Logger // the logger
 }
 
@@ -30,6 +32,22 @@ func (impl DatastorePostgresConfig) Logger() *log.Logger {
 
 func (impl DatastorePostgresConfig) SetLogger(log *log.Logger) {
 	impl.Log = log
+}
+
+func (impl DatastorePostgresConfig) MessageBus() string {
+	return impl.BusName
+}
+
+func (impl DatastorePostgresConfig) SetMessageBus(busName string) {
+	impl.BusName = busName
+}
+
+func (impl DatastorePostgresConfig) EventSource() string {
+	return impl.SourceName
+}
+
+func (impl DatastorePostgresConfig) SetEventSource(sourceName string) {
+	impl.SourceName = sourceName
 }
 
 // newPostgresStore -- create a postgres version of the DataStore
@@ -88,6 +106,10 @@ func validatePostgresConfig(config DatastorePostgresConfig) error {
 
 	if config.DbTimeout == 0 {
 		return fmt.Errorf("%q: %w", "config.DbTimeout is 0", ErrBadParameter)
+	}
+
+	if len(config.BusName) != 0 && len(config.SourceName) == 0 {
+		return fmt.Errorf("%q: %w", "config.SourceName is blank", ErrBadParameter)
 	}
 
 	return nil
