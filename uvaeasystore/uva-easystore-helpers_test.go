@@ -13,7 +13,8 @@ import (
 // test invariants
 var goodSqliteFilename = "/tmp/sqlite.db"
 var badSqliteFilename = "/tmp/blablabla.db"
-
+var sourceName = "testing.unit.automated"
+var busName = "uva-experiment-bus-staging"
 var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
 var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
@@ -30,8 +31,8 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	if datastore == "sqlite" {
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
-			//BusName:    "",
-			//SourceName: "",
+			//BusName:    busName,
+			SourceName: sourceName,
 			//Log:        log.Default(),
 		}
 	} else {
@@ -43,8 +44,8 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			DbUser:     os.Getenv("DBUSER"),
 			DbPassword: os.Getenv("DBPASSWD"),
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			//BusName:    "",
-			//SourceName: "",
+			//BusName:    busName,
+			SourceName: sourceName,
 			//Log:        log.Default(),
 		}
 	}
@@ -61,6 +62,8 @@ func testSetup(t *testing.T) EasyStore {
 	if datastore == "sqlite" {
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
+			//BusName:    busName,
+			SourceName: sourceName,
 			//Log:        log.Default(),
 		}
 	} else {
@@ -71,6 +74,8 @@ func testSetup(t *testing.T) EasyStore {
 			DbUser:     os.Getenv("DBUSER"),
 			DbPassword: os.Getenv("DBPASSWD"),
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			//BusName:    busName,
+			SourceName: sourceName,
 			//  Log:        log.Default(),
 		}
 	}

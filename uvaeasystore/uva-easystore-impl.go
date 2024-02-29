@@ -4,24 +4,34 @@
 
 package uvaeasystore
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/uvalib/librabus-sdk/uvalibrabus"
+)
 
 // this is our easystore implementation
 type easyStoreImpl struct {
-	easyStoreReadonlyImpl
+	messageBus            uvalibrabus.UvaBus // the event bus
+	easyStoreReadonlyImpl                    // the read only implementation
 }
 
 // factory for our easystore interface
 func newEasyStore(config EasyStoreConfig) (EasyStore, error) {
 
-	// create the data store for this Namespace
-	s, err := NewDatastore(config)
+	// create the data store
+	store, err := NewDatastore(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// create the message bus
+	bus, err := NewEventBus(config.EventSource(), config.MessageBus(), config.Logger())
 	if err != nil {
 		return nil, err
 	}
 
 	logInfo(config.Logger(), fmt.Sprintf("new easystore"))
-	return easyStoreImpl{easyStoreReadonlyImpl{config: config, store: s}}, nil
+	return easyStoreImpl{bus, easyStoreReadonlyImpl{config: config, store: store}}, nil
 }
 
 func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
@@ -72,6 +82,9 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 			}
 		}
 	}
+
+	// publish the appropriate event
+	_ = pubObjectCreate(impl.messageBus, obj)
 
 	// get the full object
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
@@ -128,6 +141,8 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 				if err != nil {
 					return nil, err
 				}
+
+				_ = pubFileCreate(impl.messageBus, obj)
 			}
 		}
 	}
@@ -147,9 +162,12 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 			if err != nil {
 				return nil, err
 			}
+			_ = pubMetadataUpdate(impl.messageBus, obj)
 		}
-
 	}
+
+	// publish the appropriate event
+	_ = pubObjectUpdate(impl.messageBus, obj)
 
 	// get the full object
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
@@ -210,6 +228,9 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 			return nil, err
 		}
 	}
+
+	// publish the appropriate event
+	_ = pubObjectDelete(impl.messageBus, obj)
 
 	// return the original object
 	return obj, nil
