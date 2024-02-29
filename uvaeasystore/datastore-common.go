@@ -37,8 +37,13 @@ func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 		return err
 	}
 
-	// always store the payload in its native format
-	_, err = stmt.Exec(key.namespace, key.objectId, blob.Name(), blob.MimeType(), blob.Payload())
+	// errors here are serialization errors
+	buf, err := blob.Payload()
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(key.namespace, key.objectId, blob.Name(), blob.MimeType(), buf)
 	return errorMapper(err)
 }
 
@@ -67,8 +72,13 @@ func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 		return err
 	}
 
-	// always store the payload in its native format
-	_, err = stmt.Exec(key.namespace, key.objectId, blobMetadataName, obj.MimeType(), obj.Payload())
+	// errors here are serialization errors
+	buf, err := obj.Payload()
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(key.namespace, key.objectId, blobMetadataName, obj.MimeType(), buf)
 	return errorMapper(err)
 }
 

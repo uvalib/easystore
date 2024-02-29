@@ -56,8 +56,11 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	testEqual(t, file2Name, b2.Name())
 	testEqual(t, fileType, b1.MimeType())
 	testEqual(t, fileType, b2.MimeType())
-	testEqual(t, file1Contents, string(b1.Payload()))
-	testEqual(t, file2Contents, string(b2.Payload()))
+	buf1, _ := b1.Payload()
+	buf2, _ := b2.Payload()
+
+	testEqual(t, file1Contents, string(buf1))
+	testEqual(t, file2Contents, string(buf2))
 }
 
 func TestObjectMetadataUpdate(t *testing.T) {
@@ -90,7 +93,8 @@ func TestObjectMetadataUpdate(t *testing.T) {
 	}
 
 	testEqual(t, mimeType, o.Metadata().MimeType())
-	testEqual(t, string(jsonPayload), string(o.Metadata().Payload()))
+	buf, _ := o.Metadata().Payload()
+	testEqual(t, string(jsonPayload), string(buf))
 }
 
 //

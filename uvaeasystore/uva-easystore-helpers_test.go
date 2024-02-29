@@ -117,7 +117,11 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 				if len(f.MimeType()) == 0 {
 					t.Fatalf("file mime type is empty\n")
 				}
-				if len(f.Payload()) == 0 {
+				buf, err := f.Payload()
+				if err != nil {
+					t.Fatalf("payload returns error\n")
+				}
+				if len(buf) == 0 {
 					t.Fatalf("file payload is empty\n")
 				}
 				if len(f.Url()) == 0 {
@@ -146,7 +150,11 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 			if len(md.MimeType()) == 0 {
 				t.Fatalf("metadata mime type is empty\n")
 			}
-			if len(md.Payload()) == 0 {
+			buf, err := md.Payload()
+			if err != nil {
+				t.Fatalf("payload returns error\n")
+			}
+			if len(buf) == 0 {
 				t.Fatalf("metadata payload is empty\n")
 			}
 			if md.Created().IsZero() == true {

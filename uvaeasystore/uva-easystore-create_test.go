@@ -124,7 +124,8 @@ func TestMetadataCreate(t *testing.T) {
 	validateObject(t, o, Metadata)
 
 	testEqual(t, mimeType, o.Metadata().MimeType())
-	testEqual(t, string(jsonPayload), string(o.Metadata().Payload()))
+	buf, _ := o.Metadata().Payload()
+	testEqual(t, string(jsonPayload), string(buf))
 }
 
 //

@@ -25,8 +25,8 @@ func (impl easyStoreMetadataImpl) MimeType() string {
 	return impl.mimeType
 }
 
-func (impl easyStoreMetadataImpl) Payload() []byte {
-	return impl.payload
+func (impl easyStoreMetadataImpl) Payload() ([]byte, error) {
+	return impl.payload, nil
 }
 
 func (impl easyStoreMetadataImpl) Created() time.Time {

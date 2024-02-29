@@ -34,8 +34,8 @@ func (impl easyStoreBlobImpl) Url() string {
 	return "https://does.not.work.fu"
 }
 
-func (impl easyStoreBlobImpl) Payload() []byte {
-	return impl.payload
+func (impl easyStoreBlobImpl) Payload() ([]byte, error) {
+	return impl.payload, nil
 }
 
 //func (impl easyStoreBlobImpl) Read(buf []byte) (int, error) { return 0, nil }

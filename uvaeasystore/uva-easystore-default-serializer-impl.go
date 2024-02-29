@@ -81,11 +81,12 @@ func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreO
 
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
+	buf, _ := b.Payload()
 	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
-		b.Payload(),
+		buf, // might need to json escape here?
 		b.Created().UTC(),
 		b.Modified().UTC(),
 	)
@@ -110,10 +111,11 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
 
+	buf, _ := o.Payload()
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.MimeType(),
-		jsonEscape(o.Payload()),
+		jsonEscape(buf),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)

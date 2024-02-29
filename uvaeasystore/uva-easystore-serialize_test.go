@@ -122,7 +122,7 @@ func TestFieldsDeserialize(t *testing.T) {
 
 	// convert to string and test
 	if string(bytes) != string(bytesCopy) {
-		t.Fatalf("serialized copy not equal\n")
+		t.Fatalf("expected '%s' but got '%s'\n", string(bytes), string(bytesCopy))
 	}
 }
 
