@@ -214,8 +214,8 @@ func (impl libraMetadata) MimeType() string {
 	return impl.mimeType
 }
 
-func (impl libraMetadata) Payload() []byte {
-	return impl.payload
+func (impl libraMetadata) Payload() ([]byte, error) {
+	return impl.payload, nil
 }
 
 func (impl libraMetadata) Created() time.Time {
@@ -246,8 +246,8 @@ func (impl libraBlob) Url() string {
 	return "https://does.not.work.fu"
 }
 
-func (impl libraBlob) Payload() []byte {
-	return impl.payload
+func (impl libraBlob) Payload() ([]byte, error) {
+	return impl.payload, nil
 }
 
 func (impl libraBlob) Created() time.Time {

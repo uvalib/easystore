@@ -129,7 +129,12 @@ func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreC
 	}
 	if what&uvaeasystore.Metadata == uvaeasystore.Metadata {
 		if obj.Metadata() != nil {
-			fmt.Printf("       metadata: %d bytes (%s)\n", len(obj.Metadata().Payload()), obj.Metadata().MimeType())
+			b, err := obj.Metadata().Payload()
+			if err != nil {
+				fmt.Printf("       metadata: payload access error (%s)\n", err)
+			} else {
+				fmt.Printf("       metadata: %d bytes (%s)\n", len(b), obj.Metadata().MimeType())
+			}
 		} else {
 			fmt.Printf("       no metadata\n")
 		}
@@ -137,7 +142,12 @@ func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreC
 	if what&uvaeasystore.Files == uvaeasystore.Files {
 		if len(obj.Files()) != 0 {
 			for ix, f := range obj.Files() {
-				fmt.Printf("       file %d: %s, %d bytes (%s)\n", ix+1, f.Name(), len(f.Payload()), f.MimeType())
+				b, err := f.Payload()
+				if err != nil {
+					fmt.Printf("       file: payload access error (%s)\n", err)
+				} else {
+					fmt.Printf("       file %d: %s, %d bytes (%s)\n", ix+1, f.Name(), len(b), f.MimeType())
+				}
 			}
 		} else {
 			fmt.Printf("       no files\n")

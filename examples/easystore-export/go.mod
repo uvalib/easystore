@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-export
 
 go 1.21.7
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240228143014-cb9c5a5d6bab
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240229150447-7c63476a23e2
 
 require (
 	github.com/lib/pq v1.10.9 // indirect
