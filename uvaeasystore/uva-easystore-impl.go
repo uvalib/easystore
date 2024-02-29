@@ -36,7 +36,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		return nil, ErrBadParameter
 	}
 
-	logInfo(impl.config.Logger(), fmt.Sprintf("creating new oid [%s]", obj.Id()))
+	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// add the object
 	err := impl.store.AddObject(obj)
@@ -46,7 +46,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// do we add metadata
 	if obj.Metadata() != nil {
-		logDebug(impl.config.Logger(), fmt.Sprintf("adding metadata for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("adding metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err = impl.store.AddMetadata(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Metadata())
 		if err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// do we add fields
 	if len(obj.Fields()) != 0 {
-		logDebug(impl.config.Logger(), fmt.Sprintf("adding fields for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("adding fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err = impl.store.AddFields(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Fields())
 		if err != nil {
 			return nil, err
@@ -64,7 +64,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// do we add files
 	if len(obj.Files()) != 0 {
-		logDebug(impl.config.Logger(), fmt.Sprintf("adding files for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("adding files for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		for _, b := range obj.Files() {
 			err = impl.store.AddBlob(DataStoreKey{obj.Namespace(), obj.Id()}, b)
 			if err != nil {
@@ -96,7 +96,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we update fields
 	if (which & Fields) == Fields {
-		logDebug(impl.config.Logger(), fmt.Sprintf("updating fields for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("updating fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		// delete the current fields
 		err := impl.store.DeleteFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
@@ -114,7 +114,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we update files
 	if (which & Files) == Files {
-		logDebug(impl.config.Logger(), fmt.Sprintf("updating files for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("updating files for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		// delete the current files
 		err := impl.store.DeleteBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
@@ -134,7 +134,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we update metadata
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.Logger(), fmt.Sprintf("updating metadata for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("updating metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		// delete the current metadata
 		err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
@@ -174,7 +174,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 	// special case, if we are asking for the base component, it means delete everything
 	if which == BaseComponent {
-		logDebug(impl.config.Logger(), fmt.Sprintf("deleting oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("deleting ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteObjectByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
 			return nil, err
@@ -186,7 +186,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we delete fields
 	if (which & Fields) == Fields {
-		logDebug(impl.config.Logger(), fmt.Sprintf("deleting fields for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("deleting fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
 			return nil, err
@@ -195,7 +195,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we delete files
 	if (which & Files) == Files {
-		logDebug(impl.config.Logger(), fmt.Sprintf("deleting files for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("deleting files for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
 			return nil, err
@@ -204,7 +204,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 	// do we delete metadata
 	if (which & Metadata) == Metadata {
-		logDebug(impl.config.Logger(), fmt.Sprintf("deleting metadata for oid [%s]", obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("deleting metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
 			return nil, err
