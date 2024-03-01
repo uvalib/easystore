@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mattn/go-sqlite3"
+	"golang.org/x/exp/maps"
 	"strings"
 
-	"golang.org/x/exp/maps"
 	"log"
 )
 
@@ -196,37 +196,44 @@ func (s *storage) DeleteObjectByKey(key DataStoreKey) error {
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
 func (s *storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error) {
 
-	// currently do not support more than 1 field match
-	if len(fields) > 1 {
-		return nil, fmt.Errorf("%q: %w", "no support for multiple field matches", ErrNotImplemented)
-	}
-
 	var err error
 	var rows *sql.Rows
 	var query string
 	//
 	// support the following cases:
 	// empty namespace (all namespaces) or specified namespace
-	// no fields (all objects) or 1 set of fields
+	// no fields (all objects) or variable set of fields
 	//
 	if len(fields) == 0 {
 		if len(namespace) == 0 {
-			query = "SELECT namespace, oid FROM objects ORDER BY namespace, oid"
+			query = "SELECT namespace, oid, 0 FROM objects ORDER BY namespace, oid"
 			rows, err = s.Query(query)
 		} else {
-			query = "SELECT namespace, oid FROM objects where namespace = $1 ORDER BY namespace, oid"
+			query = "SELECT namespace, oid, 0 FROM objects where namespace = $1 ORDER BY namespace, oid"
 			rows, err = s.Query(query, namespace)
 		}
 	} else {
-		key := maps.Keys(fields)[0]
-		value := fields[key]
-		if len(namespace) == 0 {
-			query = "SELECT namespace, oid FROM fields WHERE name = $1 AND value = $2 GROUP BY namespace, oid ORDER BY namespace, oid"
-			rows, err = s.Query(query, key, value)
-		} else {
-			query = "SELECT namespace, oid FROM fields WHERE namespace = $1 AND name = $2 AND value = $3 GROUP BY namespace, oid ORDER BY namespace, oid"
-			rows, err = s.Query(query, namespace, key, value)
+		// dynamically build the query because we have a variable number of fields
+		args := make([]any, 0)
+		query = "SELECT namespace, oid, count(*) FROM fields WHERE "
+		variableIx := 1
+		if len(namespace) != 0 {
+			query += fmt.Sprintf("namespace = $%d AND ", variableIx)
+			args = append(args, namespace)
+			variableIx++
 		}
+
+		for ix, k := range maps.Keys(fields) {
+			query += fmt.Sprintf("(name = $%d AND value = $%d) ", variableIx, variableIx+1)
+			variableIx += 2
+			args = append(args, k, fields[k])
+			if ix != (len(fields) - 1) {
+				query += "OR "
+			}
+		}
+
+		query += fmt.Sprintf("HAVING count(*) = %d", len(fields))
+		rows, err = s.Query(query, args...)
 	}
 
 	if err != nil {
@@ -338,7 +345,8 @@ func keyResults(rows *sql.Rows, log *log.Logger) ([]DataStoreKey, error) {
 	for rows.Next() {
 		var namespace string
 		var oid string
-		err := rows.Scan(&namespace, &oid)
+		var ct int
+		err := rows.Scan(&namespace, &oid, &ct)
 		if err != nil {
 			return nil, err
 		}
@@ -352,10 +360,10 @@ func keyResults(rows *sql.Rows, log *log.Logger) ([]DataStoreKey, error) {
 
 	// check for not found
 	if count == 0 {
-		return nil, fmt.Errorf("%q: %w", "id(s) not found", ErrNotFound)
+		return nil, fmt.Errorf("%q: %w", "key(s) not found", ErrNotFound)
 	}
 
-	logDebug(log, fmt.Sprintf("found %d id(s)", count))
+	logDebug(log, fmt.Sprintf("found %d key(s)", count))
 	return results, nil
 }
 

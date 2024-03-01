@@ -101,6 +101,7 @@ func TestGetByFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := DefaultEasyStoreFields()
 	fields["key1"] = "value1"
+	fields["key2"] = "value2"
 
 	// search by specific namespace
 	iter, err := esro.GetByFields(goodNamespace, fields, Fields)
