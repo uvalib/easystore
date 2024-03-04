@@ -86,7 +86,6 @@ type EasyStore interface {
 type EasyStoreObject interface {
 	Namespace() string // the object namespace
 	Id() string        // object Id
-	AccessId() string  // object access handle
 
 	Fields() EasyStoreObjectFields // the fields
 	Metadata() EasyStoreMetadata   // the opaque metadata
@@ -101,6 +100,8 @@ type EasyStoreObject interface {
 
 // EasyStoreBlob - represents a binary (opaque) object
 type EasyStoreBlob interface {
+	Id() string       // blob Id
+	VTag() string     // blob version tag
 	Name() string     // original name
 	MimeType() string // can we type this in some way
 
@@ -115,6 +116,8 @@ type EasyStoreBlob interface {
 
 // EasyStoreMetadata - represents a binary (opaque) object
 type EasyStoreMetadata interface {
+	Id() string               // metadata Id (opaque)
+	VTag() string             // metadata version tag
 	MimeType() string         // can we type this in some way
 	Payload() ([]byte, error) // the payload (might error due to serialization)
 

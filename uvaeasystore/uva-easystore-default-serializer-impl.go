@@ -18,10 +18,9 @@ type easyStoreSerializerImpl struct {
 
 func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface{} {
 
-	template := "{\"id\":\"%s\",\"accessid\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"id\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.Id(),
-		o.AccessId(),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
@@ -38,7 +37,6 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 
 	o := newEasyStoreObject(impl.namespace, omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
-	obj.accessId = omap["accessid"].(string)
 	obj.created, obj.modified, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
@@ -82,8 +80,10 @@ func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreO
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
 	buf, _ := b.Payload()
-	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"id\":\"%s\",\"vtag\":\"%s\",\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
+		b.Id(),
+		b.VTag(),
 		b.Name(),
 		b.MimeType(),
 		buf, // might need to json escape here?
@@ -106,14 +106,24 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		omap["mime-type"].(string),
 		[]byte(omap["payload"].(string)))
 
+	blob := b.(*easyStoreBlobImpl)
+	blob.id = omap["id"].(string)
+	blob.vtag = omap["vtag"].(string)
+	blob.created, blob.modified, err = timestampExtract(omap)
+	if err != nil {
+		return nil, err
+	}
+
 	return b, nil
 }
 
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
 
 	buf, _ := o.Payload()
-	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"id\":\"%s\",\"vtag\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
+		o.Id(),
+		o.VTag(),
 		o.MimeType(),
 		jsonEscape(buf),
 		o.Created().UTC(),
@@ -132,6 +142,8 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 
 	md := newEasyStoreMetadata(omap["mime-type"].(string), []byte(omap["payload"].(string)))
 	meta := md.(*easyStoreMetadataImpl)
+	meta.id = omap["id"].(string)
+	meta.vtag = omap["vtag"].(string)
 	meta.created, meta.modified, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err

@@ -32,7 +32,7 @@ func (s *storage) Check() error {
 // AddBlob -- add a new blob object
 func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
-	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
+	stmt, err := s.Prepare("INSERT INTO blobs( bid, vtag, namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5,$6,$7 )")
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 		return err
 	}
 
-	_, err = stmt.Exec(key.namespace, key.objectId, blob.Name(), blob.MimeType(), buf)
+	_, err = stmt.Exec(blob.Id(), blob.VTag(), key.namespace, key.objectId, blob.Name(), blob.MimeType(), buf)
 	return errorMapper(err)
 }
 
@@ -67,7 +67,7 @@ func (s *storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) erro
 // AddMetadata -- add a new metadata object
 func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 
-	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
+	stmt, err := s.Prepare("INSERT INTO blobs( bid, vtag, namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5,$6,$7 )")
 	if err != nil {
 		return err
 	}
@@ -78,25 +78,25 @@ func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 		return err
 	}
 
-	_, err = stmt.Exec(key.namespace, key.objectId, blobMetadataName, obj.MimeType(), buf)
+	_, err = stmt.Exec(obj.Id(), obj.VTag(), key.namespace, key.objectId, blobMetadataName, obj.MimeType(), buf)
 	return errorMapper(err)
 }
 
 // AddObject -- add a new object
 func (s *storage) AddObject(obj EasyStoreObject) error {
 
-	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, accessid ) VALUES( $1,$2,$3 )")
+	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid ) VALUES( $1,$2 )")
 	if err != nil {
 		return err
 	}
 
-	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.AccessId())
+	return execPreparedBy2(stmt, obj.Namespace(), obj.Id())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
 func (s *storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.namespace, key.objectId, blobMetadataName)
+	rows, err := s.Query("SELECT id, vtag, name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s *storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, erro
 // GetMetadataByKey -- get all field data associated with the specified object
 func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.namespace, key.objectId, blobMetadataName)
+	rows, err := s.Query("SELECT id, vtag, name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +133,8 @@ func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) 
 
 	b, _ := br[0].(easyStoreBlobImpl)
 	md := easyStoreMetadataImpl{
+		id:       b.id,
+		vtag:     b.vtag,
 		mimeType: b.mimeType,
 		payload:  b.payload,
 		created:  b.created,
@@ -144,7 +146,7 @@ func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) 
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
-	rows, err := s.Query("SELECT namespace, oid, accessid, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
+	rows, err := s.Query("SELECT namespace, oid, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +234,7 @@ func (s *storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields
 			}
 		}
 
-		query += fmt.Sprintf("HAVING count(*) = %d", len(fields))
+		query += fmt.Sprintf("GROUP BY namespace, oid HAVING count(*) = %d", len(fields))
 		rows, err = s.Query(query, args...)
 	}
 
@@ -263,7 +265,7 @@ func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
 	count := 0
 
 	for rows.Next() {
-		err := rows.Scan(&results.namespace, &results.id, &results.accessId, &results.created, &results.modified)
+		err := rows.Scan(&results.namespace, &results.id, &results.created, &results.modified)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +319,7 @@ func blobResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) {
 
 	for rows.Next() {
 		blob := easyStoreBlobImpl{}
-		err := rows.Scan(&blob.name, &blob.mimeType, &blob.payload, &blob.created, &blob.modified)
+		err := rows.Scan(&blob.id, &blob.vtag, &blob.name, &blob.mimeType, &blob.payload, &blob.created, &blob.modified)
 		if err != nil {
 			return nil, err
 		}
