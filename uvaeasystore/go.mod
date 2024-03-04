@@ -8,7 +8,10 @@ require (
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 )
 
-require github.com/rs/xid v1.5.0
+require (
+	github.com/rs/xid v1.5.0
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240301172655-9673b00beb16
+)
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.25.2 // indirect
@@ -25,5 +28,4 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.1 // indirect
 	github.com/aws/smithy-go v1.20.1 // indirect
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240229185211-1da5c66dff28 // indirect
 )
