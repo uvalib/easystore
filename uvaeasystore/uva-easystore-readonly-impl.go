@@ -46,7 +46,7 @@ func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which Ea
 		return nil, err
 	}
 
-	// poopulate the object and return it
+	// populate the object and return it
 	return impl.populateObject(o, which)
 }
 

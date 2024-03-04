@@ -61,7 +61,7 @@ func TestGetByIds(t *testing.T) {
 
 	// good id
 	ids = []string{goodId}
-	iter, err := esro.GetByKeys(goodNamespace, ids, BaseComponent)
+	iter, err := esro.GetByKeys(goodNamespace, ids, AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -79,7 +79,7 @@ func TestGetByIds(t *testing.T) {
 
 	// good and bad id
 	ids = []string{goodId, badId}
-	iter, err = esro.GetByKeys(goodNamespace, ids, BaseComponent)
+	iter, err = esro.GetByKeys(goodNamespace, ids, AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -93,7 +93,7 @@ func TestGetByIds(t *testing.T) {
 		if o.Id() != goodId {
 			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
 		}
-		validateObject(t, o, BaseComponent)
+		validateObject(t, o, AllComponents)
 	}
 }
 

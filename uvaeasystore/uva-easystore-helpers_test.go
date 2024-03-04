@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"testing"
@@ -23,17 +24,22 @@ var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 // can be "sqlite" or "postgres"
 var datastore = "sqlite"
+var debug = false
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	// configure what we need
 	var config EasyStoreConfig
+	var logger *log.Logger
+	if debug == true {
+		logger = log.Default()
+	}
 	if datastore == "sqlite" {
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
 			//BusName:    busName,
 			SourceName: sourceName,
-			//Log:        log.Default(),
+			Log:        logger,
 		}
 	} else {
 
@@ -46,7 +52,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			//BusName:    busName,
 			SourceName: sourceName,
-			//Log:        log.Default(),
+			Log:        logger,
 		}
 	}
 
@@ -59,12 +65,16 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 func testSetup(t *testing.T) EasyStore {
 	var config EasyStoreConfig
+	var logger *log.Logger
+	if debug == true {
+		logger = log.Default()
+	}
 	if datastore == "sqlite" {
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
 			//BusName:    busName,
 			SourceName: sourceName,
-			//Log:        log.Default(),
+			Log:        logger,
 		}
 	} else {
 		config = DatastorePostgresConfig{
@@ -76,7 +86,7 @@ func testSetup(t *testing.T) EasyStore {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			//BusName:    busName,
 			SourceName: sourceName,
-			//  Log:        log.Default(),
+			Log:        logger,
 		}
 	}
 
@@ -120,6 +130,12 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	if (which & Files) == Files {
 		if fileCount != 0 {
 			for _, f := range obj.Files() {
+				if len(f.Id()) == 0 {
+					t.Fatalf("file id is empty\n")
+				}
+				if len(f.VTag()) == 0 {
+					t.Fatalf("file vtag is empty\n")
+				}
 				if len(f.Name()) == 0 {
 					t.Fatalf("file name is empty\n")
 				}
@@ -156,6 +172,12 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	md := obj.Metadata()
 	if (which & Metadata) == Metadata {
 		if md != nil {
+			if len(md.Id()) == 0 {
+				t.Fatalf("metadata id is empty\n")
+			}
+			if len(md.VTag()) == 0 {
+				t.Fatalf("metadata vtag is empty\n")
+			}
 			if len(md.MimeType()) == 0 {
 				t.Fatalf("metadata mime type is empty\n")
 			}

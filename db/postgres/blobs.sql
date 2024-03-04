@@ -27,8 +27,8 @@ CREATE INDEX blobs_key_idx ON blobs(namespace, oid);
 CREATE UNIQUE INDEX blobs_distinct_idx ON blobs(namespace, oid, name);
 
 -- add some dummy data for testing
-INSERT INTO blobs(bid,namespace,oid,name,mimetype,payload) values('bid:cnisrvmdfnu421j85gkg','libraopen', 'oid:cnfivf6dfnu1a2a5l3fg', 'metadata.secret.hidden', 'application/json', '{"name":"value"}');
-INSERT INTO blobs(bid,namespace,oid,name,mimetype,payload) values('bid:cnisrvmdfnu421j85gkg','libraopen', 'oid:cnfivf6dfnu1a2a5l3fg', 'filename1.txt', 'text/plain', 'bla bla bla');
+INSERT INTO blobs(bid,vtag,namespace,oid,name,mimetype,payload) values('bid:cnisrvmdfnu421j85gkg','vtag:cnit9uudfnu55bafteig','libraopen','oid:cnfivf6dfnu1a2a5l3fg', 'metadata.secret.hidden', 'application/json', '{"name":"value"}');
+INSERT INTO blobs(bid,vtag,namespace,oid,name,mimetype,payload) values('bid:cnisrvmdfnu421j85gkg','vtag:cnit9uudfnu55bafteig','libraopen','oid:cnfivf6dfnu1a2a5l3fg', 'filename1.txt', 'text/plain', 'bla bla bla');
 
 --
 -- end of file
