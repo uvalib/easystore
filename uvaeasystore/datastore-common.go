@@ -85,12 +85,12 @@ func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 // AddObject -- add a new object
 func (s *storage) AddObject(obj EasyStoreObject) error {
 
-	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, accessid ) VALUES( $1,$2,$3 )")
+	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, vtag ) VALUES( $1,$2,$3 )")
 	if err != nil {
 		return err
 	}
 
-	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.AccessId())
+	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
@@ -144,7 +144,7 @@ func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) 
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
-	rows, err := s.Query("SELECT namespace, oid, accessid, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
+	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
 	count := 0
 
 	for rows.Next() {
-		err := rows.Scan(&results.namespace, &results.id, &results.accessId, &results.created, &results.modified)
+		err := rows.Scan(&results.namespace, &results.id, &results.vtag, &results.created, &results.modified)
 		if err != nil {
 			return nil, err
 		}

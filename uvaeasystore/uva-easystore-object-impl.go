@@ -12,7 +12,7 @@ import (
 type easyStoreObjectImpl struct {
 	namespace string                // object namespace
 	id        string                // object identifier
-	accessId  string                // object access Id (opaque)
+	vtag      string                // object version tag (opaque)
 	created   time.Time             // created time
 	modified  time.Time             // last modified time
 	fields    EasyStoreObjectFields // object fields
@@ -34,7 +34,7 @@ func newEasyStoreObject(namespace string, id string) EasyStoreObject {
 	return &easyStoreObjectImpl{
 		namespace: namespace,
 		id:        id,
-		accessId:  newAccessId(),
+		vtag:      newVtag(),
 	}
 }
 
@@ -46,8 +46,8 @@ func (impl *easyStoreObjectImpl) Id() string {
 	return impl.id
 }
 
-func (impl *easyStoreObjectImpl) AccessId() string {
-	return impl.accessId
+func (impl *easyStoreObjectImpl) VTag() string {
+	return impl.vtag
 }
 
 func (impl *easyStoreObjectImpl) Created() time.Time {

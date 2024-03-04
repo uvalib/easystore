@@ -86,7 +86,7 @@ type EasyStore interface {
 type EasyStoreObject interface {
 	Namespace() string // the object namespace
 	Id() string        // object Id
-	AccessId() string  // object access handle
+	VTag() string      // object version tag
 
 	Fields() EasyStoreObjectFields // the fields
 	Metadata() EasyStoreMetadata   // the opaque metadata

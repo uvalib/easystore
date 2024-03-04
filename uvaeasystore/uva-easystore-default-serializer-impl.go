@@ -18,10 +18,10 @@ type easyStoreSerializerImpl struct {
 
 func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface{} {
 
-	template := "{\"id\":\"%s\",\"accessid\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"id\":\"%s\",\"vtag\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.Id(),
-		o.AccessId(),
+		o.VTag(),
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
@@ -38,7 +38,7 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 
 	o := newEasyStoreObject(impl.namespace, omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
-	obj.accessId = omap["accessid"].(string)
+	obj.vtag = omap["vtag"].(string)
 	obj.created, obj.modified, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err

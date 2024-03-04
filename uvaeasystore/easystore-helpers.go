@@ -38,8 +38,8 @@ func logInfo(log *log.Logger, msg string) {
 	}
 }
 
-func newAccessId() string {
-	return fmt.Sprintf("aid:%s", xid.New().String())
+func newVtag() string {
+	return fmt.Sprintf("vtag:%s", xid.New().String())
 }
 
 func newObjectId() string {

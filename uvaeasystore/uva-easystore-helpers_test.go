@@ -100,8 +100,16 @@ func testSetup(t *testing.T) EasyStore {
 func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents) {
 
 	// test the contents of the object
+	if len(obj.Namespace()) == 0 {
+		t.Fatalf("object namespace is empty\n")
+	}
+
 	if len(obj.Id()) == 0 {
 		t.Fatalf("object id is empty\n")
+	}
+
+	if len(obj.VTag()) == 0 {
+		t.Fatalf("object vtag is empty\n")
 	}
 
 	// should it have fields
