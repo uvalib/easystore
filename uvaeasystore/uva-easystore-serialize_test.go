@@ -114,15 +114,16 @@ func TestFieldsDeserialize(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	ci := serializer.FieldsSerialize(c)
-
-	// cast as necessary
-	bytes := i.([]byte)
-	bytesCopy := ci.([]byte)
-
-	// convert to string and test
-	if string(bytes) != string(bytesCopy) {
-		t.Fatalf("expected '%s' but got '%s'\n", string(bytes), string(bytesCopy))
+	// verify they are the same (cant use the string compare model above cos gloang
+	// maps are not ordered!)
+	if len(fields) != len(c) {
+		t.Fatalf("expected %d but got %d\n", len(fields), len(c))
+	}
+	if fields["field1"] != c["field1"] {
+		t.Fatalf("expected '%s' but got '%s'\n", fields["field1"], c["field1"])
+	}
+	if fields["field2"] != c["field2"] {
+		t.Fatalf("expected '%s' but got '%s'\n", fields["field2"], c["field2"])
 	}
 }
 
