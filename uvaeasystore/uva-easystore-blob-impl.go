@@ -10,8 +10,6 @@ import (
 
 // this is our easystore blob implementation
 type easyStoreBlobImpl struct {
-	id       string    // blob identifier (opaque)
-	vtag     string    // blob version tag
 	name     string    // source file name
 	mimeType string    // mime type (if we know it)
 	payload  []byte    // not exposed
@@ -21,20 +19,7 @@ type easyStoreBlobImpl struct {
 
 // factory for our easystore blob interface
 func newEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
-	return &easyStoreBlobImpl{
-		id:       newBlobId(),
-		vtag:     newVTag(),
-		name:     name,
-		mimeType: mimeType,
-		payload:  payload}
-}
-
-func (impl easyStoreBlobImpl) Id() string {
-	return impl.id
-}
-
-func (impl easyStoreBlobImpl) VTag() string {
-	return impl.vtag
+	return &easyStoreBlobImpl{name: name, mimeType: mimeType, payload: payload}
 }
 
 func (impl easyStoreBlobImpl) Name() string {

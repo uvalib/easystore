@@ -38,16 +38,12 @@ func logInfo(log *log.Logger, msg string) {
 	}
 }
 
-func newVTag() string {
-	return fmt.Sprintf("vtag:%s", xid.New().String())
+func newAccessId() string {
+	return fmt.Sprintf("aid:%s", xid.New().String())
 }
 
 func newObjectId() string {
 	return fmt.Sprintf("oid:%s", xid.New().String())
-}
-
-func newBlobId() string {
-	return fmt.Sprintf("bid:%s", xid.New().String())
 }
 
 //

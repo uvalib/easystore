@@ -130,12 +130,6 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	if (which & Files) == Files {
 		if fileCount != 0 {
 			for _, f := range obj.Files() {
-				if len(f.Id()) == 0 {
-					t.Fatalf("file id is empty\n")
-				}
-				if len(f.VTag()) == 0 {
-					t.Fatalf("file vtag is empty\n")
-				}
 				if len(f.Name()) == 0 {
 					t.Fatalf("file name is empty\n")
 				}
@@ -172,12 +166,6 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 	md := obj.Metadata()
 	if (which & Metadata) == Metadata {
 		if md != nil {
-			if len(md.Id()) == 0 {
-				t.Fatalf("metadata id is empty\n")
-			}
-			if len(md.VTag()) == 0 {
-				t.Fatalf("metadata vtag is empty\n")
-			}
 			if len(md.MimeType()) == 0 {
 				t.Fatalf("metadata mime type is empty\n")
 			}
