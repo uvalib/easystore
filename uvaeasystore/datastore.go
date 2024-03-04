@@ -17,6 +17,9 @@ type DataStoreKey struct {
 type DataStore interface {
 	Check() error
 
+	// update methods
+	UpdateObject(DataStoreKey) error
+
 	// add methods
 	AddBlob(DataStoreKey, EasyStoreBlob) error
 	AddFields(DataStoreKey, EasyStoreObjectFields) error

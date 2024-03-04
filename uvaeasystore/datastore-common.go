@@ -11,6 +11,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"golang.org/x/exp/maps"
 	"strings"
+	"time"
 
 	"log"
 )
@@ -27,6 +28,19 @@ type storage struct {
 // Check -- check our database health
 func (s *storage) Check() error {
 	return s.Ping()
+}
+
+// UpdateObject -- update a couple of object fields
+func (s *storage) UpdateObject(key DataStoreKey) error {
+
+	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = $2 WHERE namespace = $3 AND oid = $4")
+	if err != nil {
+		return err
+	}
+
+	newVTag := newVtag()
+	newTS := time.Now().UTC().Format("2006-01-02 15:04:05")
+	return execPreparedBy4(stmt, newVTag, newTS, key.namespace, key.objectId)
 }
 
 // AddBlob -- add a new blob object
@@ -255,6 +269,11 @@ func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
 
 func execPreparedBy3(stmt *sql.Stmt, value1 string, value2 string, value3 string) error {
 	_, err := stmt.Exec(value1, value2, value3)
+	return errorMapper(err)
+}
+
+func execPreparedBy4(stmt *sql.Stmt, value1 string, value2 string, value3 string, value4 string) error {
+	_, err := stmt.Exec(value1, value2, value3, value4)
 	return errorMapper(err)
 }
 

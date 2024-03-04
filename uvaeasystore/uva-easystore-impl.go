@@ -41,7 +41,10 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		return nil, ErrBadParameter
 	}
 
-	// validate the object id
+	// validate the object namespace/id
+	if len(obj.Namespace()) == 0 {
+		return nil, ErrBadParameter
+	}
 	if len(obj.Id()) == 0 {
 		return nil, ErrBadParameter
 	}
@@ -97,14 +100,31 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 		return nil, ErrBadParameter
 	}
 
-	// validate the object id
+	// validate the object namespace/id
+	if len(obj.Namespace()) == 0 {
+		return nil, ErrBadParameter
+	}
 	if len(obj.Id()) == 0 {
+		return nil, ErrBadParameter
+	}
+
+	// validate the vtag is included
+	if len(obj.VTag()) == 0 {
 		return nil, ErrBadParameter
 	}
 
 	// validate the component request
 	if which > AllComponents {
 		return nil, ErrBadParameter
+	}
+
+	// get the current object and compare the vtag
+	current, err := impl.GetByKey(obj.Namespace(), obj.Id(), BaseComponent)
+	if err != nil {
+		return nil, err
+	}
+	if current.VTag() != obj.VTag() {
+		return nil, ErrStaleObject
 	}
 
 	// do we update fields
@@ -166,6 +186,12 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 		}
 	}
 
+	// update the object (timestamp and vtag)
+	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
+	if err != nil {
+		return nil, err
+	}
+
 	// publish the appropriate event
 	_ = pubObjectUpdate(impl.messageBus, obj)
 
@@ -180,14 +206,31 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 		return nil, ErrBadParameter
 	}
 
-	// validate the object id
+	// validate the object namespace/id
+	if len(obj.Namespace()) == 0 {
+		return nil, ErrBadParameter
+	}
 	if len(obj.Id()) == 0 {
+		return nil, ErrBadParameter
+	}
+
+	// validate the vtag is included
+	if len(obj.VTag()) == 0 {
 		return nil, ErrBadParameter
 	}
 
 	// validate the component request
 	if which > AllComponents {
 		return nil, ErrBadParameter
+	}
+
+	// get the current object and compare the vtag
+	current, err := impl.GetByKey(obj.Namespace(), obj.Id(), BaseComponent)
+	if err != nil {
+		return nil, err
+	}
+	if current.VTag() != obj.VTag() {
+		return nil, ErrStaleObject
 	}
 
 	// special case, if we are asking for the base component, it means delete everything
@@ -224,6 +267,15 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	if (which & Metadata) == Metadata {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// if we did not delete the component
+	if which != BaseComponent {
+		// update the object (timestamp and vtag)
+		err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
 			return nil, err
 		}
