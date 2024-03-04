@@ -246,7 +246,7 @@ func (s *storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields
 			}
 		}
 
-		query += fmt.Sprintf("HAVING count(*) = %d", len(fields))
+		query += fmt.Sprintf("GROUP BY namespace, oid HAVING count(*) = %d", len(fields))
 		rows, err = s.Query(query, args...)
 	}
 
