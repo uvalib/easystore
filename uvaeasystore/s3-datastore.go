@@ -13,13 +13,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// this is our DB implementation
-type s3Storage struct {
-	bucket  string      // bucket name
-	log     *log.Logger // logger
-	*sql.DB             // database connection
-}
-
 // DatastoreS3Config -- this is our S3 configuration implementation
 type DatastoreS3Config struct {
 	Bucket     string      // dbStorage bucket name

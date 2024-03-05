@@ -1,5 +1,5 @@
 //
-// sqlite implementation of the datastore interface
+// db implementation of the datastore interface (supports both sqlite and Postgres)
 //
 
 package uvaeasystore
@@ -10,10 +10,8 @@ import (
 	"fmt"
 	"github.com/mattn/go-sqlite3"
 	"golang.org/x/exp/maps"
-	"strings"
-	"time"
-
 	"log"
+	"strings"
 )
 
 // we store opaque metadata as a blob so need to distinguish it as special
@@ -21,8 +19,9 @@ var blobMetadataName = "metadata.secret.hidden"
 
 // this is our DB implementation
 type dbStorage struct {
-	log     *log.Logger // logger
-	*sql.DB             // database connection
+	dbCurrentTimeFn string      // implementations use a different function name for the current time
+	log             *log.Logger // logger
+	*sql.DB                     // database connection
 }
 
 // Check -- check our database health
@@ -39,8 +38,7 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 	}
 
 	newVTag := newVtag()
-	newTS := time.Now().UTC().Format("2006-01-02 15:04:05")
-	return execPreparedBy4(stmt, newVTag, newTS, key.namespace, key.objectId)
+	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.namespace, key.objectId)
 }
 
 // AddBlob -- add a new blob object

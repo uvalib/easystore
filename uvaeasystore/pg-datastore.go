@@ -80,8 +80,9 @@ func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	return &dbStorage{
-		log: c.Log,
-		DB:  db,
+		dbCurrentTimeFn: "NOW()",
+		log:             c.Log,
+		DB:              db,
 	}, nil
 }
 

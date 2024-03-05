@@ -70,8 +70,9 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 	}
 
 	return &dbStorage{
-		log: c.Log,
-		DB:  db,
+		dbCurrentTimeFn: "CURRENT_TIMESTAMP",
+		log:             c.Log,
+		DB:              db,
 	}, nil
 }
 
