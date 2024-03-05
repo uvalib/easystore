@@ -184,8 +184,8 @@ func DefaultEasyStoreFields() EasyStoreObjectFields {
 }
 
 // DefaultEasyStoreSerializer - factory for the default easystore serializer
-func DefaultEasyStoreSerializer(namespace string) EasyStoreSerializer {
-	return newEasyStoreSerializer(namespace)
+func DefaultEasyStoreSerializer() EasyStoreSerializer {
+	return newEasyStoreSerializer()
 }
 
 //

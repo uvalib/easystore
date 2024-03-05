@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-// this is our easystore blob implementation
+// this is our easystore serializer implementation
 type easyStoreSerializerImpl struct {
-	namespace string // the object namespace
 }
 
 func (impl easyStoreSerializerImpl) ObjectSerialize(o EasyStoreObject) interface{} {
 
-	template := "{\"id\":\"%s\",\"vtag\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"ns\":\"%s\",\"id\":\"%s\",\"vtag\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
+		o.Namespace(),
 		o.Id(),
 		o.VTag(),
 		o.Created().UTC(),
@@ -36,7 +36,7 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 		return nil, err
 	}
 
-	o := newEasyStoreObject(impl.namespace, omap["id"].(string))
+	o := newEasyStoreObject(omap["ns"].(string), omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
 	obj.vtag = omap["vtag"].(string)
 	obj.created, obj.modified, err = timestampExtract(omap)
@@ -201,8 +201,8 @@ func jsonEscape(buf []byte) []byte {
 	return []byte(str)
 }
 
-func newEasyStoreSerializer(namespace string) EasyStoreSerializer {
-	return &easyStoreSerializerImpl{namespace: namespace}
+func newEasyStoreSerializer() EasyStoreSerializer {
+	return &easyStoreSerializerImpl{}
 }
 
 //
