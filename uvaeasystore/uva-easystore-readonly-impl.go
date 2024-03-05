@@ -81,6 +81,7 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 		} else {
 			if errors.Is(err, ErrNotFound) {
 				// do nothing, this is OK
+				logInfo(impl.config.Logger(), fmt.Sprintf("did not find ns/oid [%s/%s], continuing", namespace, id))
 			} else {
 				return nil, err
 			}
@@ -116,13 +117,14 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 		}
 	}
 
-	// bail out if we did not find any
-	if len(keys) == 0 {
-		return nil, ErrNotFound
-	}
-
 	// our results set
 	objs := make([]EasyStoreObject, 0)
+
+	// bail out if we did not find any
+	// I think returning an error is better but this is what was requested
+	if len(keys) == 0 {
+		return newEasyStoreObjectSet(impl, objs, which), nil
+	}
 
 	// build our list of objects
 	for _, k := range keys {
@@ -133,11 +135,6 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 		} else {
 			return nil, err
 		}
-	}
-
-	// bail out if we did not find any
-	if len(objs) == 0 {
-		return nil, ErrNotFound
 	}
 
 	// we get objects only when they are required

@@ -97,7 +97,7 @@ func TestGetByIds(t *testing.T) {
 	}
 }
 
-func TestGetByFields(t *testing.T) {
+func TestGetByFoundFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := DefaultEasyStoreFields()
 	fields["key1"] = "value1"
@@ -147,6 +147,23 @@ func TestGetByFields(t *testing.T) {
 
 	if errors.Is(err, io.EOF) != true {
 		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
+	}
+}
+
+func TestGetByNotFoundFields(t *testing.T) {
+	esro := testSetupReadonly(t)
+	fields := DefaultEasyStoreFields()
+	fields["blablabla"] = newObjectId()
+
+	// search by specific namespace
+	iter, err := esro.GetByFields(goodNamespace, fields, Fields)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// ensure we received an empty iterator
+	if iter.Count() != 0 {
+		t.Fatalf("expected no objects but got some\n")
 	}
 }
 
