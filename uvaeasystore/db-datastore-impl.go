@@ -6,12 +6,9 @@ package uvaeasystore
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"github.com/mattn/go-sqlite3"
 	"golang.org/x/exp/maps"
 	"log"
-	"strings"
 )
 
 // we store opaque metadata as a blob so need to distinguish it as special
@@ -114,7 +111,7 @@ func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 	}
 	defer rows.Close()
 
-	return blobResults(rows, s.log)
+	return blobQueryResults(rows, s.log)
 }
 
 // GetFieldsByKey -- get all field data associated with the specified object
@@ -126,7 +123,7 @@ func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, er
 	}
 	defer rows.Close()
 
-	return fieldResults(rows, s.log)
+	return fieldQueryResults(rows, s.log)
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
@@ -138,7 +135,7 @@ func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 	}
 	defer rows.Close()
 
-	br, err := blobResults(rows, s.log)
+	br, err := blobQueryResults(rows, s.log)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +159,7 @@ func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 	}
 	defer rows.Close()
 
-	return objectResults(rows, s.log)
+	return objectQueryResults(rows, s.log)
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
@@ -253,156 +250,12 @@ func (s *dbStorage) GetKeysByFields(namespace string, fields EasyStoreObjectFiel
 	}
 	defer rows.Close()
 
-	return keyResults(rows, s.log)
+	return keyQueryResults(rows, s.log)
 }
 
 //
 // private implementation methods
 //
-
-func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
-	_, err := stmt.Exec(value1, value2)
-	return errorMapper(err)
-}
-
-func execPreparedBy3(stmt *sql.Stmt, value1 string, value2 string, value3 string) error {
-	_, err := stmt.Exec(value1, value2, value3)
-	return errorMapper(err)
-}
-
-func execPreparedBy4(stmt *sql.Stmt, value1 string, value2 string, value3 string, value4 string) error {
-	_, err := stmt.Exec(value1, value2, value3, value4)
-	return errorMapper(err)
-}
-
-func objectResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error) {
-	results := easyStoreObjectImpl{}
-	count := 0
-
-	for rows.Next() {
-		err := rows.Scan(&results.namespace, &results.id, &results.vtag, &results.created, &results.modified)
-		if err != nil {
-			return nil, err
-		}
-		count++
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// check for not found
-	if count == 0 {
-		return nil, fmt.Errorf("%q: %w", "object(s) not found", ErrNotFound)
-	}
-
-	logDebug(log, fmt.Sprintf("found %d object(s)", count))
-	return &results, nil
-}
-
-func fieldResults(rows *sql.Rows, log *log.Logger) (*EasyStoreObjectFields, error) {
-
-	results := EasyStoreObjectFields{}
-	//results.fields = make(map[string]string)
-	count := 0
-
-	for rows.Next() {
-		var name, value string
-		err := rows.Scan(&name, &value)
-		if err != nil {
-			return nil, err
-		}
-
-		results[name] = value
-		count++
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// check for not found
-	if count == 0 {
-		return nil, fmt.Errorf("%q: %w", "fields(s) not found", ErrNotFound)
-	}
-
-	logDebug(log, fmt.Sprintf("found %d fields(s)", count))
-	return &results, nil
-}
-
-func blobResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) {
-	results := make([]EasyStoreBlob, 0)
-	count := 0
-
-	for rows.Next() {
-		blob := easyStoreBlobImpl{}
-		err := rows.Scan(&blob.name, &blob.mimeType, &blob.payload, &blob.created, &blob.modified)
-		if err != nil {
-			return nil, err
-		}
-
-		results = append(results, blob)
-		count++
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// check for not found
-	if count == 0 {
-		return nil, fmt.Errorf("%q: %w", "blobs(s) not found", ErrNotFound)
-	}
-
-	logDebug(log, fmt.Sprintf("found %d blobs(s)", count))
-	return results, nil
-}
-
-func keyResults(rows *sql.Rows, log *log.Logger) ([]DataStoreKey, error) {
-	results := make([]DataStoreKey, 0)
-	count := 0
-
-	for rows.Next() {
-		var namespace string
-		var oid string
-		var ct int
-		err := rows.Scan(&namespace, &oid, &ct)
-		if err != nil {
-			return nil, err
-		}
-
-		results = append(results, DataStoreKey{namespace, oid})
-		count++
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// check for not found
-	if count == 0 {
-		return nil, fmt.Errorf("%q: %w", "key(s) not found", ErrNotFound)
-	}
-
-	logDebug(log, fmt.Sprintf("found %d key(s)", count))
-	return results, nil
-}
-
-// handles unwrapping certain classes of errors
-func errorMapper(err error) error {
-	if err != nil {
-		// try postgres errors
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") == true {
-			return fmt.Errorf("%q: %w", err.Error(), ErrAlreadyExists)
-		}
-
-		// try sqlite errors
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) {
-			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
-				return fmt.Errorf("%q: %w", sqliteErr.Error(), ErrAlreadyExists)
-			}
-		}
-
-	}
-	return err
-}
 
 //
 // end of file
