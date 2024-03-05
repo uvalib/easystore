@@ -1,3 +1,5 @@
 .idea
+.vscode
 env.*
 db/postgres/*.ksh
+.DS_Store
