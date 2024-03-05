@@ -8,12 +8,12 @@ GOFMT = $(GOCMD) fmt
 GOVET = $(GOCMD) vet
 BINNAME = easystore-query
 
-build: darwin 
+build: darwin
 
 all: darwin linux
 
 darwin:
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -a -o bin/$(BINNAME).darwin *.go
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 $(GOBUILD) -a -o bin/$(BINNAME).darwin *.go
 
 linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -a -installsuffix cgo -o bin/$(BINNAME).linux *.go
