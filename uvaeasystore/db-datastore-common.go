@@ -20,18 +20,18 @@ import (
 var blobMetadataName = "metadata.secret.hidden"
 
 // this is our DB implementation
-type storage struct {
-	log *log.Logger
-	*sql.DB
+type dbStorage struct {
+	log     *log.Logger // logger
+	*sql.DB             // database connection
 }
 
 // Check -- check our database health
-func (s *storage) Check() error {
+func (s *dbStorage) Check() error {
 	return s.Ping()
 }
 
 // UpdateObject -- update a couple of object fields
-func (s *storage) UpdateObject(key DataStoreKey) error {
+func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 
 	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = $2 WHERE namespace = $3 AND oid = $4")
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *storage) UpdateObject(key DataStoreKey) error {
 }
 
 // AddBlob -- add a new blob object
-func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
+func (s *dbStorage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
 	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
 	if err != nil {
@@ -62,7 +62,7 @@ func (s *storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 }
 
 // AddFields -- add a new fields object
-func (s *storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
+func (s *dbStorage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
 
 	stmt, err := s.Prepare("INSERT INTO fields( namespace, oid, name, value ) VALUES( $1,$2,$3,$4 )")
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) erro
 }
 
 // AddMetadata -- add a new metadata object
-func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
+func (s *dbStorage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 
 	stmt, err := s.Prepare("INSERT INTO blobs( namespace, oid, name, mimetype, payload ) VALUES( $1,$2,$3,$4,$5 )")
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *storage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 }
 
 // AddObject -- add a new object
-func (s *storage) AddObject(obj EasyStoreObject) error {
+func (s *dbStorage) AddObject(obj EasyStoreObject) error {
 
 	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, vtag ) VALUES( $1,$2,$3 )")
 	if err != nil {
@@ -108,7 +108,7 @@ func (s *storage) AddObject(obj EasyStoreObject) error {
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
-func (s *storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
+func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 }
 
 // GetFieldsByKey -- get all field data associated with the specified object
-func (s *storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
+func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
 
 	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.namespace, key.objectId)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, erro
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
-func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
+func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.namespace, key.objectId, blobMetadataName)
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) 
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
-func (s *storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
+func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
 	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
 	if err != nil {
@@ -168,7 +168,7 @@ func (s *storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
-func (s *storage) DeleteBlobsByKey(key DataStoreKey) error {
+func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 
 	stmt, err := s.Prepare("DELETE FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3")
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *storage) DeleteBlobsByKey(key DataStoreKey) error {
 }
 
 // DeleteFieldsByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteFieldsByKey(key DataStoreKey) error {
+func (s *dbStorage) DeleteFieldsByKey(key DataStoreKey) error {
 
 	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
 	if err != nil {
@@ -188,7 +188,7 @@ func (s *storage) DeleteFieldsByKey(key DataStoreKey) error {
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteMetadataByKey(key DataStoreKey) error {
+func (s *dbStorage) DeleteMetadataByKey(key DataStoreKey) error {
 
 	stmt, err := s.Prepare("DELETE FROM blobs WHERE namespace = $1 AND oid = $2 AND name = $3")
 	if err != nil {
@@ -198,7 +198,7 @@ func (s *storage) DeleteMetadataByKey(key DataStoreKey) error {
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
-func (s *storage) DeleteObjectByKey(key DataStoreKey) error {
+func (s *dbStorage) DeleteObjectByKey(key DataStoreKey) error {
 
 	stmt, err := s.Prepare("DELETE FROM objects WHERE namespace = $1 AND oid = $2")
 	if err != nil {
@@ -208,7 +208,7 @@ func (s *storage) DeleteObjectByKey(key DataStoreKey) error {
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
-func (s *storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error) {
+func (s *dbStorage) GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error) {
 
 	var err error
 	var rows *sql.Rows

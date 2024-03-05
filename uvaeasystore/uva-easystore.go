@@ -1,5 +1,5 @@
 //
-// An easystore is a simple object storage abstraction offering rudimentary find
+// An easystore is a simple object dbStorage abstraction offering rudimentary find
 // capabilities in addition to CRUD operations.
 //
 // Easystore objects all take a standard form consisting of a namespace/identifier pair,

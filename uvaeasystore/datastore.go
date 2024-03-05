@@ -13,7 +13,7 @@ type DataStoreKey struct {
 	objectId  string
 }
 
-// our storage interface
+// our dbStorage interface
 type DataStore interface {
 	Check() error
 
@@ -55,6 +55,12 @@ func NewDatastore(config EasyStoreConfig) (DataStore, error) {
 	_, ok = config.(DatastorePostgresConfig)
 	if ok == true {
 		return newPostgresStore(config)
+	}
+
+	// check for S3 configuration
+	_, ok = config.(DatastoreS3Config)
+	if ok == true {
+		return newS3Store(config)
 	}
 
 	return nil, ErrNotImplemented

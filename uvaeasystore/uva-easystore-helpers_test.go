@@ -15,15 +15,20 @@ import (
 var goodSqliteFilename = "/tmp/sqlite.db"
 var badSqliteFilename = "/tmp/blablabla.db"
 var sourceName = "testing.unit.automated"
-var busName = "uva-experiment-bus-staging"
+var goodBusName = "uva-experiment-bus-staging"
 var goodNamespace = "libraopen"
 var badNamespace = "blablabla"
 var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
 var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
-// can be "sqlite" or "postgres"
+// can be "sqlite", "postgres" or "s3"
 var datastore = "sqlite"
+
+// do we want event telemetry
+var enableBus = false
+
+// enable datastore debugging
 var debug = false
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
@@ -31,18 +36,25 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	// configure what we need
 	var config EasyStoreConfig
 	var logger *log.Logger
+	var busName string
+
+	// features to enable
 	if debug == true {
 		logger = log.Default()
 	}
-	if datastore == "sqlite" {
+	if enableBus == true {
+		busName = goodBusName
+	}
+
+	switch datastore {
+	case "sqlite":
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
-			//BusName:    busName,
+			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
-	} else {
-
+	case "postgres":
 		config = DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -50,10 +62,26 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			DbUser:     os.Getenv("DBUSER"),
 			DbPassword: os.Getenv("DBPASSWD"),
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			//BusName:    busName,
+			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
+	case "s3":
+		config = DatastoreS3Config{
+			Bucket:     os.Getenv("BUCKET"),
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASSWD"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:    busName,
+			SourceName: sourceName,
+			Log:        logger,
+		}
+
+	default:
+		t.Fatalf("Unsupported dbStorage configuration")
 	}
 
 	esro, err := NewEasyStoreReadonly(config)
@@ -66,17 +94,25 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 func testSetup(t *testing.T) EasyStore {
 	var config EasyStoreConfig
 	var logger *log.Logger
+	var busName string
+
+	// features to enable
 	if debug == true {
 		logger = log.Default()
 	}
-	if datastore == "sqlite" {
+	if enableBus == true {
+		busName = goodBusName
+	}
+
+	switch datastore {
+	case "sqlite":
 		config = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
-			//BusName:    busName,
+			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
-	} else {
+	case "postgres":
 		config = DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -84,10 +120,26 @@ func testSetup(t *testing.T) EasyStore {
 			DbUser:     os.Getenv("DBUSER"),
 			DbPassword: os.Getenv("DBPASSWD"),
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			//BusName:    busName,
+			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
+	case "s3":
+		config = DatastoreS3Config{
+			Bucket:     os.Getenv("BUCKET"),
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASSWD"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:    busName,
+			SourceName: sourceName,
+			Log:        logger,
+		}
+
+	default:
+		t.Fatalf("Unsupported dbStorage configuration")
 	}
 
 	es, err := NewEasyStore(config)

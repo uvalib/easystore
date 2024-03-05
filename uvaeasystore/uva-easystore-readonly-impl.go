@@ -12,7 +12,7 @@ import (
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
 	config EasyStoreConfig // configuration info
-	store  DataStore       // storage/persistence implementation
+	store  DataStore       // dbStorage/persistence implementation
 }
 
 // factory for our easystore interface

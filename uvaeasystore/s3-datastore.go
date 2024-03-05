@@ -1,5 +1,5 @@
 //
-// Postgres implementation of the datastore interface
+// S3 implementation of the datastore interface (which also uses Postgres)
 //
 
 package uvaeasystore
@@ -13,8 +13,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// DatastorePostgresConfig -- this is our Postgres configuration implementation
-type DatastorePostgresConfig struct {
+// this is our DB implementation
+type s3Storage struct {
+	bucket  string      // bucket name
+	log     *log.Logger // logger
+	*sql.DB             // database connection
+}
+
+// DatastoreS3Config -- this is our S3 configuration implementation
+type DatastoreS3Config struct {
+	Bucket     string      // dbStorage bucket name
 	DbHost     string      // host endpoint
 	DbPort     int         // port
 	DbName     string      // database name
@@ -26,46 +34,46 @@ type DatastorePostgresConfig struct {
 	Log        *log.Logger // the logger
 }
 
-func (impl DatastorePostgresConfig) Logger() *log.Logger {
+func (impl DatastoreS3Config) Logger() *log.Logger {
 	return impl.Log
 }
 
-func (impl DatastorePostgresConfig) SetLogger(log *log.Logger) {
+func (impl DatastoreS3Config) SetLogger(log *log.Logger) {
 	impl.Log = log
 }
 
-func (impl DatastorePostgresConfig) MessageBus() string {
+func (impl DatastoreS3Config) MessageBus() string {
 	return impl.BusName
 }
 
-func (impl DatastorePostgresConfig) SetMessageBus(busName string) {
+func (impl DatastoreS3Config) SetMessageBus(busName string) {
 	impl.BusName = busName
 }
 
-func (impl DatastorePostgresConfig) EventSource() string {
+func (impl DatastoreS3Config) EventSource() string {
 	return impl.SourceName
 }
 
-func (impl DatastorePostgresConfig) SetEventSource(sourceName string) {
+func (impl DatastoreS3Config) SetEventSource(sourceName string) {
 	impl.SourceName = sourceName
 }
 
-// newPostgresStore -- create a postgres version of the DataStore
-func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
+// newS3Store -- create an S3 version of the DataStore
+func newS3Store(config EasyStoreConfig) (DataStore, error) {
 
 	// make sure its one of these
-	c, ok := config.(DatastorePostgresConfig)
+	c, ok := config.(DatastoreS3Config)
 	if ok == false {
-		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastorePostgresConfig", ErrBadParameter)
+		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastoreS3Config", ErrBadParameter)
 	}
 
 	// validate our configuration
-	err := validatePostgresConfig(c)
+	err := validateS3Config(c)
 	if err != nil {
 		return nil, err
 	}
 
-	logDebug(config.Logger(), fmt.Sprintf("using [postgres:%s/%s] for dbStorage", c.DbHost, c.DbName))
+	logDebug(config.Logger(), fmt.Sprintf("using [s3://%s] for dbStorage", c.Bucket))
 
 	// connect to database (postgres)
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
@@ -79,13 +87,19 @@ func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	return &dbStorage{
-		log: c.Log,
-		DB:  db,
-	}, nil
+	return nil, ErrNotImplemented
+	//	return &s3Storage{
+	//		bucket: c.Bucket,
+	//		log:    c.Log,
+	//		DB:     db
+	//		}, nil
 }
 
-func validatePostgresConfig(config DatastorePostgresConfig) error {
+func validateS3Config(config DatastoreS3Config) error {
+
+	if len(config.Bucket) == 0 {
+		return fmt.Errorf("%q: %w", "config.Bucket is blank", ErrBadParameter)
+	}
 
 	if len(config.DbHost) == 0 {
 		return fmt.Errorf("%q: %w", "config.DbHost is blank", ErrBadParameter)

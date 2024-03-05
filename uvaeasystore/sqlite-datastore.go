@@ -14,7 +14,7 @@ import (
 
 // DatastoreSqliteConfig -- this is our sqlite configuration implementation
 type DatastoreSqliteConfig struct {
-	DataSource string      // the storage file name
+	DataSource string      // the dbStorage file name
 	BusName    string      // the message bus name
 	SourceName string      // the event source name
 	Log        *log.Logger // the logger
@@ -59,7 +59,7 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", c.DataSource))
+	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for dbStorage", c.DataSource))
 
 	db, err := sql.Open("sqlite3", c.DataSource)
 	if err != nil {
@@ -69,7 +69,10 @@ func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	return &storage{c.Log, db}, nil
+	return &dbStorage{
+		log: c.Log,
+		DB:  db,
+	}, nil
 }
 
 func validateSqliteConfig(config DatastoreSqliteConfig) error {
