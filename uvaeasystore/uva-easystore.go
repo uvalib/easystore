@@ -56,6 +56,12 @@ type EasyStoreObjectSet interface {
 	Next() (EasyStoreObject, error) // the next object in the set
 }
 
+// EasyStoreBlobSet - an iterator for enumerating a set of blobs
+type EasyStoreBlobSet interface {
+	Count() uint                  // the number of items in the set
+	Next() (EasyStoreBlob, error) // the next blob in the set
+}
+
 // EasyStoreReadonly - the store abstraction (read only)
 type EasyStoreReadonly interface {
 
