@@ -85,7 +85,7 @@ func main() {
 		var obj uvaeasystore.EasyStoreObject
 		obj, err = results.Next()
 		for err == nil {
-			fmt.Printf("  ===> Id: %s (%d of %d)\n", obj.Id(), current, total)
+			fmt.Printf("  ===> ns/id: %s/%s (%d of %d)\n", obj.Namespace(), obj.Id(), current, total)
 			err = outputObject(obj, what)
 			if err != nil {
 				log.Fatalf("ERROR: outputting result object (%s)", err.Error())
@@ -110,12 +110,14 @@ func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what 
 
 	// query by fields
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	if strings.Contains(whereCmd, "field:") {
-		nv := whereCmd[6:]
-		name := strings.Split(nv, "=")[0]
-		value := strings.Split(nv, "=")[1]
-		fmt.Printf("Querying by Field: %s=%s\n", name, value)
-		fields[name] = value
+	if strings.Contains(whereCmd, "fields:") {
+		split := strings.Split(whereCmd[7:], ",")
+		for _, s := range split {
+			name := strings.Split(s, "=")[0]
+			value := strings.Split(s, "=")[1]
+			fields[name] = value
+			fmt.Printf("Querying by Field: %s=%s\n", name, value)
+		}
 	}
 
 	// return query by fields
@@ -124,6 +126,7 @@ func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what 
 
 func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreComponents) error {
 
+	fmt.Printf("       vtag:    %s\n", obj.VTag())
 	fmt.Printf("       created: %s\n", obj.Created())
 	fmt.Printf("       updated: %s\n", obj.Modified())
 
