@@ -24,6 +24,7 @@ var ErrFileNotFound = fmt.Errorf("the file does not exist")
 var ErrNotFound = fmt.Errorf("the object does not exist")
 var ErrStaleObject = fmt.Errorf("the object is stale")
 var ErrAlreadyExists = fmt.Errorf("the object already exists")
+var ErrSerialize = fmt.Errorf("serialization error")
 var ErrDeserialize = fmt.Errorf("deserialization error")
 var ErrBusNotConfigured = fmt.Errorf("bus not configured")
 
