@@ -13,12 +13,14 @@ import (
 // main entry point
 func main() {
 
+	var mode string
 	var namespace string
 	var whatCmd string
 	var whereCmd string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
 	flag.StringVar(&namespace, "namespace", "", "Namespace to query")
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
@@ -29,20 +31,27 @@ func main() {
 		logger = log.Default()
 	}
 
-	config := uvaeasystore.DatastoreSqliteConfig{
-		DataSource: os.Getenv("SQLITEFILE"),
-		Log:        logger,
-	}
+	var config uvaeasystore.EasyStoreConfig
 
-	//config := uvaeasystore.DatastorePostgresConfig{
-	//	DbHost:     os.Getenv("DBHOST"),
-	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//	DbName:     os.Getenv("DBNAME"),
-	//	DbUser:     os.Getenv("DBUSER"),
-	//	DbPassword: os.Getenv("DBPASSWD"),
-	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        logger,
-	//}
+	switch mode {
+	case "sqlite":
+		config = uvaeasystore.DatastoreSqliteConfig{
+			DataSource: os.Getenv("SQLITEFILE"),
+			Log:        logger,
+		}
+	case "postgres":
+		config = uvaeasystore.DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASS"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:        logger,
+		}
+	default:
+		log.Fatalf("ERROR: unsupported mode (%s)", mode)
+	}
 
 	// what are we querying for
 	what := uvaeasystore.BaseComponent

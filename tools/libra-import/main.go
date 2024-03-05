@@ -12,15 +12,17 @@ import (
 // main entry point
 func main() {
 
+	var mode string
 	var namespace string
 	var inDir string
-	var mode string
+	var importMode string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
 	flag.StringVar(&namespace, "namespace", "", "Namespace to import")
 	flag.StringVar(&inDir, "importdir", "", "Import directory")
-	flag.StringVar(&mode, "mode", "", "Import mode, either 'etd' or 'open'")
+	flag.StringVar(&importMode, "importmode", "", "Import mode, either etd or open")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
 
@@ -29,30 +31,39 @@ func main() {
 	}
 
 	// validate
+	if len(inDir) == 0 {
+		log.Fatalf("ERROR: must specify import dir")
+	}
 	_, err := os.Stat(inDir)
 	if err != nil {
 		log.Fatalf("ERROR: import dir does not exist or is not readable (%s)", err.Error())
 	}
 
-	if mode != "etd" && mode != "open" {
-		log.Fatalf("ERROR: mode must be 'etd' or 'open'")
+	if importMode != "etd" && importMode != "open" {
+		log.Fatalf("ERROR: import mode must be 'etd' or 'open'")
 	}
 
-	// configure what we need
-	config := uvaeasystore.DatastoreSqliteConfig{
-		DataSource: os.Getenv("SQLITEFILE"),
-		Log:        logger,
-	}
+	var config uvaeasystore.EasyStoreConfig
 
-	//config := uvaeasystore.DatastorePostgresConfig{
-	//	DbHost:     os.Getenv("DBHOST"),
-	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//	DbName:     os.Getenv("DBNAME"),
-	//	DbUser:     os.Getenv("DBUSER"),
-	//	DbPassword: os.Getenv("DBPASSWD"),
-	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        logger,
-	//}
+	switch mode {
+	case "sqlite":
+		config = uvaeasystore.DatastoreSqliteConfig{
+			DataSource: os.Getenv("SQLITEFILE"),
+			Log:        logger,
+		}
+	case "postgres":
+		config = uvaeasystore.DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASS"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:        logger,
+		}
+	default:
+		log.Fatalf("ERROR: unsupported mode (%s)", mode)
+	}
 
 	es, err := uvaeasystore.NewEasyStore(config)
 	if err != nil {
@@ -61,7 +72,7 @@ func main() {
 
 	// use the appropriate serializer
 	var serializer uvaeasystore.EasyStoreSerializer
-	if mode == "etd" {
+	if importMode == "etd" {
 		serializer = libraEtdSerializer{namespace: namespace}
 	} else {
 		serializer = libraOpenSerializer{namespace: namespace}

@@ -14,11 +14,13 @@ import (
 // main entry point
 func main() {
 
+	var mode string
 	var namespace string
 	var inDir string
 	var debug bool
 	var logger *log.Logger
 
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
 	flag.StringVar(&namespace, "namespace", "", "Namespace to import")
 	flag.StringVar(&inDir, "importdir", "", "Import directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
@@ -28,21 +30,27 @@ func main() {
 		logger = log.Default()
 	}
 
-	// configure what we need
-	config := uvaeasystore.DatastoreSqliteConfig{
-		DataSource: os.Getenv("SQLITEFILE"),
-		Log:        logger,
-	}
+	var config uvaeasystore.EasyStoreConfig
 
-	//config := uvaeasystore.DatastorePostgresConfig{
-	//	DbHost:     os.Getenv("DBHOST"),
-	//	DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//	DbName:     os.Getenv("DBNAME"),
-	//	DbUser:     os.Getenv("DBUSER"),
-	//	DbPassword: os.Getenv("DBPASSWD"),
-	//	DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//	//  Log:        logger,
-	//}
+	switch mode {
+	case "sqlite":
+		config = uvaeasystore.DatastoreSqliteConfig{
+			DataSource: os.Getenv("SQLITEFILE"),
+			Log:        logger,
+		}
+	case "postgres":
+		config = uvaeasystore.DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASS"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:        logger,
+		}
+	default:
+		log.Fatalf("ERROR: unsupported mode (%s)", mode)
+	}
 
 	es, err := uvaeasystore.NewEasyStore(config)
 	if err != nil {
@@ -50,7 +58,7 @@ func main() {
 	}
 
 	// use a standard serializer
-	serializer := uvaeasystore.DefaultEasyStoreSerializer(namespace)
+	serializer := uvaeasystore.DefaultEasyStoreSerializer()
 
 	ix := 0
 	var obj uvaeasystore.EasyStoreObject
