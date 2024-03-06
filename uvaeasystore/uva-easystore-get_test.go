@@ -11,75 +11,101 @@ import (
 )
 
 func TestGetById(t *testing.T) {
-	esro := testSetupReadonly(t)
+	es := testSetup(t)
 
 	// empty id
-	_, err := esro.GetByKey(goodNamespace, "", BaseComponent)
+	_, err := es.GetByKey(goodNamespace, "", BaseComponent)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
-	// bad id (not found)
-	_, err = esro.GetByKey(goodNamespace, badId, BaseComponent)
+	// a new object
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// does not already exist
+	_, err = es.GetByKey(goodNamespace, o.Id(), BaseComponent)
 	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
-	// bad namespace (not found)
-	_, err = esro.GetByKey(badNamespace, goodId, BaseComponent)
-	expected = ErrNotFound
-	if !errors.Is(err, expected) {
-		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
-	}
-
-	// good id
-	obj, err := esro.GetByKey(goodNamespace, goodId, AllComponents)
+	// create the object
+	_, err = es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// test the contents of the object
-	if obj.Id() != goodId {
-		t.Fatalf("expected '%s' but got '%s'\n", goodId, obj.Id())
+	// we expect to find this one
+	obj, err := es.GetByKey(goodNamespace, o.Id(), BaseComponent)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	validateObject(t, obj, AllComponents)
+	validateObject(t, obj, BaseComponent)
+
+	// same thing with a bad namespace
+	_, err = es.GetByKey(badNamespace, o.Id(), BaseComponent)
+	expected = ErrNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
 }
 
 func TestGetByIds(t *testing.T) {
-	esro := testSetupReadonly(t)
+	es := testSetup(t)
 
-	// bad id (not found)
-	ids := []string{badId}
-	_, err := esro.GetByKeys(goodNamespace, ids, BaseComponent)
-	expected := ErrNotFound
+	// empty ids
+	ids := []string{}
+	_, err := es.GetByKeys(goodNamespace, ids, BaseComponent)
+	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
-	// good id
-	ids = []string{goodId}
-	iter, err := esro.GetByKeys(goodNamespace, ids, AllComponents)
+	// a new object
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// does not already exist
+	ids = []string{o.Id()}
+	_, err = es.GetByKeys(goodNamespace, ids, BaseComponent)
+	expected = ErrNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// create the object
+	_, err = es.Create(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// we expect to find this one
+	ids = []string{o.Id()}
+	iter, err := es.GetByKeys(goodNamespace, ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// ensure we received 1 object
 	if iter.Count() == 1 {
-		o, err := iter.Next()
+		_, err := iter.Next()
 		if err != nil {
 			t.Fatalf("expected 'OK' but got '%s'\n", err)
 		}
-		if o.Id() != goodId {
-			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
-		}
+	}
+
+	// same thing with a bad namespace
+	ids = []string{o.Id()}
+	iter, err = es.GetByKeys(badNamespace, ids, BaseComponent)
+	expected = ErrNotFound
+	if !errors.Is(err, expected) {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// good and bad id
-	ids = []string{goodId, badId}
-	iter, err = esro.GetByKeys(goodNamespace, ids, AllComponents)
+	ids = []string{o.Id(), badId}
+	iter, err = es.GetByKeys(goodNamespace, ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -90,10 +116,7 @@ func TestGetByIds(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected 'OK' but got '%s'\n", err)
 		}
-		if o.Id() != goodId {
-			t.Fatalf("expected '%s' but got '%s'\n", goodId, o.Id())
-		}
-		validateObject(t, o, AllComponents)
+		validateObject(t, o, BaseComponent)
 	}
 }
 
