@@ -47,6 +47,17 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+	case "s3":
+		config = uvaeasystore.DatastoreS3Config{
+			Bucket:     os.Getenv("BUCKET"),
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASS"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:        logger,
+		}
 	default:
 		log.Fatalf("ERROR: unsupported mode (%s)", mode)
 	}
