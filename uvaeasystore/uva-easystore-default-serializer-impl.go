@@ -106,7 +106,13 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		omap["mime-type"].(string),
 		[]byte(omap["payload"].(string)))
 
-	return b, nil
+	blob := b.(*easyStoreBlobImpl)
+	blob.created, blob.modified, err = timestampExtract(omap)
+	if err != nil {
+		return nil, err
+	}
+
+	return blob, nil
 }
 
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
