@@ -234,6 +234,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	}
 
 	// special case, if we are asking for the base component, it means delete everything
+	deleteAll := false
 	if which == BaseComponent {
 		logDebug(impl.config.Logger(), fmt.Sprintf("deleting ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		err := impl.store.DeleteObjectByKey(DataStoreKey{obj.Namespace(), obj.Id()})
@@ -243,6 +244,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 		// and delete remaining components
 		which = AllComponents
+		deleteAll = true
 	}
 
 	// do we delete fields
@@ -273,7 +275,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	}
 
 	// if we did not delete the component
-	if which != BaseComponent {
+	if deleteAll == false {
 		// update the object (timestamp and vtag)
 		err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
 		if err != nil {
