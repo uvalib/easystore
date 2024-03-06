@@ -5,8 +5,10 @@
 package uvaeasystore
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"log"
 
 	// postgres
@@ -68,24 +70,32 @@ func newS3Store(config EasyStoreConfig) (DataStore, error) {
 
 	logDebug(config.Logger(), fmt.Sprintf("using [s3://%s] for dbStorage", c.Bucket))
 
-	// connect to database (postgres)
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
-		c.DbUser, c.DbPassword, c.DbName, c.DbHost, c.DbPort, c.DbTimeout)
-
-	db, err := sql.Open("postgres", connStr)
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, err
 	}
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
 
-	return nil, ErrNotImplemented
-	//	return &s3Storage{
-	//		bucket: c.Bucket,
-	//		log:    c.Log,
-	//		DB:     db
-	//		}, nil
+	client := s3.NewFromConfig(cfg)
+
+	// connect to database (postgres)
+	//connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
+	//	c.DbUser, c.DbPassword, c.DbName, c.DbHost, c.DbPort, c.DbTimeout)
+
+	//db, err := sql.Open("postgres", connStr)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if err = db.Ping(); err != nil {
+	//	return nil, err
+	//}
+
+	return &s3Storage{
+		serialize: newEasyStoreSerializer(),
+		bucket:    c.Bucket,
+		s3Client:  client,
+		log:       c.Log,
+		//DB:     db
+	}, nil
 }
 
 func validateS3Config(config DatastoreS3Config) error {
