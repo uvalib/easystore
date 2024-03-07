@@ -23,11 +23,6 @@ CREATE INDEX fields_key_idx ON fields(namespace, oid);
 -- create the distinct index
 CREATE UNIQUE INDEX fields_distinct_idx ON fields(namespace, oid, name);
 
--- add some dummy data for testing
-INSERT INTO fields(namespace,oid,name,value) values('libraopen','oid:cnfivf6dfnu1a2a5l3fg', 'key1', 'value1');
-INSERT INTO fields(namespace,oid,name,value) values('libraopen','oid:cnfivf6dfnu1a2a5l3fg', 'key2', 'value2');
-INSERT INTO fields(namespace,oid,name,value) values('libraopen','oid:cnfivf6dfnu1a2a5l3fg', 'key3', 'value3');
-
 --
 -- end of file
 --
