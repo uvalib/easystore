@@ -121,36 +121,27 @@ func TestGetByIds(t *testing.T) {
 }
 
 func TestGetByFoundFields(t *testing.T) {
-	esro := testSetupReadonly(t)
+	es := testSetup(t)
+
 	fields := DefaultEasyStoreFields()
 	fields["key1"] = "value1"
 	fields["key2"] = "value2"
 
-	// search by specific namespace
-	iter, err := esro.GetByFields(goodNamespace, fields, Fields)
+	// a new object
+	o := NewEasyStoreObject(goodNamespace, "")
+	o.SetFields(fields)
+
+	// create the object
+	_, err := es.Create(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// ensure we received some objects
-	if iter.Count() == 0 {
-		t.Fatalf("expected objects but got none\n")
-	}
+	fieldsSearch := DefaultEasyStoreFields()
+	fieldsSearch["key1"] = "value1"
 
-	// go through the list of objects and validate
-	o, err := iter.Next()
-	for err == nil {
-		validateObject(t, o, Fields)
-		ensureObjectHasFields(t, o, fields)
-		o, err = iter.Next()
-	}
-
-	if errors.Is(err, io.EOF) != true {
-		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
-	}
-
-	// search by empty namespace
-	iter, err = esro.GetByFields("", fields, Fields)
+	// search by specific namespace
+	iter, err := es.GetByFields(goodNamespace, fieldsSearch, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -164,7 +155,30 @@ func TestGetByFoundFields(t *testing.T) {
 	o, err = iter.Next()
 	for err == nil {
 		validateObject(t, o, Fields)
-		ensureObjectHasFields(t, o, fields)
+		ensureObjectHasFields(t, o, fieldsSearch)
+		o, err = iter.Next()
+	}
+
+	if errors.Is(err, io.EOF) != true {
+		t.Fatalf("expected '%s' but got '%s'\n", io.EOF, err)
+	}
+
+	// search by empty namespace
+	iter, err = es.GetByFields("", fieldsSearch, Fields)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// ensure we received some objects
+	if iter.Count() == 0 {
+		t.Fatalf("expected objects but got none\n")
+	}
+
+	// go through the list of objects and validate
+	o, err = iter.Next()
+	for err == nil {
+		validateObject(t, o, Fields)
+		ensureObjectHasFields(t, o, fieldsSearch)
 		o, err = iter.Next()
 	}
 

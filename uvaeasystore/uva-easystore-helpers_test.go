@@ -16,9 +16,8 @@ var goodSqliteFilename = "/tmp/sqlite.db"
 var badSqliteFilename = "/tmp/blablabla.db"
 var sourceName = "testing.unit.automated"
 var goodBusName = "uva-experiment-bus-staging"
-var goodNamespace = "libraopen"
+var goodNamespace = "test-namespace"
 var badNamespace = "blablabla"
-var goodId = "oid:cnfivf6dfnu1a2a5l3fg"
 var badId = "oid:blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
