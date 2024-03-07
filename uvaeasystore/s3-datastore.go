@@ -6,6 +6,7 @@ package uvaeasystore
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -78,23 +79,23 @@ func newS3Store(config EasyStoreConfig) (DataStore, error) {
 	client := s3.NewFromConfig(cfg)
 
 	// connect to database (postgres)
-	//connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
-	//	c.DbUser, c.DbPassword, c.DbName, c.DbHost, c.DbPort, c.DbTimeout)
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
+		c.DbUser, c.DbPassword, c.DbName, c.DbHost, c.DbPort, c.DbTimeout)
 
-	//db, err := sql.Open("postgres", connStr)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//if err = db.Ping(); err != nil {
-	//	return nil, err
-	//}
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, err
+	}
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
 
 	return &s3Storage{
 		serialize: newEasyStoreSerializer(),
 		bucket:    c.Bucket,
 		s3Client:  client,
 		log:       c.Log,
-		//DB:     db
+		DB:        db,
 	}, nil
 }
 

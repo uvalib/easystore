@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"golang.org/x/exp/maps"
 	"log"
 	"path/filepath"
 	"time"
@@ -51,7 +52,14 @@ func (s *s3Storage) UpdateObject(key DataStoreKey) error {
 	impl.vtag = newVtag()
 	impl.modified = time.Now()
 
-	// TODO: maybe update database
+	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = NOW() WHERE namespace = $2 AND oid = $3")
+	if err != nil {
+		return err
+	}
+	err = execPreparedBy3(stmt, impl.vtag, key.namespace, key.objectId)
+	if err != nil {
+		return err
+	}
 
 	return s.addObject(impl.Namespace(), impl.Id(), impl)
 }
@@ -68,11 +76,21 @@ func (s *s3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 // AddFields -- add a new fields object
 func (s *s3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
 	// check asset does not exist
-	if s.checkExists(key.namespace, key.objectId, s3FieldsFileName) == true {
-		return ErrAlreadyExists
+	//if s.checkExists(key.namespace, key.objectId, s3FieldsFileName) == true {
+	//	return ErrAlreadyExists
+	//}
+
+	stmt, err := s.Prepare("INSERT INTO fields( namespace, oid, name, value ) VALUES( $1,$2,$3,$4 )")
+	if err != nil {
+		return err
 	}
 
-	// TODO: update database here
+	for n, v := range fields {
+		_, err = stmt.Exec(key.namespace, key.objectId, n, v)
+		if err != nil {
+			return errorMapper(err)
+		}
+	}
 
 	return s.addFields(key.namespace, key.objectId, fields)
 }
@@ -89,11 +107,19 @@ func (s *s3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) er
 // AddObject -- add a new object
 func (s *s3Storage) AddObject(obj EasyStoreObject) error {
 	// check asset does not exist
-	if s.checkExists(obj.Namespace(), obj.Id(), s3ObjectFileName) == true {
-		return ErrAlreadyExists
-	}
+	//if s.checkExists(obj.Namespace(), obj.Id(), s3ObjectFileName) == true {
+	//	return ErrAlreadyExists
+	//}
 
-	// TODO: update database here
+	// update the database
+	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, vtag ) VALUES( $1,$2,$3 )")
+	if err != nil {
+		return err
+	}
+	err = execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
+	if err != nil {
+		return err
+	}
 
 	return s.addObject(obj.Namespace(), obj.Id(), obj)
 }
@@ -171,7 +197,14 @@ func (s *s3Storage) DeleteBlobsByKey(key DataStoreKey) error {
 // DeleteFieldsByKey -- delete all field data associated with the specified object
 func (s *s3Storage) DeleteFieldsByKey(key DataStoreKey) error {
 
-	// TODO: delete from the database
+	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
+	if err != nil {
+		return err
+	}
+	err = execPreparedBy2(stmt, key.namespace, key.objectId)
+	if err != nil {
+		return err
+	}
 
 	return s.removeAsset(key.namespace, key.objectId, s3FieldsFileName)
 }
@@ -184,14 +217,66 @@ func (s *s3Storage) DeleteMetadataByKey(key DataStoreKey) error {
 // DeleteObjectByKey -- delete all field data associated with the specified object
 func (s *s3Storage) DeleteObjectByKey(key DataStoreKey) error {
 
-	// TODO: delete from the database
+	stmt, err := s.Prepare("DELETE FROM objects WHERE namespace = $1 AND oid = $2")
+	if err != nil {
+		return err
+	}
+	err = execPreparedBy2(stmt, key.namespace, key.objectId)
+	if err != nil {
+		return err
+	}
 
 	return s.removeAsset(key.namespace, key.objectId, s3ObjectFileName)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
 func (s *s3Storage) GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error) {
-	return nil, ErrNotFound
+	var err error
+	var rows *sql.Rows
+	var query string
+	//
+	// support the following cases:
+	// empty namespace (all namespaces) or specified namespace
+	// no fields (all objects) or variable set of fields
+	//
+	if len(fields) == 0 {
+		if len(namespace) == 0 {
+			query = "SELECT namespace, oid, 0 FROM objects ORDER BY namespace, oid"
+			rows, err = s.Query(query)
+		} else {
+			query = "SELECT namespace, oid, 0 FROM objects where namespace = $1 ORDER BY namespace, oid"
+			rows, err = s.Query(query, namespace)
+		}
+	} else {
+		// dynamically build the query because we have a variable number of fields
+		args := make([]any, 0)
+		query = "SELECT namespace, oid, count(*) FROM fields WHERE "
+		variableIx := 1
+		if len(namespace) != 0 {
+			query += fmt.Sprintf("namespace = $%d AND ", variableIx)
+			args = append(args, namespace)
+			variableIx++
+		}
+
+		for ix, k := range maps.Keys(fields) {
+			query += fmt.Sprintf("(name = $%d AND value = $%d) ", variableIx, variableIx+1)
+			variableIx += 2
+			args = append(args, k, fields[k])
+			if ix != (len(fields) - 1) {
+				query += "OR "
+			}
+		}
+
+		query += fmt.Sprintf("GROUP BY namespace, oid HAVING count(*) = %d", len(fields))
+		rows, err = s.Query(query, args...)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return keyQueryResults(rows, s.log)
 }
 
 //
