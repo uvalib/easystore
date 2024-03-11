@@ -12,7 +12,7 @@ CREATE TABLE blobs (
    oid        VARCHAR( 32 ) NOT NULL DEFAULT '',
    name       VARCHAR( 32 ) NOT NULL DEFAULT '',
    mimetype   VARCHAR( 32 ) NOT NULL DEFAULT '',
-   payload    TEXT,
+   payload    BYTEA,
 
    created_at timestamp DEFAULT NOW(),
    updated_at timestamp DEFAULT NOW()
