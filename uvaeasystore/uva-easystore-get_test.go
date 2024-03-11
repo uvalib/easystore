@@ -123,12 +123,13 @@ func TestGetByIds(t *testing.T) {
 func TestGetByFoundFields(t *testing.T) {
 	es := testSetup(t)
 
-	fields := DefaultEasyStoreFields()
-	fields["key1"] = "value1"
-	fields["key2"] = "value2"
-
 	// a new object
 	o := NewEasyStoreObject(goodNamespace, "")
+
+	// make some unique fields
+	fields := DefaultEasyStoreFields()
+	fields["key1"] = o.Id()
+	fields["key2"] = o.Id()
 	o.SetFields(fields)
 
 	// create the object
@@ -138,7 +139,7 @@ func TestGetByFoundFields(t *testing.T) {
 	}
 
 	fieldsSearch := DefaultEasyStoreFields()
-	fieldsSearch["key1"] = "value1"
+	fieldsSearch["key1"] = o.Id()
 
 	// search by specific namespace
 	iter, err := es.GetByFields(goodNamespace, fieldsSearch, Fields)
@@ -190,7 +191,7 @@ func TestGetByFoundFields(t *testing.T) {
 func TestGetByNotFoundFields(t *testing.T) {
 	esro := testSetupReadonly(t)
 	fields := DefaultEasyStoreFields()
-	fields["blablabla"] = newObjectId()
+	fields["key1"] = newObjectId()
 
 	// search by specific namespace
 	iter, err := esro.GetByFields(goodNamespace, fields, Fields)

@@ -5,9 +5,9 @@
 package uvaeasystore
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -81,12 +81,15 @@ func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreO
 
 func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 
+	// assume no error here
 	buf, _ := b.Payload()
+	enc := base64.StdEncoding.EncodeToString(buf)
+
 	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
-		buf, // might need to json escape here?
+		enc,
 		b.Created().UTC(),
 		b.Modified().UTC(),
 	)
@@ -101,10 +104,16 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		return nil, err
 	}
 
+	str := omap["payload"].(string)
+	buf, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, err
+	}
+
 	b := newEasyStoreBlob(
 		omap["name"].(string),
 		omap["mime-type"].(string),
-		[]byte(omap["payload"].(string)))
+		buf)
 
 	blob := b.(*easyStoreBlobImpl)
 	blob.created, blob.modified, err = timestampExtract(omap)
@@ -117,11 +126,14 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 
 func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) interface{} {
 
+	// assume no error here
 	buf, _ := o.Payload()
+	enc := base64.StdEncoding.EncodeToString(buf)
+
 	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.MimeType(),
-		jsonEscape(buf),
+		enc,
 		o.Created().UTC(),
 		o.Modified().UTC(),
 	)
@@ -136,7 +148,13 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 		return nil, err
 	}
 
-	md := newEasyStoreMetadata(omap["mime-type"].(string), []byte(omap["payload"].(string)))
+	str := omap["payload"].(string)
+	buf, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, err
+	}
+
+	md := newEasyStoreMetadata(omap["mime-type"].(string), buf)
 	meta := md.(*easyStoreMetadataImpl)
 	meta.created, meta.modified, err = timestampExtract(omap)
 	if err != nil {
@@ -198,13 +216,6 @@ func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error)
 	}
 
 	return created, modified, nil
-}
-
-func jsonEscape(buf []byte) []byte {
-
-	b := string(buf)
-	str := strings.Replace(b, "\"", "\\\"", -1)
-	return []byte(str)
 }
 
 func newEasyStoreSerializer() EasyStoreSerializer {

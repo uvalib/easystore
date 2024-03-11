@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -14,10 +15,10 @@ func TestObjectSerialize(t *testing.T) {
 
 	// serialize and cast appropriately
 	i := serializer.ObjectSerialize(obj)
-	bytes := i.([]byte)
+	b := i.([]byte)
 
 	// convert to string and test
-	str := string(bytes)
+	str := string(b)
 	if len(str) == 0 {
 		t.Fatalf("expected non-empty but got empty\n")
 	}
@@ -37,32 +38,32 @@ func TestObjectDeserialize(t *testing.T) {
 	ci := serializer.ObjectSerialize(c)
 
 	// cast as necessary
-	bytes := i.([]byte)
-	bytesCopy := ci.([]byte)
+	b := i.([]byte)
+	bCopy := ci.([]byte)
 
 	// convert to string and test
-	if string(bytes) != string(bytesCopy) {
+	if string(b) != string(bCopy) {
 		t.Fatalf("serialized copy not equal\n")
 	}
 }
 
 func TestBlobSerialize(t *testing.T) {
-	blob := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	blob := newBinaryBlob("file1.bin")
 	serializer := DefaultEasyStoreSerializer()
 
 	// serialize and cast appropriately
 	i := serializer.BlobSerialize(blob)
-	bytes := i.([]byte)
+	b := i.([]byte)
 
 	// convert to string and test
-	str := string(bytes)
+	str := string(b)
 	if len(str) == 0 {
 		t.Fatalf("expected non-empty but got empty\n")
 	}
 }
 
 func TestBlobDeserialize(t *testing.T) {
-	blob := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	blob := newBinaryBlob("file1.bin")
 	serializer := DefaultEasyStoreSerializer()
 
 	// serialize and deserialize
@@ -75,11 +76,11 @@ func TestBlobDeserialize(t *testing.T) {
 	ci := serializer.BlobSerialize(c)
 
 	// cast as necessary
-	bytes := i.([]byte)
-	bytesCopy := ci.([]byte)
+	b := i.([]byte)
+	bCopy := ci.([]byte)
 
 	// convert to string and test
-	if string(bytes) != string(bytesCopy) {
+	if bytes.Equal(b, bCopy) == false {
 		t.Fatalf("serialized copy not equal\n")
 	}
 }
@@ -92,10 +93,10 @@ func TestFieldsSerialize(t *testing.T) {
 
 	// serialize and cast appropriately
 	i := serializer.FieldsSerialize(fields)
-	bytes := i.([]byte)
+	b := i.([]byte)
 
 	// convert to string and test
-	str := string(bytes)
+	str := string(b)
 	if len(str) == 0 {
 		t.Fatalf("expected non-empty but got empty\n")
 	}
@@ -137,10 +138,10 @@ func TestMetadataSerialize(t *testing.T) {
 
 	// serialize and cast appropriately
 	i := serializer.MetadataSerialize(metadata)
-	bytes := i.([]byte)
+	b := i.([]byte)
 
 	// convert to string and test
-	str := string(bytes)
+	str := string(b)
 	if len(str) == 0 {
 		t.Fatalf("expected non-empty but got empty\n")
 	}
@@ -164,11 +165,11 @@ func TestMetadataDeserialize(t *testing.T) {
 	ci := serializer.MetadataSerialize(c)
 
 	// cast as necessary
-	bytes := i.([]byte)
-	bytesCopy := ci.([]byte)
+	b := i.([]byte)
+	bCopy := ci.([]byte)
 
 	// convert to string and test
-	if string(bytes) != string(bytesCopy) {
+	if string(b) != string(bCopy) {
 		t.Fatalf("serialized copy not equal\n")
 	}
 }

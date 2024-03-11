@@ -6,6 +6,7 @@ package uvaeasystore
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"testing"
@@ -283,6 +284,13 @@ func asIntWithDefault(str string, def int) int {
 		return def
 	}
 	return i
+}
+
+func newBinaryBlob(filename string) EasyStoreBlob {
+	buf := make([]byte, 128)
+	// then we can call rand.Read.
+	_, _ = rand.Read(buf)
+	return NewEasyStoreBlob(filename, "application/octet-stream", buf)
 }
 
 //

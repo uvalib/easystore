@@ -5,7 +5,7 @@
 package uvaeasystore
 
 import (
-	"fmt"
+	"bytes"
 	"testing"
 )
 
@@ -24,14 +24,16 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	}
 
 	// add some files
-	file1Name := "file1.txt"
-	file1Contents := fmt.Sprintf("%s: bla bla bla", file1Name)
-	file2Name := "file2.txt"
-	file2Contents := fmt.Sprintf("%s: bla bla bla", file2Name)
-	fileType := "text/plain;charset=UTF-8"
-	f1 := NewEasyStoreBlob(file1Name, fileType, []byte(file1Contents))
-	f2 := NewEasyStoreBlob(file2Name, fileType, []byte(file2Contents))
+	file1Name := "file1.bin"
+	file2Name := "file2.bin"
+	f1 := newBinaryBlob(file1Name)
+	f2 := newBinaryBlob(file2Name)
 	blobs := []EasyStoreBlob{f1, f2}
+
+	file1Contents, _ := f1.Payload()
+	file1Type := f1.MimeType()
+	file2Contents, _ := f2.Payload()
+	file2Type := f2.MimeType()
 
 	// update the object
 	o.SetFiles(blobs)
@@ -54,13 +56,17 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	b2 := files[1]
 	testEqual(t, file1Name, b1.Name())
 	testEqual(t, file2Name, b2.Name())
-	testEqual(t, fileType, b1.MimeType())
-	testEqual(t, fileType, b2.MimeType())
+	testEqual(t, file1Type, b1.MimeType())
+	testEqual(t, file2Type, b2.MimeType())
 	buf1, _ := b1.Payload()
 	buf2, _ := b2.Payload()
 
-	testEqual(t, file1Contents, string(buf1))
-	testEqual(t, file2Contents, string(buf2))
+	if bytes.Equal(file1Contents, buf1) == false {
+		t.Fatalf("byte slices are not equal\n")
+	}
+	if bytes.Equal(file2Contents, buf2) == false {
+		t.Fatalf("byte slices are not equal\n")
+	}
 }
 
 func TestObjectMetadataUpdate(t *testing.T) {

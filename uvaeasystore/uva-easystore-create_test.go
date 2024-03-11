@@ -68,8 +68,8 @@ func TestFilesCreate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
-	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
-	f2 := NewEasyStoreBlob("file2.txt", "text/plain;charset=UTF-8", []byte("file2: bla bla bla"))
+	f1 := newBinaryBlob("file1.bin")
+	f2 := newBinaryBlob("file2.bin")
 	files := []EasyStoreBlob{f1, f2}
 	o.SetFiles(files)
 
@@ -84,8 +84,8 @@ func TestFilesCreate(t *testing.T) {
 	if len(o.Files()) != 2 {
 		t.Fatalf("expected '2' but got '%d'\n", len(o.Files()))
 	}
-	testEqual(t, "file1.txt", o.Files()[0].Name())
-	testEqual(t, "file2.txt", o.Files()[1].Name())
+	testEqual(t, "file1.bin", o.Files()[0].Name())
+	testEqual(t, "file2.bin", o.Files()[1].Name())
 }
 
 func TestDuplicateFilesCreate(t *testing.T) {
@@ -93,7 +93,7 @@ func TestDuplicateFilesCreate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
-	f1 := NewEasyStoreBlob("file1.txt", "text/plain;charset=UTF-8", []byte("file1: bla bla bla"))
+	f1 := newBinaryBlob("file1.bin")
 	files := []EasyStoreBlob{f1, f1}
 	o.SetFiles(files)
 
