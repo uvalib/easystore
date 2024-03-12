@@ -287,7 +287,7 @@ func asIntWithDefault(str string, def int) int {
 }
 
 func newBinaryBlob(filename string) EasyStoreBlob {
-	buf := make([]byte, 128)
+	buf := make([]byte, 512)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
 	return NewEasyStoreBlob(filename, "application/octet-stream", buf)
