@@ -86,8 +86,11 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 		}
 	}
 
-	// publish the appropriate event
-	_ = pubObjectCreate(impl.messageBus, obj)
+	// publish the appropriate event, errors are not too important
+	err = pubObjectCreate(impl.messageBus, obj)
+	if err != nil {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
 
 	// get the full object
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
@@ -162,7 +165,11 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 					return nil, err
 				}
 
-				_ = pubFileCreate(impl.messageBus, obj)
+				// publish the appropriate event, errors are not too important
+				err = pubFileCreate(impl.messageBus, obj)
+				if err != nil {
+					logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+				}
 			}
 		}
 	}
@@ -182,7 +189,12 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 			if err != nil {
 				return nil, err
 			}
-			_ = pubMetadataUpdate(impl.messageBus, obj)
+			
+			// publish the appropriate event, errors are not too important
+			err = pubMetadataUpdate(impl.messageBus, obj)
+			if err != nil {
+				logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+			}
 		}
 	}
 
@@ -192,8 +204,11 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 		return nil, err
 	}
 
-	// publish the appropriate event
-	_ = pubObjectUpdate(impl.messageBus, obj)
+	// publish the appropriate event, errors are not too important
+	err = pubObjectUpdate(impl.messageBus, obj)
+	if err != nil {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
 
 	// get the full object
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
@@ -283,8 +298,11 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 		}
 	}
 
-	// publish the appropriate event
-	_ = pubObjectDelete(impl.messageBus, obj)
+	// publish the appropriate event, errors are not too important
+	err = pubObjectDelete(impl.messageBus, obj)
+	if err != nil {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
 
 	// return the original object
 	return obj, nil

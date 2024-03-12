@@ -26,7 +26,7 @@ func logError(log *log.Logger, msg string) {
 	if log != nil {
 		log.Printf("ERROR: %s", msg)
 	} else {
-		//fmt.Printf("ERROR: %s\n", msg)
+		fmt.Printf("ERROR: %s\n", msg)
 	}
 }
 
