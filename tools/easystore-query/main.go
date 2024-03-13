@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // main entry point
@@ -83,10 +84,12 @@ func main() {
 	}
 
 	// issue the query
+	start := time.Now()
 	results, err := queryEasyStore(namespace, esro, what, whereCmd)
 	if err != nil {
 		log.Fatalf("ERROR: querying easystore (%s)", err.Error())
 	}
+	queryDuration := time.Since(start)
 
 	// process results as appropriate
 	if results.Count() != 0 {
@@ -104,6 +107,10 @@ func main() {
 			obj, err = results.Next()
 			current++
 		}
+		totalDuration := time.Since(start)
+
+		log.Printf("INFO: query time %0.2f seconds", queryDuration.Seconds())
+		log.Printf("INFO: %d results in %0.2f seconds", results.Count(), totalDuration.Seconds())
 	} else {
 		log.Printf("INFO: no objects found, terminating")
 	}
