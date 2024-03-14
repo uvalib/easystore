@@ -9,8 +9,8 @@ DROP TABLE IF EXISTS blobs;
 CREATE TABLE blobs (
    id         INTEGER PRIMARY KEY,
    namespace  VARCHAR( 32 ) NOT NULL DEFAULT '' ,
-   oid        VARCHAR( 32 ) NOT NULL DEFAULT '',
-   name       VARCHAR( 32 ) NOT NULL DEFAULT '',
+   oid        VARCHAR( 64 ) NOT NULL DEFAULT '',
+   name       VARCHAR( 256 ) NOT NULL DEFAULT '',
    mimetype   VARCHAR( 32 ) NOT NULL DEFAULT '',
    payload    BLOB,
 

@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS objects;
 CREATE TABLE objects (
    id         INTEGER PRIMARY KEY,
    namespace  VARCHAR( 32 ) NOT NULL DEFAULT '' ,
-   oid        VARCHAR( 32 ) NOT NULL DEFAULT '' ,
+   oid        VARCHAR( 64 ) NOT NULL DEFAULT '' ,
    vtag       VARCHAR( 32 ) NOT NULL DEFAULT '',
 
    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
