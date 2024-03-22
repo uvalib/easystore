@@ -10,6 +10,7 @@ import (
 
 func TestUpdateFields(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no fields
@@ -53,6 +54,7 @@ func TestUpdateFields(t *testing.T) {
 
 func TestUpdateFiles(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no files
@@ -96,6 +98,7 @@ func TestUpdateFiles(t *testing.T) {
 
 func TestUpdateMetadata(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no fields

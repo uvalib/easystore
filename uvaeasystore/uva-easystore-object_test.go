@@ -11,6 +11,7 @@ import (
 
 func TestObjectBlobsUpdate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
@@ -71,6 +72,7 @@ func TestObjectBlobsUpdate(t *testing.T) {
 
 func TestObjectMetadataUpdate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object

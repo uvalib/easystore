@@ -71,6 +71,9 @@ type EasyStoreReadonly interface {
 
 	// get object(s) by fields, all specified are combined in an AND operation
 	GetByFields(string, EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
+
+	// close connections
+	Close() error
 }
 
 // EasyStore - the store abstraction (read/write)

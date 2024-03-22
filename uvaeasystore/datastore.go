@@ -40,6 +40,9 @@ type DataStore interface {
 
 	// search methods
 	GetKeysByFields(string, EasyStoreObjectFields) ([]DataStoreKey, error)
+
+	// close connections
+	Close() error
 }
 
 // our factory

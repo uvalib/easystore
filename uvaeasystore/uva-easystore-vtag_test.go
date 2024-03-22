@@ -11,6 +11,7 @@ import (
 
 func TestUpdateBadVTagFiles(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no files
@@ -46,6 +47,7 @@ func TestUpdateBadVTagFiles(t *testing.T) {
 
 func TestUpdateBadVTagMetadata(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object

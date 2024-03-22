@@ -11,6 +11,7 @@ import (
 
 func TestObjectCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
@@ -25,6 +26,7 @@ func TestObjectCreate(t *testing.T) {
 
 func TestDuplicateObjectCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
@@ -43,6 +45,7 @@ func TestDuplicateObjectCreate(t *testing.T) {
 
 func TestFieldsCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some fields
@@ -65,6 +68,7 @@ func TestFieldsCreate(t *testing.T) {
 
 func TestFilesCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
@@ -90,6 +94,7 @@ func TestFilesCreate(t *testing.T) {
 
 func TestDuplicateFilesCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
@@ -107,6 +112,7 @@ func TestDuplicateFilesCreate(t *testing.T) {
 
 func TestMetadataCreate(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some metadata

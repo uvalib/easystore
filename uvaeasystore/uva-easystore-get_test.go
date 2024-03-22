@@ -12,6 +12,7 @@ import (
 
 func TestGetById(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 
 	// empty id
 	_, err := es.GetByKey(goodNamespace, "", BaseComponent)
@@ -54,6 +55,7 @@ func TestGetById(t *testing.T) {
 
 func TestGetByIds(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 
 	// empty ids
 	ids := []string{}
@@ -122,6 +124,7 @@ func TestGetByIds(t *testing.T) {
 
 func TestGetByFoundFields(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 
 	// a new object
 	o := NewEasyStoreObject(goodNamespace, "")
@@ -190,6 +193,7 @@ func TestGetByFoundFields(t *testing.T) {
 
 func TestGetByNotFoundFields(t *testing.T) {
 	esro := testSetupReadonly(t)
+	defer esro.Close()
 	fields := DefaultEasyStoreFields()
 	fields["key1"] = newObjectId()
 
@@ -207,6 +211,7 @@ func TestGetByNotFoundFields(t *testing.T) {
 
 func TestGetByEmptyFields(t *testing.T) {
 	esro := testSetupReadonly(t)
+	defer esro.Close()
 	fields := EasyStoreObjectFields{}
 
 	//empty fields, should be all items

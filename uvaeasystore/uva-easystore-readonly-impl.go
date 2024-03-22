@@ -28,6 +28,10 @@ func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 	return easyStoreReadonlyImpl{config: config, store: s}, nil
 }
 
+func (impl easyStoreReadonlyImpl) Close() error {
+	return impl.store.Close()
+}
+
 func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// validate the id

@@ -11,6 +11,7 @@ import (
 
 func TestSimpleDelete(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
@@ -42,6 +43,7 @@ func TestSimpleDelete(t *testing.T) {
 
 func TestFieldsDelete(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some fields
@@ -81,6 +83,7 @@ func TestFieldsDelete(t *testing.T) {
 
 func TestFilesDelete(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some files
@@ -120,6 +123,7 @@ func TestFilesDelete(t *testing.T) {
 
 func TestMetadataDelete(t *testing.T) {
 	es := testSetup(t)
+	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// add some metadata
