@@ -83,6 +83,9 @@ func main() {
 		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
 	}
 
+	// important, cleanup properly
+	defer esro.Close()
+
 	// issue the query
 	start := time.Now()
 	results, err := queryEasyStore(namespace, esro, what, whereCmd)

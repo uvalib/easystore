@@ -67,6 +67,9 @@ func main() {
 		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
 	}
 
+	// important, cleanup properly
+	defer esro.Close()
+
 	// empty fields means all objects
 	fields := uvaeasystore.DefaultEasyStoreFields()
 

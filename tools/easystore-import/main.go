@@ -68,6 +68,9 @@ func main() {
 		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
 	}
 
+	// important, cleanup properly
+	defer es.Close()
+
 	// use a standard serializer
 	serializer := uvaeasystore.DefaultEasyStoreSerializer()
 

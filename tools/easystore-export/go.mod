@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-export
 
 go 1.21.7
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240306174934-306fcc22907b
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240322120357-bbe8d45c7111
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.25.2 // indirect
