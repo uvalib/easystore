@@ -31,6 +31,7 @@ type DataStore interface {
 	GetFieldsByKey(DataStoreKey) (*EasyStoreObjectFields, error)
 	GetMetadataByKey(DataStoreKey) (EasyStoreMetadata, error)
 	GetObjectByKey(DataStoreKey) (EasyStoreObject, error)
+	GetObjectsByKey([]DataStoreKey) ([]EasyStoreObject, error)
 
 	// delete methods
 	DeleteBlobsByKey(DataStoreKey) error

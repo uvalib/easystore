@@ -52,6 +52,32 @@ func objectQueryResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error
 	return &results, nil
 }
 
+func objectsQueryResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreObject, error) {
+	results := make([]EasyStoreObject, 0)
+	count := 0
+
+	for rows.Next() {
+		o := easyStoreObjectImpl{}
+		err := rows.Scan(&o.namespace, &o.id, &o.vtag, &o.created, &o.modified)
+		if err != nil {
+			return nil, err
+		}
+		count++
+		results = append(results, &o)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// check for not found
+	if count == 0 {
+		return nil, fmt.Errorf("%q: %w", "object(s) not found", ErrNotFound)
+	}
+
+	logDebug(log, fmt.Sprintf("found %d object(s)", count))
+	return results, nil
+}
+
 func fieldQueryResults(rows *sql.Rows, log *log.Logger) (*EasyStoreObjectFields, error) {
 
 	results := EasyStoreObjectFields{}

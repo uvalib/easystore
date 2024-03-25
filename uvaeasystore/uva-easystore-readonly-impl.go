@@ -73,22 +73,18 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 		return nil, ErrBadParameter
 	}
 
-	// our results set
-	objs := make([]EasyStoreObject, 0)
-
 	// build our list of objects
+	keys := make([]DataStoreKey, 0)
 	for _, id := range ids {
-		// get the base object
-		o, err := impl.getByKey(namespace, id)
-		if err == nil {
-			objs = append(objs, o)
+		keys = append(keys, DataStoreKey{namespace, id})
+	}
+
+	objs, err := impl.getByKeys(keys)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, ErrNotFound
 		} else {
-			if errors.Is(err, ErrNotFound) {
-				// do nothing, this is OK
-				logInfo(impl.config.Logger(), fmt.Sprintf("did not find ns/oid [%s/%s], continuing", namespace, id))
-			} else {
-				return nil, err
-			}
+			return nil, err
 		}
 	}
 
@@ -121,24 +117,16 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 		}
 	}
 
-	// our results set
-	objs := make([]EasyStoreObject, 0)
-
 	// bail out if we did not find any
 	// I think returning an error is better but this is what was requested
+	objs := make([]EasyStoreObject, 0)
 	if len(keys) == 0 {
 		return newEasyStoreObjectSet(impl, objs, which), nil
 	}
 
-	// build our list of objects
-	for _, k := range keys {
-		// get the base object
-		o, err := impl.getByKey(k.namespace, k.objectId)
-		if err == nil {
-			objs = append(objs, o)
-		} else {
-			return nil, err
-		}
+	objs, err = impl.getByKeys(keys)
+	if err != nil {
+		return nil, err
 	}
 
 	// we get objects only when they are required
@@ -165,6 +153,35 @@ func (impl easyStoreReadonlyImpl) getByKey(namespace string, id string) (EasySto
 		}
 	}
 	return o, nil
+}
+
+func (impl easyStoreReadonlyImpl) getByKeys(keys []DataStoreKey) ([]EasyStoreObject, error) {
+
+	splitCount := 50
+
+	if len(keys) > splitCount {
+
+		half := len(keys) / 2
+		if half == 0 {
+			// an insane situation, bomb out
+			logError(impl.config.Logger(), "cannot split block further")
+			return nil, ErrRecurse
+		}
+
+		fmt.Printf("WARNING: blocksize too large, splitting at %d\n", half)
+
+		logDebug(impl.config.Logger(), fmt.Sprintf("blocksize too large, splitting at %d", half))
+		obj1, err1 := impl.getByKeys(keys[0:half])
+		obj2, err2 := impl.getByKeys(keys[half:])
+		obj1 = append(obj1, obj2...)
+		if err1 != nil {
+			return obj1, err1
+		} else {
+			return obj1, err2
+		}
+
+	}
+	return impl.store.GetObjectsByKey(keys)
 }
 
 func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {

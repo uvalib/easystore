@@ -162,6 +162,43 @@ func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 	return objectQueryResults(rows, s.log)
 }
 
+// GetObjectsByKey -- get all field data associated with the specified object
+func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
+
+	ns := keys[0].namespace
+	for _, k := range keys {
+		if k.namespace != ns {
+			fmt.Printf("ERROR: multiple namespaces in key list")
+			return nil, fmt.Errorf("%q: %w", "multiple namespaces in key list", ErrBadParameter)
+		}
+	}
+
+	args := make([]any, 0)
+	query := "SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid IN ("
+	args = append(args, ns)
+
+	variableIx := 2
+	for _, k := range keys {
+		if variableIx == 2 {
+			query += fmt.Sprintf("$%d", variableIx)
+		} else {
+			query += fmt.Sprintf(",$%d", variableIx)
+		}
+		variableIx += 1
+		args = append(args, k.objectId)
+	}
+
+	query += ") ORDER BY updated_at"
+
+	rows, err := s.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return objectsQueryResults(rows, s.log)
+}
+
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
 func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 

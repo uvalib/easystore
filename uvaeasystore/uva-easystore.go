@@ -27,6 +27,7 @@ var ErrAlreadyExists = fmt.Errorf("the object already exists")
 var ErrSerialize = fmt.Errorf("serialization error")
 var ErrDeserialize = fmt.Errorf("deserialization error")
 var ErrBusNotConfigured = fmt.Errorf("bus not configured")
+var ErrRecurse = fmt.Errorf("cannot recurse further")
 
 // EasyStoreComponents - the components that can appear in an object
 type EasyStoreComponents uint

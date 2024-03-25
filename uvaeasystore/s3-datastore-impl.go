@@ -176,6 +176,11 @@ func (s *s3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 	return s.getObject(key.namespace, key.objectId)
 }
 
+// GetObjectsByKey -- get all field data associated with the specified object
+func (s *s3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
+	return nil, ErrNotImplemented
+}
+
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
 func (s *s3Storage) DeleteBlobsByKey(key DataStoreKey) error {
 	fset, err := s.s3List(s.bucket, fmt.Sprintf("%s/%s", key.namespace, key.objectId))
