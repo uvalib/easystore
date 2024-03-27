@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-query
 
 go 1.21.7
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240325171428-3cd21e36ef4f
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240327152942-97b3a13bdd33
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.26.0 // indirect
