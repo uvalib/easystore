@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"errors"
 	"fmt"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
@@ -88,7 +89,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// publish the appropriate event, errors are not too important
 	err = pubObjectCreate(impl.messageBus, obj)
-	if err != nil {
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
 		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
 	}
 
@@ -167,7 +168,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 				// publish the appropriate event, errors are not too important
 				err = pubFileCreate(impl.messageBus, obj)
-				if err != nil {
+				if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
 					logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
 				}
 			}
@@ -189,10 +190,10 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 			if err != nil {
 				return nil, err
 			}
-			
+
 			// publish the appropriate event, errors are not too important
 			err = pubMetadataUpdate(impl.messageBus, obj)
-			if err != nil {
+			if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
 				logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
 			}
 		}
@@ -206,7 +207,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 	// publish the appropriate event, errors are not too important
 	err = pubObjectUpdate(impl.messageBus, obj)
-	if err != nil {
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
 		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
 	}
 
@@ -300,7 +301,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 	// publish the appropriate event, errors are not too important
 	err = pubObjectDelete(impl.messageBus, obj)
-	if err != nil {
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
 		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
 	}
 
