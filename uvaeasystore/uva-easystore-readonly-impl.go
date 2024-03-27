@@ -168,8 +168,6 @@ func (impl easyStoreReadonlyImpl) getByKeys(keys []DataStoreKey) ([]EasyStoreObj
 			return nil, ErrRecurse
 		}
 
-		fmt.Printf("WARNING: blocksize too large, splitting at %d\n", half)
-
 		logDebug(impl.config.Logger(), fmt.Sprintf("blocksize too large, splitting at %d", half))
 		obj1, err1 := impl.getByKeys(keys[0:half])
 		obj2, err2 := impl.getByKeys(keys[half:])
