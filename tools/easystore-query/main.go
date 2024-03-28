@@ -18,6 +18,7 @@ func main() {
 	var namespace string
 	var whatCmd string
 	var whereCmd string
+	var dumpDir string
 	var debug bool
 	var logger *log.Logger
 
@@ -25,6 +26,7 @@ func main() {
 	flag.StringVar(&namespace, "namespace", "", "Namespace to query")
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
+	flag.StringVar(&dumpDir, "dumpdir", "", "Directory to dump files and/or metadata")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
 
@@ -107,6 +109,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("ERROR: outputting result object (%s)", err.Error())
 			}
+			err = dumpObject(obj, dumpDir)
 			obj, err = results.Next()
 			current++
 		}
@@ -184,6 +187,43 @@ func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreC
 			}
 		} else {
 			fmt.Printf("       no files\n")
+		}
+	}
+
+	return nil
+}
+
+func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
+
+	if len(outdir) == 0 {
+		return nil
+	}
+
+	if obj.Metadata() != nil {
+		buf, err := obj.Metadata().Payload()
+		if err != nil {
+			return err
+		}
+		fname := fmt.Sprintf("%s/%s-%s-metadata.bin", outdir, obj.Namespace(), obj.Id())
+		fmt.Printf("       ==> wrinting %s...\n", fname)
+		err = os.WriteFile(fname, buf, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
+	if obj.Files() != nil {
+		for _, f := range obj.Files() {
+			buf, err := f.Payload()
+			if err != nil {
+				return err
+			}
+			fname := fmt.Sprintf("%s/%s-%s-%s", outdir, obj.Namespace(), obj.Id(), f.Name())
+			fmt.Printf("       ==> wrinting %s...\n", fname)
+			err = os.WriteFile(fname, buf, 0644)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
