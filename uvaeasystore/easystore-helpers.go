@@ -39,11 +39,11 @@ func logInfo(log *log.Logger, msg string) {
 }
 
 func newVtag() string {
-	return fmt.Sprintf("vtag:%s", xid.New().String())
+	return fmt.Sprintf("vtag-%s", xid.New().String())
 }
 
 func newObjectId() string {
-	return fmt.Sprintf("oid:%s", xid.New().String())
+	return fmt.Sprintf("oid-%s", xid.New().String())
 }
 
 //

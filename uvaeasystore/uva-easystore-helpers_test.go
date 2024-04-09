@@ -19,7 +19,7 @@ var sourceName = "testing.unit.automated"
 var goodBusName = "uva-experiment-bus-staging"
 var goodNamespace = "test-namespace"
 var badNamespace = "blablabla"
-var badId = "oid:blablabla"
+var badId = "oid-blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 // can be "sqlite", "postgres" or "s3"
