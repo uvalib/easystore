@@ -165,30 +165,22 @@ func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 // GetObjectsByKey -- get all field data associated with the specified object
 func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
 
-	ns := keys[0].namespace
-	for _, k := range keys {
-		if k.namespace != ns {
-			fmt.Printf("ERROR: multiple namespaces in key list")
-			return nil, fmt.Errorf("%q: %w", "multiple namespaces in key list", ErrBadParameter)
-		}
-	}
-
 	args := make([]any, 0)
-	query := "SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid IN ("
-	args = append(args, ns)
+	query := "SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE "
 
-	variableIx := 2
+	variableNum := 1
 	for _, k := range keys {
-		if variableIx == 2 {
-			query += fmt.Sprintf("$%d", variableIx)
-		} else {
-			query += fmt.Sprintf(",$%d", variableIx)
+		if variableNum != 1 {
+			query += " OR "
 		}
-		variableIx += 1
-		args = append(args, k.objectId)
+		query += fmt.Sprintf("(namespace = $%d AND oid = $%d)", variableNum, variableNum+1)
+		variableNum += 2
+		args = append(args, k.namespace, k.objectId)
 	}
 
-	query += ") ORDER BY updated_at"
+	query += " ORDER BY updated_at"
+
+	//fmt.Printf("QUERY [%s]\n", query)
 
 	rows, err := s.Query(query, args...)
 	if err != nil {

@@ -157,7 +157,7 @@ func (impl easyStoreReadonlyImpl) getByKey(namespace string, id string) (EasySto
 
 func (impl easyStoreReadonlyImpl) getByKeys(keys []DataStoreKey) ([]EasyStoreObject, error) {
 
-	splitCount := 50
+	splitCount := 100
 
 	if len(keys) > splitCount {
 
