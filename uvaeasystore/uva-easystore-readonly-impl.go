@@ -15,6 +15,9 @@ type easyStoreReadonlyImpl struct {
 	store  DataStore       // dbStorage/persistence implementation
 }
 
+// maximum number of ns/oid pairs to request in a single query
+var querySplitCount = 250
+
 // factory for our easystore interface
 func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
 
@@ -157,9 +160,7 @@ func (impl easyStoreReadonlyImpl) getByKey(namespace string, id string) (EasySto
 
 func (impl easyStoreReadonlyImpl) getByKeys(keys []DataStoreKey) ([]EasyStoreObject, error) {
 
-	splitCount := 100
-
-	if len(keys) > splitCount {
+	if len(keys) > querySplitCount {
 
 		half := len(keys) / 2
 		if half == 0 {
