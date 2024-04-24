@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-query
 
 go 1.21.7
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240411131136-9da0b224c172
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20240424182848-30c5d1dfc9ce
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.26.1 // indirect
@@ -29,6 +29,6 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/rs/xid v1.5.0 // indirect
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240325152856-57ba633b6d1b // indirect
-	golang.org/x/exp v0.0.0-20240409090435-93d18d7e34b8 // indirect
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240424181938-23a2768958e8 // indirect
+	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 )
