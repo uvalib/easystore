@@ -37,7 +37,7 @@ func pubObjectCreate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		Identifier: obj.Id(),
 		Detail:     detail,
 	}
-	return bus.PublishEvent(ev)
+	return bus.PublishEvent(&ev)
 }
 
 func pubObjectUpdate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
@@ -54,7 +54,7 @@ func pubObjectUpdate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		Identifier: obj.Id(),
 		Detail:     detail,
 	}
-	return bus.PublishEvent(ev)
+	return bus.PublishEvent(&ev)
 }
 
 func pubObjectDelete(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
@@ -71,7 +71,7 @@ func pubObjectDelete(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		Identifier: obj.Id(),
 		Detail:     detail,
 	}
-	return bus.PublishEvent(ev)
+	return bus.PublishEvent(&ev)
 }
 
 func pubMetadataUpdate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
@@ -88,7 +88,7 @@ func pubMetadataUpdate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		Identifier: obj.Id(),
 		Detail:     detail,
 	}
-	return bus.PublishEvent(ev)
+	return bus.PublishEvent(&ev)
 }
 
 func pubFileCreate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
@@ -105,7 +105,7 @@ func pubFileCreate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		Identifier: obj.Id(),
 		Detail:     detail,
 	}
-	return bus.PublishEvent(ev)
+	return bus.PublishEvent(&ev)
 }
 
 func eventPayload(obj EasyStoreObject) (json.RawMessage, error) {
