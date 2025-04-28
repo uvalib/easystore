@@ -20,6 +20,7 @@ func main() {
 	var whereCmd string
 	var dumpDir string
 	var debug bool
+	var quiet bool
 	var logger *log.Logger
 
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
@@ -28,6 +29,7 @@ func main() {
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
 	flag.StringVar(&dumpDir, "dumpdir", "", "Directory to dump files and/or metadata")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
+	flag.BoolVar(&quiet, "quiet", false, "Quiet mode")
 	flag.Parse()
 
 	if debug == true {
@@ -104,12 +106,18 @@ func main() {
 		var obj uvaeasystore.EasyStoreObject
 		obj, err = results.Next()
 		for err == nil {
-			fmt.Printf("  ===> ns/id: %s/%s (%d of %d)\n", obj.Namespace(), obj.Id(), current, total)
-			err = outputObject(obj, what)
-			if err != nil {
-				log.Fatalf("ERROR: outputting result object (%s)", err.Error())
+			if quiet == false {
+				fmt.Printf("  ===> ns/id: %s/%s (%d of %d)\n", obj.Namespace(), obj.Id(), current, total)
+				err = outputObject(obj, what)
+				if err != nil {
+					log.Fatalf("ERROR: outputting result object (%s)", err.Error())
+				}
 			}
 			err = dumpObject(obj, dumpDir)
+			if err != nil {
+				log.Fatalf("ERROR: dumping result object (%s)", err.Error())
+			}
+
 			obj, err = results.Next()
 			current++
 		}
