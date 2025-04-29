@@ -21,6 +21,7 @@ func main() {
 	var dumpDir string
 	var debug bool
 	var quiet bool
+	var limit int
 	var logger *log.Logger
 
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
@@ -30,6 +31,7 @@ func main() {
 	flag.StringVar(&dumpDir, "dumpdir", "", "Directory to dump files and/or metadata")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.BoolVar(&quiet, "quiet", false, "Quiet mode")
+	flag.IntVar(&limit, "limit", 0, "Query count limit, 0 is no limit")
 	flag.Parse()
 
 	if debug == true {
@@ -120,6 +122,10 @@ func main() {
 
 			obj, err = results.Next()
 			current++
+			if limit > 0 && current > limit {
+				log.Printf("INFO: terminating at %d object(s)...", limit)
+				break
+			}
 		}
 		totalDuration := time.Since(start)
 
