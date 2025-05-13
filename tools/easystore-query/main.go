@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -213,19 +214,21 @@ func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
 		return nil
 	}
 
+	// dump metadata if it exists
 	if obj.Metadata() != nil {
 		buf, err := obj.Metadata().Payload()
 		if err != nil {
 			return err
 		}
 		fname := fmt.Sprintf("%s/%s-%s-metadata.bin", outdir, obj.Namespace(), obj.Id())
-		fmt.Printf("       ==> wrinting %s...\n", fname)
+		fmt.Printf("       ==> writing %s...\n", fname)
 		err = os.WriteFile(fname, buf, 0644)
 		if err != nil {
 			return err
 		}
 	}
 
+	// dump files if they exist
 	if obj.Files() != nil {
 		for _, f := range obj.Files() {
 			buf, err := f.Payload()
@@ -233,11 +236,26 @@ func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
 				return err
 			}
 			fname := fmt.Sprintf("%s/%s-%s-%s", outdir, obj.Namespace(), obj.Id(), f.Name())
-			fmt.Printf("       ==> wrinting %s...\n", fname)
+			fmt.Printf("       ==> writing %s...\n", fname)
 			err = os.WriteFile(fname, buf, 0644)
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	if obj.Fields() != nil {
+
+		b, err := json.Marshal(obj.Fields())
+		if err != nil {
+			return err
+		}
+
+		fname := fmt.Sprintf("%s/%s-%s-fields.bin", outdir, obj.Namespace(), obj.Id())
+		fmt.Printf("       ==> writing %s...\n", fname)
+		err = os.WriteFile(fname, b, 0644)
+		if err != nil {
+			return err
 		}
 	}
 
