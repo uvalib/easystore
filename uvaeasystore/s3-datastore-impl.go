@@ -34,6 +34,9 @@ type s3Storage struct {
 
 // Check -- check our database health
 func (s *s3Storage) Check() error {
+
+	// perhaps check bucket access too?
+
 	return s.Ping()
 }
 

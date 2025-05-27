@@ -75,6 +75,9 @@ type EasyStoreReadonly interface {
 
 	// close connections
 	Close() error
+
+	// check health/current status
+	Check() error
 }
 
 // EasyStore - the store abstraction (read/write)

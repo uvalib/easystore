@@ -35,6 +35,10 @@ func (impl easyStoreReadonlyImpl) Close() error {
 	return impl.store.Close()
 }
 
+func (impl easyStoreReadonlyImpl) Check() error {
+	return impl.store.Check()
+}
+
 func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// validate the id
