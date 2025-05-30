@@ -45,7 +45,7 @@ func (impl DatastoreSqliteConfig) SetEventSource(sourceName string) {
 }
 
 // newSqliteStore -- create a sqlite version of the DataStore
-func newSqliteStore(config EasyStoreConfig) (DataStore, error) {
+func newSqliteStore(config EasyStoreImplConfig) (DataStore, error) {
 
 	// make sure its one of these
 	c, ok := config.(DatastoreSqliteConfig)

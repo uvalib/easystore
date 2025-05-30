@@ -33,7 +33,7 @@ func objectQueryResults(rows *sql.Rows, log *log.Logger) (EasyStoreObject, error
 	count := 0
 
 	for rows.Next() {
-		err := rows.Scan(&results.namespace, &results.id, &results.vtag, &results.created, &results.modified)
+		err := rows.Scan(&results.Namespace_, &results.Id_, &results.Vtag_, &results.Created_, &results.Modified_)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func objectsQueryResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreObject, er
 
 	for rows.Next() {
 		o := easyStoreObjectImpl{}
-		err := rows.Scan(&o.namespace, &o.id, &o.vtag, &o.created, &o.modified)
+		err := rows.Scan(&o.Namespace_, &o.Id_, &o.Vtag_, &o.Created_, &o.Modified_)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,6 @@ func objectsQueryResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreObject, er
 func fieldQueryResults(rows *sql.Rows, log *log.Logger) (*EasyStoreObjectFields, error) {
 
 	results := EasyStoreObjectFields{}
-	//results.fields = make(map[string]string)
 	count := 0
 
 	for rows.Next() {
@@ -113,7 +112,7 @@ func blobQueryResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) 
 
 	for rows.Next() {
 		blob := easyStoreBlobImpl{}
-		err := rows.Scan(&blob.name, &blob.mimeType, &blob.payload, &blob.created, &blob.modified)
+		err := rows.Scan(&blob.Name_, &blob.MimeType_, &blob.payload, &blob.Created_, &blob.Modified_)
 		if err != nil {
 			return nil, err
 		}

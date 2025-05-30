@@ -47,8 +47,8 @@ type EasyStoreObjectFields map[string]string // name value pairs
 
 // EasyStoreCommon - common fields that appear in objects and blobs
 type EasyStoreCommon interface {
-	Created() time.Time  // created time
-	Modified() time.Time // last modified time
+	Created() time.Time  // Created_ time
+	Modified() time.Time // last Modified_ time
 }
 
 // EasyStoreObjectSet - an iterator for enumerating a set of objects
@@ -98,7 +98,7 @@ type EasyStore interface {
 
 // EasyStoreObject - the objects stored in the easystore
 type EasyStoreObject interface {
-	Namespace() string // the object namespace
+	Namespace() string // the object Namespace
 	Id() string        // object Id
 	VTag() string      // object version tag
 
@@ -135,8 +135,8 @@ type EasyStoreMetadata interface {
 	EasyStoreCommon // any common fields
 }
 
-// EasyStoreConfig - the configuration structure
-type EasyStoreConfig interface {
+// EasyStoreImplConfig - the configuration structure for an implementation
+type EasyStoreImplConfig interface {
 	// logging support
 	Logger() *log.Logger
 	SetLogger(*log.Logger) // logging support
@@ -146,6 +146,19 @@ type EasyStoreConfig interface {
 	SetMessageBus(string)  // name of the message bus to push telemetry to
 	EventSource() string   // telemetry events are tagged as coming from this source
 	SetEventSource(string) // telemetry events are tagged as coming from this source
+}
+
+// EasyStoreProxyConfig - the configuration structure for a proxy
+type EasyStoreProxyConfig interface {
+	// logging support
+	Logger() *log.Logger
+	SetLogger(*log.Logger) // logging support
+
+	// service endpoint
+	Endpoint() string
+	SetEndpoint(string)
+	Timeout() int
+	SetTimeout(int)
 }
 
 // EasyStoreSerializer - used to serialize and deserialize our objects
@@ -165,18 +178,32 @@ type EasyStoreSerializer interface {
 //
 
 // NewEasyStore - factory for our EasyStore interface
-func NewEasyStore(config EasyStoreConfig) (EasyStore, error) {
+func NewEasyStore(config EasyStoreImplConfig) (EasyStore, error) {
 	return newEasyStore(config)
 }
 
-// NewEasyStoreReadonly - factory for our EasyStoreReadonly interface
-func NewEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
+// NewEasyStoreReadonly - factory for our EasyStoreReadonly implementation
+func NewEasyStoreReadonly(config EasyStoreImplConfig) (EasyStoreReadonly, error) {
 	return newEasyStoreReadonly(config)
+}
+
+// NewEasyStoreProxy - factory for our EasyStoreProxy implementation
+func NewEasyStoreProxy(config EasyStoreProxyConfig) (EasyStore, error) {
+	return newEasyStoreProxy(config)
+}
+
+// NewEasyStoreProxyReadonly - factory for our EasyStoreProxyReadonly implementation
+func NewEasyStoreProxyReadonly(config EasyStoreProxyConfig) (EasyStoreReadonly, error) {
+	return newEasyStoreProxyReadonly(config)
 }
 
 // NewEasyStoreObject - factory for our easystore object
 func NewEasyStoreObject(namespace string, id string) EasyStoreObject {
 	return newEasyStoreObject(namespace, id)
+}
+
+func ProxyEasyStoreObject(namespace string, id string, vtag string) EasyStoreObject {
+	return proxyEasyStoreObject(namespace, id, vtag)
 }
 
 // NewEasyStoreBlob - factory for our easystore blob object

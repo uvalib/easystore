@@ -47,7 +47,7 @@ type DataStore interface {
 }
 
 // our factory
-func NewDatastore(config EasyStoreConfig) (DataStore, error) {
+func NewDatastore(config EasyStoreImplConfig) (DataStore, error) {
 
 	// check for a sqlite configuration
 	_, ok := config.(DatastoreSqliteConfig)

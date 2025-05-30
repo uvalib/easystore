@@ -25,8 +25,8 @@ func main() {
 	var limit int
 	var logger *log.Logger
 
-	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
-	flag.StringVar(&namespace, "namespace", "", "Namespace to query")
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
+	flag.StringVar(&namespace, "namespace", "", "namespace to query")
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
 	flag.StringVar(&dumpDir, "dumpdir", "", "Directory to dump files and/or metadata")
@@ -39,16 +39,23 @@ func main() {
 		logger = log.Default()
 	}
 
-	var config uvaeasystore.EasyStoreConfig
+	var implConfig uvaeasystore.EasyStoreImplConfig
+	var proxyConfig uvaeasystore.EasyStoreProxyConfig
+
+	// the easystore (or the proxy)
+	var esro uvaeasystore.EasyStoreReadonly
+	var err error
 
 	switch mode {
 	case "sqlite":
-		config = uvaeasystore.DatastoreSqliteConfig{
+		implConfig = uvaeasystore.DatastoreSqliteConfig{
 			DataSource: os.Getenv("SQLITEFILE"),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
 	case "postgres":
-		config = uvaeasystore.DatastorePostgresConfig{
+		implConfig = uvaeasystore.DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:     os.Getenv("DBNAME"),
@@ -57,8 +64,10 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
 	case "s3":
-		config = uvaeasystore.DatastoreS3Config{
+		implConfig = uvaeasystore.DatastoreS3Config{
 			Bucket:     os.Getenv("BUCKET"),
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -68,9 +77,25 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
+	case "proxy":
+		proxyConfig = uvaeasystore.ProxyConfigImpl{
+			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			Log:             logger,
+		}
+		esro, err = uvaeasystore.NewEasyStoreProxyReadonly(proxyConfig)
+
 	default:
 		log.Fatalf("ERROR: unsupported mode (%s)", mode)
 	}
+
+	if err != nil {
+		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
+	}
+
+	// important, cleanup properly
+	defer esro.Close()
 
 	// what are we querying for
 	what := uvaeasystore.BaseComponent
@@ -83,15 +108,6 @@ func main() {
 	if strings.Contains(whatCmd, "files") {
 		what += uvaeasystore.Files
 	}
-
-	// create the easystore
-	esro, err := uvaeasystore.NewEasyStoreReadonly(config)
-	if err != nil {
-		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
-	}
-
-	// important, cleanup properly
-	defer esro.Close()
 
 	// issue the query
 	start := time.Now()

@@ -10,14 +10,14 @@ import (
 
 // this is our easystore object implementation
 type easyStoreObjectImpl struct {
-	namespace string                // object namespace
-	id        string                // object identifier
-	vtag      string                // object version tag (opaque)
-	created   time.Time             // created time
-	modified  time.Time             // last modified time
-	fields    EasyStoreObjectFields // object fields
-	metadata  EasyStoreMetadata     // object metadata (its an opaque blob)
-	files     []EasyStoreBlob       // object files
+	Namespace_ string                `json:"namespace"`          // object namespace
+	Id_        string                `json:"id"`                 // object identifier
+	Vtag_      string                `json:"vtag"`               // object version tag (opaque)
+	Created_   time.Time             `json:"created"`            // created time
+	Modified_  time.Time             `json:"modified"`           // last modified time
+	Fields_    EasyStoreObjectFields `json:"fields,omitempty"`   // object fields
+	Metadata_  EasyStoreMetadata     `json:"metadata,omitempty"` // object metadata (its an opaque blob)
+	Files_     []EasyStoreBlob       `json:"files,omitempty"`    // object files
 }
 
 // factory for our easystore object interface
@@ -31,55 +31,60 @@ func newEasyStoreObject(namespace string, id string) EasyStoreObject {
 	if len(id) == 0 {
 		id = newObjectId()
 	}
+	return proxyEasyStoreObject(namespace, id, newVtag())
+}
+
+// proxy object, used as a container for existing values
+func proxyEasyStoreObject(namespace string, id string, vtag string) EasyStoreObject {
 	return &easyStoreObjectImpl{
-		namespace: namespace,
-		id:        id,
-		vtag:      newVtag(),
+		Namespace_: namespace,
+		Id_:        id,
+		Vtag_:      vtag,
 	}
 }
 
 func (impl *easyStoreObjectImpl) Namespace() string {
-	return impl.namespace
+	return impl.Namespace_
 }
 
 func (impl *easyStoreObjectImpl) Id() string {
-	return impl.id
+	return impl.Id_
 }
 
 func (impl *easyStoreObjectImpl) VTag() string {
-	return impl.vtag
+	return impl.Vtag_
 }
 
 func (impl *easyStoreObjectImpl) Created() time.Time {
-	return impl.created
+	return impl.Created_
 }
 
 func (impl *easyStoreObjectImpl) Modified() time.Time {
-	return impl.modified
+	return impl.Modified_
 }
 
 func (impl *easyStoreObjectImpl) Fields() EasyStoreObjectFields {
-	return impl.fields
+	return impl.Fields_
 }
 
 func (impl *easyStoreObjectImpl) Metadata() EasyStoreMetadata {
-	return impl.metadata
+	return impl.Metadata_
 }
 
 func (impl *easyStoreObjectImpl) Files() []EasyStoreBlob {
-	return impl.files
+	return impl.Files_
 }
 
 func (impl *easyStoreObjectImpl) SetFields(fields EasyStoreObjectFields) {
-	impl.fields = fields
+	impl.Fields_ = fields
 }
 
 func (impl *easyStoreObjectImpl) SetMetadata(metadata EasyStoreMetadata) {
-	impl.metadata = metadata
+	impl.Metadata_ = metadata
 }
 
 func (impl *easyStoreObjectImpl) SetFiles(files []EasyStoreBlob) {
-	impl.files = files
+	impl.Files_ = files
 }
 
 //

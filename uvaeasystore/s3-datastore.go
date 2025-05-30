@@ -55,7 +55,7 @@ func (impl DatastoreS3Config) SetEventSource(sourceName string) {
 }
 
 // newS3Store -- create an S3 version of the DataStore
-func newS3Store(config EasyStoreConfig) (DataStore, error) {
+func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 
 	// make sure its one of these
 	c, ok := config.(DatastoreS3Config)

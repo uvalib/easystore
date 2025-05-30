@@ -18,7 +18,7 @@ func main() {
 	var debug bool
 	var logger *log.Logger
 
-	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&single, "single", "", "Object to delete, ns/oid")
 	flag.StringVar(&bulk, "bulk", "", "File containing list of objects to delete, ns/oid")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
@@ -33,16 +33,23 @@ func main() {
 		logger = log.Default()
 	}
 
-	var config uvaeasystore.EasyStoreConfig
+	var implConfig uvaeasystore.EasyStoreImplConfig
+	var proxyConfig uvaeasystore.EasyStoreProxyConfig
+
+	// the easystore (or the proxy)
+	var es uvaeasystore.EasyStore
+	var err error
 
 	switch mode {
 	case "sqlite":
-		config = uvaeasystore.DatastoreSqliteConfig{
+		implConfig = uvaeasystore.DatastoreSqliteConfig{
 			DataSource: os.Getenv("SQLITEFILE"),
 			Log:        logger,
 		}
+		es, err = uvaeasystore.NewEasyStore(implConfig)
+
 	case "postgres":
-		config = uvaeasystore.DatastorePostgresConfig{
+		implConfig = uvaeasystore.DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:     os.Getenv("DBNAME"),
@@ -51,8 +58,10 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		es, err = uvaeasystore.NewEasyStore(implConfig)
+
 	case "s3":
-		config = uvaeasystore.DatastoreS3Config{
+		implConfig = uvaeasystore.DatastoreS3Config{
 			Bucket:     os.Getenv("BUCKET"),
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -62,11 +71,19 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		es, err = uvaeasystore.NewEasyStore(implConfig)
+
+	case "proxy":
+		proxyConfig = uvaeasystore.ProxyConfigImpl{
+			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			Log:             logger,
+		}
+		es, err = uvaeasystore.NewEasyStoreProxy(proxyConfig)
+
 	default:
 		log.Fatalf("ERROR: unsupported mode (%s)", mode)
 	}
 
-	es, err := uvaeasystore.NewEasyStore(config)
 	if err != nil {
 		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
 	}
@@ -85,13 +102,15 @@ func main() {
 		lines = append(lines, single)
 	}
 
+	var o uvaeasystore.EasyStoreObject
 	success := 0
 	errors := 0
+
 	for _, l := range lines {
 		if len(l) != 0 {
 			parts := strings.Split(l, "/")
 			if len(parts) == 2 {
-				o, err := es.GetByKey(parts[0], parts[1], uvaeasystore.BaseComponent)
+				o, err = es.GetByKey(parts[0], parts[1], uvaeasystore.BaseComponent)
 				if err != nil {
 					log.Printf("WARNING: get %s/%s returns error (%s), continuing", parts[0], parts[1], err.Error())
 					errors++

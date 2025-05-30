@@ -51,7 +51,7 @@ func (impl DatastorePostgresConfig) SetEventSource(sourceName string) {
 }
 
 // newPostgresStore -- create a postgres version of the DataStore
-func newPostgresStore(config EasyStoreConfig) (DataStore, error) {
+func newPostgresStore(config EasyStoreImplConfig) (DataStore, error) {
 
 	// make sure its one of these
 	c, ok := config.(DatastorePostgresConfig)

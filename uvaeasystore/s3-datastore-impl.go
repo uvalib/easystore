@@ -52,14 +52,14 @@ func (s *s3Storage) UpdateObject(key DataStoreKey) error {
 		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreObjectImpl", ErrBadParameter)
 	}
 
-	impl.vtag = newVtag()
-	impl.modified = time.Now()
+	impl.Vtag_ = newVtag()
+	impl.Modified_ = time.Now()
 
 	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = NOW() WHERE namespace = $2 AND oid = $3")
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy3(stmt, impl.vtag, key.namespace, key.objectId)
+	err = execPreparedBy3(stmt, impl.Vtag_, key.namespace, key.objectId)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (s *s3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 // AddFields -- add a new fields object
 func (s *s3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
 	// check asset does not exist
-	//if s.checkExists(key.namespace, key.objectId, s3FieldsFileName) == true {
+	//if s.checkExists(key.Namespace_, key.objectId, s3FieldsFileName) == true {
 	//	return ErrAlreadyExists
 	//}
 
@@ -110,7 +110,7 @@ func (s *s3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) er
 // AddObject -- add a new object
 func (s *s3Storage) AddObject(obj EasyStoreObject) error {
 	// check asset does not exist
-	//if s.checkExists(obj.Namespace(), obj.Id(), s3ObjectFileName) == true {
+	//if s.checkExists(obj.Namespace_(), obj.Id(), s3ObjectFileName) == true {
 	//	return ErrAlreadyExists
 	//}
 
@@ -309,7 +309,7 @@ func (s *s3Storage) addBlob(namespace string, identifier string, blob EasyStoreB
 	if ok == false {
 		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreBlobImpl", ErrBadParameter)
 	}
-	impl.created, impl.modified = time.Now(), time.Now()
+	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
 	b := s.serialize.BlobSerialize(impl).([]byte)
 	// upload to S3
@@ -331,7 +331,7 @@ func (s *s3Storage) addMetadata(namespace string, identifier string, metadata Ea
 	if ok == false {
 		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreMetadataImpl", ErrBadParameter)
 	}
-	impl.created, impl.modified = time.Now(), time.Now()
+	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
 	b := s.serialize.MetadataSerialize(impl).([]byte)
 	// upload to S3
@@ -346,7 +346,7 @@ func (s *s3Storage) addObject(namespace string, identifier string, obj EasyStore
 	if ok == false {
 		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreObjectImpl", ErrBadParameter)
 	}
-	impl.created, impl.modified = time.Now(), time.Now()
+	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
 	b := s.serialize.ObjectSerialize(impl).([]byte)
 	// upload to S3

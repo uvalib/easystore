@@ -38,8 +38,8 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 
 	o := newEasyStoreObject(omap["ns"].(string), omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
-	obj.vtag = omap["vtag"].(string)
-	obj.created, obj.modified, err = timestampExtract(omap)
+	obj.Vtag_ = omap["vtag"].(string)
+	obj.Created_, obj.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		buf)
 
 	blob := b.(*easyStoreBlobImpl)
-	blob.created, blob.modified, err = timestampExtract(omap)
+	blob.Created_, blob.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 
 	md := newEasyStoreMetadata(omap["mime-type"].(string), buf)
 	meta := md.(*easyStoreMetadataImpl)
-	meta.created, meta.modified, err = timestampExtract(omap)
+	meta.Created_, meta.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
 	}

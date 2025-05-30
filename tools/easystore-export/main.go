@@ -19,8 +19,8 @@ func main() {
 	var debug bool
 	var logger *log.Logger
 
-	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3")
-	flag.StringVar(&namespace, "namespace", "", "Namespace to export")
+	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
+	flag.StringVar(&namespace, "namespace", "", "namespace to export")
 	flag.StringVar(&outDir, "exportdir", "", "Export directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
@@ -29,16 +29,23 @@ func main() {
 		logger = log.Default()
 	}
 
-	var config uvaeasystore.EasyStoreConfig
+	var implConfig uvaeasystore.EasyStoreImplConfig
+	var proxyConfig uvaeasystore.EasyStoreProxyConfig
+
+	// the easystore (or the proxy)
+	var esro uvaeasystore.EasyStoreReadonly
+	var err error
 
 	switch mode {
 	case "sqlite":
-		config = uvaeasystore.DatastoreSqliteConfig{
+		implConfig = uvaeasystore.DatastoreSqliteConfig{
 			DataSource: os.Getenv("SQLITEFILE"),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
 	case "postgres":
-		config = uvaeasystore.DatastorePostgresConfig{
+		implConfig = uvaeasystore.DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:     os.Getenv("DBNAME"),
@@ -47,8 +54,10 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
 	case "s3":
-		config = uvaeasystore.DatastoreS3Config{
+		implConfig = uvaeasystore.DatastoreS3Config{
 			Bucket:     os.Getenv("BUCKET"),
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -58,11 +67,19 @@ func main() {
 			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
 			Log:        logger,
 		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
+	case "proxy":
+		proxyConfig = uvaeasystore.ProxyConfigImpl{
+			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			Log:             logger,
+		}
+		esro, err = uvaeasystore.NewEasyStoreProxyReadonly(proxyConfig)
+
 	default:
 		log.Fatalf("ERROR: unsupported mode (%s)", mode)
 	}
 
-	esro, err := uvaeasystore.NewEasyStoreReadonly(config)
 	if err != nil {
 		log.Fatalf("ERROR: creating easystore (%s)", err.Error())
 	}

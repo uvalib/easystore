@@ -142,10 +142,10 @@ func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 
 	b, _ := br[0].(easyStoreBlobImpl)
 	md := easyStoreMetadataImpl{
-		mimeType: b.mimeType,
-		payload:  b.payload,
-		created:  b.created,
-		modified: b.modified}
+		MimeType_: b.MimeType_,
+		Payload_:  b.payload,
+		Created_:  b.Created_,
+		Modified_: b.Modified_}
 
 	return md, nil
 }

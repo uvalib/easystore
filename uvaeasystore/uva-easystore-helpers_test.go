@@ -23,7 +23,7 @@ var badId = "oid-blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 // can be "sqlite", "postgres" or "s3"
-var datastore = "sqlite"
+var datastore = "postgres"
 
 // do we want event telemetry
 var enableBus = false
@@ -34,7 +34,7 @@ var debug = false
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	// configure what we need
-	var config EasyStoreConfig
+	var config EasyStoreImplConfig
 	var logger *log.Logger
 	var busName string
 
@@ -92,7 +92,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 }
 
 func testSetup(t *testing.T) EasyStore {
-	var config EasyStoreConfig
+	var config EasyStoreImplConfig
 	var logger *log.Logger
 	var busName string
 
@@ -210,7 +210,7 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 					t.Fatalf("file create time is empty\n")
 				}
 				if f.Modified().IsZero() == true {
-					t.Fatalf("file modified time is empty\n")
+					t.Fatalf("file Modified_ time is empty\n")
 				}
 			}
 		} else {
@@ -240,7 +240,7 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 				t.Fatalf("metadata create time is empty\n")
 			}
 			if md.Modified().IsZero() == true {
-				t.Fatalf("metadata modified time is empty\n")
+				t.Fatalf("metadata Modified_ time is empty\n")
 			}
 		} else {
 			t.Fatalf("expected object metadata but got none\n")

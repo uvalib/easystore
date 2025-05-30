@@ -11,17 +11,17 @@ import (
 
 // this is our easystore readonly implementation
 type easyStoreReadonlyImpl struct {
-	config EasyStoreConfig // configuration info
-	store  DataStore       // dbStorage/persistence implementation
+	config EasyStoreImplConfig // configuration info
+	store  DataStore           // dbStorage/persistence implementation
 }
 
 // maximum number of ns/oid pairs to request in a single query
 var querySplitCount = 250
 
 // factory for our easystore interface
-func newEasyStoreReadonly(config EasyStoreConfig) (EasyStoreReadonly, error) {
+func newEasyStoreReadonly(config EasyStoreImplConfig) (EasyStoreReadonly, error) {
 
-	// create the data store for this Namespace
+	// create the data store for this namespace
 	s, err := NewDatastore(config)
 	if err != nil {
 		return nil, err
