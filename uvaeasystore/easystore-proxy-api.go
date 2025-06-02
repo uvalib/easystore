@@ -2,6 +2,8 @@ package uvaeasystore
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 type getObjectsRequest struct {
@@ -93,6 +95,43 @@ func (obj *easyStoreObjectImpl) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// maps http reponse payload into an easystore error (if possible)
+func mapResponseToError(strErr string) error {
+
+	if strings.Contains(strErr, ErrNotImplemented.Error()) {
+		return ErrNotImplemented
+	}
+	if strings.Contains(strErr, ErrBadParameter.Error()) {
+		return ErrBadParameter
+	}
+	if strings.Contains(strErr, ErrFileNotFound.Error()) {
+		return ErrFileNotFound
+	}
+	if strings.Contains(strErr, ErrNotFound.Error()) {
+		return ErrNotFound
+	}
+	if strings.Contains(strErr, ErrStaleObject.Error()) {
+		return ErrStaleObject
+	}
+	if strings.Contains(strErr, ErrAlreadyExists.Error()) {
+		return ErrAlreadyExists
+	}
+	if strings.Contains(strErr, ErrSerialize.Error()) {
+		return ErrSerialize
+	}
+	if strings.Contains(strErr, ErrDeserialize.Error()) {
+		return ErrDeserialize
+	}
+	if strings.Contains(strErr, ErrBusNotConfigured.Error()) {
+		return ErrBusNotConfigured
+	}
+	if strings.Contains(strErr, ErrRecurse.Error()) {
+		return ErrRecurse
+	}
+
+	return fmt.Errorf(strErr)
 }
 
 //

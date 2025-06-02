@@ -90,18 +90,18 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 
 	var response *http.Response
 	var err error
-	url := req.URL.String()
+	//url := req.URL.String()
 	count := 0
 	for {
-		start := time.Now()
+		//start := time.Now()
 		response, err = client.Do(req)
-		duration := time.Since(start)
-		fmt.Printf("INFO: %s %s (elapsed %d ms)\n", req.Method, url, duration.Milliseconds())
+		//duration := time.Since(start)
+		//fmt.Printf("INFO: %s %s (elapsed %d ms)\n", req.Method, url, duration.Milliseconds())
 
 		count++
 		if err != nil {
 			if canRetry(err) == false {
-				fmt.Printf("ERROR: %s %s failed with error (%s)\n", req.Method, url, err)
+				//fmt.Printf("ERROR: %s %s failed with error (%s)\n", req.Method, url, err)
 				return nil, err
 			}
 
@@ -110,7 +110,7 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 				return nil, err
 			}
 
-			fmt.Printf("ERROR: %s %s failed with error, retrying (%s)\n", req.Method, url, err)
+			//fmt.Printf("ERROR: %s %s failed with error, retrying (%s)\n", req.Method, url, err)
 
 			// sleep for a bit before retrying
 			time.Sleep(retrySleepTime)
@@ -119,14 +119,15 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 			defer response.Body.Close()
 
 			if response.StatusCode >= 300 {
-				logLevel := "ERROR"
+				//logLevel := "ERROR"
 				// log StatusNotFound as informational instead of as an error
-				if response.StatusCode == http.StatusNotFound {
-					logLevel = "INFO"
-				}
-				fmt.Printf("%s: %s %s failed with status %d\n", logLevel, req.Method, url, response.StatusCode)
+				//if response.StatusCode == http.StatusNotFound {
+				//	logLevel = "INFO"
+				//}
+				//fmt.Printf("%s: %s %s failed with status %d\n", logLevel, req.Method, url, response.StatusCode)
 
 				body, _ := io.ReadAll(response.Body)
+				//fmt.Printf(string(body))
 
 				return body, fmt.Errorf("request returns HTTP %d", response.StatusCode)
 			}
@@ -135,7 +136,7 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			//fmt.Printf( body )
+			//fmt.Printf(string(body))
 			return body, nil
 		}
 	}

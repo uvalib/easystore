@@ -101,53 +101,35 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 		return nil, ErrBadParameter
 	}
 
-	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+	//logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
-	return nil, ErrNotImplemented
+	// create the request payload
+	reqBytes, err := json.Marshal(obj)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return nil, ErrSerialize
+	}
 
-	//	// add the object
-	//	err := impl.store.AddObject(obj)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	// do we add metadata
-	//	if obj.Metadata() != nil {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("adding metadata for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		err = impl.store.AddMetadata(DataStoreKey{obj.Namespace_(), obj.Id()}, obj.Metadata())
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//	}
-	//
-	//	// do we add fields
-	//	if len(obj.Fields()) != 0 {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("adding fields for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		err = impl.store.AddFields(DataStoreKey{obj.Namespace_(), obj.Id()}, obj.Fields())
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//	}
-	//
-	//	// do we add files
-	//	if len(obj.Files()) != 0 {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("adding files for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		for _, b := range obj.Files() {
-	//			err = impl.store.AddBlob(DataStoreKey{obj.Namespace_(), obj.Id()}, b)
-	//			if err != nil {
-	//				return nil, err
-	//			}
-	//		}
-	//	}
-	//
-	//	// publish the appropriate event, errors are not too important
-	//	err = pubObjectCreate(impl.messageBus, obj)
-	//	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-	//		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-	//	}
-	//
-	//	// get the full object
-	//	return impl.GetByKey(obj.Namespace_(), obj.Id(), AllComponents)
+	// issue the request
+	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), obj.Namespace())
+	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
+	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
+		return nil, err
+	}
+
+	// process the response payload
+	var resp easyStoreObjectImpl
+	err = json.Unmarshal(respBytes, &resp)
+	if err != nil {
+		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
+		return nil, ErrDeserialize
+	}
+
+	return &resp, nil
 }
 
 func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -181,99 +163,33 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
 
-	return nil, ErrNotImplemented
+	// create the request payload
+	reqBytes, err := json.Marshal(obj)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return nil, ErrSerialize
+	}
 
-	//	// get the current object and compare the vtag
-	//	current, err := impl.GetByKey(obj.Namespace_(), obj.Id(), BaseComponent)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if current.VTag() != obj.VTag() {
-	//		return nil, ErrStaleObject
-	//	}
-	//
-	//	// do we update fields
-	//	if (which & Fields) == Fields {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("updating fields for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		// delete the current fields
-	//		err := impl.store.DeleteFieldsByKey(DataStoreKey{obj.Namespace_(), obj.Id()})
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//
-	//		// if we have new fields, add them
-	//		if len(obj.Fields()) != 0 {
-	//			err := impl.store.AddFields(DataStoreKey{obj.Namespace_(), obj.Id()}, obj.Fields())
-	//			if err != nil {
-	//				return nil, err
-	//			}
-	//		}
-	//	}
-	//
-	//	// do we update files
-	//	if (which & Files) == Files {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("updating files for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		// delete the current files
-	//		err := impl.store.DeleteBlobsByKey(DataStoreKey{obj.Namespace_(), obj.Id()})
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//
-	//		// if we have new files, add them
-	//		if len(obj.Files()) != 0 {
-	//			for _, b := range obj.Files() {
-	//				err = impl.store.AddBlob(DataStoreKey{obj.Namespace_(), obj.Id()}, b)
-	//				if err != nil {
-	//					return nil, err
-	//				}
-	//
-	//				// publish the appropriate event, errors are not too important
-	//				err = pubFileCreate(impl.messageBus, obj)
-	//				if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-	//					logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-	//				}
-	//			}
-	//		}
-	//	}
-	//
-	//	// do we update metadata
-	//	if (which & Metadata) == Metadata {
-	//		logDebug(impl.config.Logger(), fmt.Sprintf("updating metadata for ns/oid [%s/%s]", obj.Namespace_(), obj.Id()))
-	//		// delete the current metadata
-	//		err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace_(), obj.Id()})
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//
-	//		// if we have new metadata, add it
-	//		if obj.Metadata() != nil {
-	//			err := impl.store.AddMetadata(DataStoreKey{obj.Namespace_(), obj.Id()}, obj.Metadata())
-	//			if err != nil {
-	//				return nil, err
-	//			}
-	//
-	//			// publish the appropriate event, errors are not too important
-	//			err = pubMetadataUpdate(impl.messageBus, obj)
-	//			if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-	//				logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-	//			}
-	//		}
-	//	}
-	//
-	//	// update the object (timestamp and vtag)
-	//	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace_(), obj.Id()})
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	// publish the appropriate event, errors are not too important
-	//	err = pubObjectUpdate(impl.messageBus, obj)
-	//	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-	//		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-	//	}
-	//
-	//	// get the full object
-	//	return impl.GetByKey(obj.Namespace_(), obj.Id(), AllComponents)
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs)
+	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
+	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
+		return nil, err
+	}
+
+	// process the response payload
+	var resp easyStoreObjectImpl
+	err = json.Unmarshal(respBytes, &resp)
+	if err != nil {
+		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
+		return nil, ErrDeserialize
+	}
+
+	return &resp, nil
 }
 
 func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -317,8 +233,12 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs, vtag)
-	_, err := httpDelete(impl.HTTPClient, url)
+	respBytes, err := httpDelete(impl.HTTPClient, url)
 	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
 		return nil, err
 	}
 
@@ -331,8 +251,15 @@ func (impl easyStoreProxyReadonlyImpl) Close() error {
 
 func (impl easyStoreProxyReadonlyImpl) Check() error {
 	url := fmt.Sprintf("%s/healthcheck", impl.config.Endpoint())
-	_, err := httpGet(impl.HTTPClient, url)
-	return err
+	respBytes, err := httpGet(impl.HTTPClient, url)
+	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return mapResponseToError(string(respBytes))
+		}
+		return err
+	}
+	return nil
 }
 
 func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -357,15 +284,19 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), namespace, id, attribs)
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
 		return nil, err
 	}
 
-	// process the response
+	// process the response payload
 	var resp easyStoreObjectImpl
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
-		return nil, err
+		return nil, ErrDeserialize
 	}
 
 	return &resp, nil
@@ -396,24 +327,32 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
 
-	// create the request structure
+	// create the request payload
 	var req getObjectsRequest
 	req.Ids = ids
-	reqBytes, _ := json.Marshal(req)
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return nil, ErrSerialize
+	}
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s%s", impl.config.Endpoint(), namespace, attribs)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
 		return nil, err
 	}
 
-	// process the response
+	// process the response payload
 	var resp getObjectsResponse
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
-		return nil, err
+		return nil, ErrDeserialize
 	}
 
 	// return results in an iterator object
@@ -435,21 +374,30 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 
 	//logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))
 
-	reqBytes, _ := json.Marshal(fields)
+	// create the request payload
+	reqBytes, err := json.Marshal(fields)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return nil, ErrSerialize
+	}
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s/search%s", impl.config.Endpoint(), namespace, attribs)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
+		if len(respBytes) > 0 {
+			log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
 		return nil, err
 	}
 
-	// process the response
+	// process the response payload
 	var resp searchObjectsResponse
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
-		return nil, err
+		return nil, ErrDeserialize
 	}
 
 	// return results in an iterator object

@@ -22,8 +22,8 @@ var badNamespace = "blablabla"
 var badId = "oid-blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
-// can be "sqlite", "postgres" or "s3"
-var datastore = "postgres"
+// can be "sqlite", "postgres", "s3" or "proxy"
+var datastore = "proxy"
 
 // do we want event telemetry
 var enableBus = false
@@ -34,7 +34,6 @@ var debug = false
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	// configure what we need
-	var config EasyStoreImplConfig
 	var logger *log.Logger
 	var busName string
 
@@ -46,16 +45,25 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 		busName = goodBusName
 	}
 
+	// the easystore (or the proxy)
+	var esro EasyStoreReadonly
+	var err error
+
+	var implConfig EasyStoreImplConfig
+	var proxyConfig EasyStoreProxyConfig
+
 	switch datastore {
 	case "sqlite":
-		config = DatastoreSqliteConfig{
+		implConfig = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
 			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		esro, err = NewEasyStoreReadonly(implConfig)
+
 	case "postgres":
-		config = DatastorePostgresConfig{
+		implConfig = DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:     os.Getenv("DBNAME"),
@@ -66,8 +74,10 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		esro, err = NewEasyStoreReadonly(implConfig)
+
 	case "s3":
-		config = DatastoreS3Config{
+		implConfig = DatastoreS3Config{
 			Bucket:     os.Getenv("BUCKET"),
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -79,12 +89,19 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		esro, err = NewEasyStoreReadonly(implConfig)
+
+	case "proxy":
+		proxyConfig = ProxyConfigImpl{
+			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			Log:             logger,
+		}
+		esro, err = NewEasyStoreProxyReadonly(proxyConfig)
 
 	default:
 		t.Fatalf("Unsupported dbStorage configuration")
 	}
 
-	esro, err := NewEasyStoreReadonly(config)
 	if err != nil {
 		t.Fatalf("%t\n", err)
 	}
@@ -92,7 +109,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 }
 
 func testSetup(t *testing.T) EasyStore {
-	var config EasyStoreImplConfig
+
 	var logger *log.Logger
 	var busName string
 
@@ -104,16 +121,25 @@ func testSetup(t *testing.T) EasyStore {
 		busName = goodBusName
 	}
 
+	// the easystore (or the proxy)
+	var es EasyStore
+	var err error
+
+	var implConfig EasyStoreImplConfig
+	var proxyConfig EasyStoreProxyConfig
+
 	switch datastore {
 	case "sqlite":
-		config = DatastoreSqliteConfig{
+		implConfig = DatastoreSqliteConfig{
 			DataSource: goodSqliteFilename,
 			BusName:    busName,
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		es, err = NewEasyStore(implConfig)
+
 	case "postgres":
-		config = DatastorePostgresConfig{
+		implConfig = DatastorePostgresConfig{
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:     os.Getenv("DBNAME"),
@@ -124,8 +150,10 @@ func testSetup(t *testing.T) EasyStore {
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		es, err = NewEasyStore(implConfig)
+
 	case "s3":
-		config = DatastoreS3Config{
+		implConfig = DatastoreS3Config{
 			Bucket:     os.Getenv("BUCKET"),
 			DbHost:     os.Getenv("DBHOST"),
 			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -137,12 +165,19 @@ func testSetup(t *testing.T) EasyStore {
 			SourceName: sourceName,
 			Log:        logger,
 		}
+		es, err = NewEasyStore(implConfig)
+
+	case "proxy":
+		proxyConfig = ProxyConfigImpl{
+			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			Log:             logger,
+		}
+		es, err = NewEasyStoreProxy(proxyConfig)
 
 	default:
 		t.Fatalf("Unsupported dbStorage configuration")
 	}
 
-	es, err := NewEasyStore(config)
 	if err != nil {
 		t.Fatalf("%t\n", err)
 	}
