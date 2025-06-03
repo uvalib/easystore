@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // main entry point
@@ -15,12 +16,14 @@ func main() {
 
 	var mode string
 	var namespace string
+	var whatCmd string
 	var outDir string
 	var debug bool
 	var logger *log.Logger
 
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&namespace, "namespace", "", "namespace to export")
+	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
 	flag.StringVar(&outDir, "exportdir", "", "Export directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
@@ -87,11 +90,23 @@ func main() {
 	// important, cleanup properly
 	defer esro.Close()
 
+	// what are we exporting
+	what := uvaeasystore.BaseComponent
+	if strings.Contains(whatCmd, "fields") {
+		what += uvaeasystore.Fields
+	}
+	if strings.Contains(whatCmd, "metadata") {
+		what += uvaeasystore.Metadata
+	}
+	if strings.Contains(whatCmd, "files") {
+		what += uvaeasystore.Files
+	}
+
 	// empty fields means all objects
 	fields := uvaeasystore.DefaultEasyStoreFields()
 
 	// empty fields, should be all items
-	iter, err := esro.GetByFields(namespace, fields, uvaeasystore.AllComponents)
+	iter, err := esro.GetByFields(namespace, fields, what)
 	if err != nil {
 		log.Fatalf("ERROR: getting objects (%s)", err.Error())
 	}
