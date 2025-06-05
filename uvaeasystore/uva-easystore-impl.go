@@ -78,7 +78,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// do we add files
 	if len(obj.Files()) != 0 {
-		logDebug(impl.config.Logger(), fmt.Sprintf("adding fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+		logDebug(impl.config.Logger(), fmt.Sprintf("adding files for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 		for _, b := range obj.Files() {
 			err = impl.store.AddBlob(DataStoreKey{obj.Namespace(), obj.Id()}, b)
 			if err != nil {

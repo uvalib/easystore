@@ -112,7 +112,7 @@ func blobQueryResults(rows *sql.Rows, log *log.Logger) ([]EasyStoreBlob, error) 
 
 	for rows.Next() {
 		blob := easyStoreBlobImpl{}
-		err := rows.Scan(&blob.Name_, &blob.MimeType_, &blob.payload, &blob.Created_, &blob.Modified_)
+		err := rows.Scan(&blob.Name_, &blob.MimeType_, &blob.Payload_, &blob.Created_, &blob.Modified_)
 		if err != nil {
 			return nil, err
 		}

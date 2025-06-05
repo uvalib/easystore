@@ -77,7 +77,7 @@ func (obj *easyStoreObjectImpl) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		obj.SetMetadata(md)
+		obj.SetMetadata(&md)
 	}
 
 	// files (optional)
@@ -88,8 +88,8 @@ func (obj *easyStoreObjectImpl) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		alist := make([]EasyStoreBlob, len(flist))
-		for i, o := range flist {
-			alist[i] = o
+		for i, _ := range flist {
+			alist[i] = &flist[i]
 		}
 		obj.SetFiles(alist)
 	}

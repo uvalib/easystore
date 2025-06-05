@@ -85,7 +85,7 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 	buf, _ := b.Payload()
 	enc := base64.StdEncoding.EncodeToString(buf)
 
-	template := "{\"name\":\"%s\",\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"name\":\"%s\",\"mimetype\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		b.Name(),
 		b.MimeType(),
@@ -112,7 +112,7 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 
 	b := newEasyStoreBlob(
 		omap["name"].(string),
-		omap["mime-type"].(string),
+		omap["mimetype"].(string),
 		buf)
 
 	blob := b.(*easyStoreBlobImpl)
@@ -130,7 +130,7 @@ func (impl easyStoreSerializerImpl) MetadataSerialize(o EasyStoreMetadata) inter
 	buf, _ := o.Payload()
 	enc := base64.StdEncoding.EncodeToString(buf)
 
-	template := "{\"mime-type\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"mimetype\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
 		o.MimeType(),
 		enc,
@@ -154,7 +154,7 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 		return nil, err
 	}
 
-	md := newEasyStoreMetadata(omap["mime-type"].(string), buf)
+	md := newEasyStoreMetadata(omap["mimetype"].(string), buf)
 	meta := md.(*easyStoreMetadataImpl)
 	meta.Created_, meta.Modified_, err = timestampExtract(omap)
 	if err != nil {

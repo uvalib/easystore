@@ -23,13 +23,16 @@ var badId = "oid-blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 // can be "sqlite", "postgres", "s3" or "proxy"
+// var datastore = "sqlite"
+// var datastore = "postgres"
+// var datastore = "s3"
 var datastore = "proxy"
 
 // do we want event telemetry
 var enableBus = false
 
 // enable datastore debugging
-var debug = false
+var debug = true
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
@@ -78,16 +81,18 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	case "s3":
 		implConfig = DatastoreS3Config{
-			Bucket:     os.Getenv("BUCKET"),
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
+			Bucket:          os.Getenv("BUCKET"),
+			SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
+			SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
+			DbHost:          os.Getenv("DBHOST"),
+			DbPort:          asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:          os.Getenv("DBNAME"),
+			DbUser:          os.Getenv("DBUSER"),
+			DbPassword:      os.Getenv("DBPASS"),
+			DbTimeout:       asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:         busName,
+			SourceName:      sourceName,
+			Log:             logger,
 		}
 		esro, err = NewEasyStoreReadonly(implConfig)
 
@@ -154,16 +159,18 @@ func testSetup(t *testing.T) EasyStore {
 
 	case "s3":
 		implConfig = DatastoreS3Config{
-			Bucket:     os.Getenv("BUCKET"),
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
+			Bucket:          os.Getenv("BUCKET"),
+			SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
+			SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
+			DbHost:          os.Getenv("DBHOST"),
+			DbPort:          asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:          os.Getenv("DBNAME"),
+			DbUser:          os.Getenv("DBUSER"),
+			DbPassword:      os.Getenv("DBPASS"),
+			DbTimeout:       asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:         busName,
+			SourceName:      sourceName,
+			Log:             logger,
 		}
 		es, err = NewEasyStore(implConfig)
 
@@ -235,11 +242,9 @@ func validateObject(t *testing.T, obj EasyStoreObject, which EasyStoreComponents
 				if err != nil {
 					t.Fatalf("payload returns error\n")
 				}
-				if len(buf) == 0 {
-					t.Fatalf("file payload is empty\n")
-				}
-				if len(f.Url()) == 0 {
-					t.Fatalf("file url is empty\n")
+
+				if (buf == nil || len(buf) == 0) && len(f.Url()) == 0 {
+					t.Fatalf("file payload AND url are empty\n")
 				}
 				if f.Created().IsZero() == true {
 					t.Fatalf("file create time is empty\n")

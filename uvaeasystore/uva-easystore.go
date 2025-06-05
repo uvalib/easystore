@@ -118,11 +118,9 @@ type EasyStoreBlob interface {
 	Name() string     // original name
 	MimeType() string // can we type this in some way
 
-	// access to actual payload
-	Url() string // not sure, one of these
-	//io.Reader
-
-	Payload() ([]byte, error) // the payload (might error due to serialization)
+	// access to actual payload, one of the following
+	Url() string              // a url to stream the payload
+	Payload() ([]byte, error) // the payload
 
 	EasyStoreCommon // any common fields
 }

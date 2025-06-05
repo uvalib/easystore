@@ -18,16 +18,18 @@ import (
 
 // DatastoreS3Config -- this is our S3 configuration implementation
 type DatastoreS3Config struct {
-	Bucket     string      // dbStorage bucket name
-	DbHost     string      // host endpoint
-	DbPort     int         // port
-	DbName     string      // database name
-	DbUser     string      // database user
-	DbPassword string      // database password
-	DbTimeout  int         // timeout
-	BusName    string      // the message bus name
-	SourceName string      // the event source name
-	Log        *log.Logger // the logger
+	Bucket          string      // storage bucket name
+	SignerAccessKey string      // the signer access key
+	SignerSecretKey string      // the signer secret key
+	DbHost          string      // host endpoint
+	DbPort          int         // port
+	DbName          string      // database name
+	DbUser          string      // database user
+	DbPassword      string      // database password
+	DbTimeout       int         // timeout
+	BusName         string      // the message bus name
+	SourceName      string      // the event source name
+	Log             *log.Logger // the logger
 }
 
 func (impl DatastoreS3Config) Logger() *log.Logger {
@@ -91,11 +93,13 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 	}
 
 	return &s3Storage{
-		serialize: newEasyStoreSerializer(),
-		bucket:    c.Bucket,
-		s3Client:  client,
-		log:       c.Log,
-		DB:        db,
+		serialize:       newEasyStoreSerializer(),
+		bucket:          c.Bucket,
+		signerAccessKey: c.SignerAccessKey,
+		signerSecretKey: c.SignerSecretKey,
+		s3Client:        client,
+		log:             c.Log,
+		DB:              db,
 	}, nil
 }
 

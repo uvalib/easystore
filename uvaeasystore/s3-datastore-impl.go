@@ -25,11 +25,13 @@ var s3MetadataFileName = "metadata.json"
 
 // this is our S3 implementation
 type s3Storage struct {
-	bucket    string              // bucket name
-	serialize EasyStoreSerializer // standard serializer
-	s3Client  *s3.Client          // the s3 client
-	log       *log.Logger         // logger
-	*sql.DB                       // database connection
+	bucket          string              // bucket name
+	signerAccessKey string              // signing key
+	signerSecretKey string              // signing secret
+	serialize       EasyStoreSerializer // standard serializer
+	s3Client        *s3.Client          // the s3 client
+	log             *log.Logger         // logger
+	*sql.DB                             // database connection
 }
 
 // Check -- check our database health
@@ -181,7 +183,21 @@ func (s *s3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
 // GetObjectsByKey -- get all field data associated with the specified object
 func (s *s3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
-	return nil, ErrNotImplemented
+
+	results := make([]EasyStoreObject, 0, len(keys))
+	for _, key := range keys {
+		if s.checkExists(key.namespace, key.objectId, s3ObjectFileName) == true {
+			obj, err := s.getObject(key.namespace, key.objectId)
+			if err != nil {
+				return nil, err
+			}
+			results = append(results, obj)
+		}
+	}
+	if len(results) == 0 {
+		return nil, ErrNotFound
+	}
+	return results, nil
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
@@ -302,6 +318,8 @@ func (s *s3Storage) removeAsset(namespace string, identifier string, assetName s
 }
 
 func (s *s3Storage) addBlob(namespace string, identifier string, blob EasyStoreBlob) error {
+
+	// we add the serialized blob and create the original file
 	key := s.assetKey(namespace, identifier, fmt.Sprintf("%s.json", blob.Name()))
 
 	// for setting the timestamps
@@ -438,10 +456,8 @@ func (s *s3Storage) s3UploadFromBuffer(bucket string, key string, buf []byte) er
 		Body:   bytes.NewReader(buf),
 	})
 
-	if err == nil {
-		duration := time.Since(start)
-		logDebug(s.log, fmt.Sprintf("upload [%s/%s] complete in %0.2f seconds", bucket, key, duration.Seconds()))
-	}
+	duration := time.Since(start)
+	logDebug(s.log, fmt.Sprintf("upload [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
 	return err
 }
 
@@ -460,14 +476,10 @@ func (s *s3Storage) s3DownloadToBuffer(bucket string, key string) ([]byte, error
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
-	if err != nil {
-		return nil, err
-	}
-	if err == nil {
-		duration := time.Since(start)
-		logDebug(s.log, fmt.Sprintf("download [%s/%s] complete in %0.2f seconds", bucket, key, duration.Seconds()))
-	}
-	return buffer.Bytes(), nil
+
+	duration := time.Since(start)
+	logDebug(s.log, fmt.Sprintf("download [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
+	return buffer.Bytes(), err
 }
 
 func (s *s3Storage) s3Remove(bucket string, key string) error {
@@ -481,10 +493,9 @@ func (s *s3Storage) s3Remove(bucket string, key string) error {
 		Bucket: aws.String(bucket),
 		Delete: &types.Delete{Objects: objectIds},
 	})
-	if err == nil {
-		duration := time.Since(start)
-		logDebug(s.log, fmt.Sprintf("delete [%s/%s] complete in %0.2f seconds", bucket, key, duration.Seconds()))
-	}
+
+	duration := time.Since(start)
+	logDebug(s.log, fmt.Sprintf("delete [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
 	return err
 }
 
@@ -499,7 +510,7 @@ func (s *s3Storage) s3Exists(bucket string, key string) bool {
 	})
 
 	duration := time.Since(start)
-	logDebug(s.log, fmt.Sprintf("head [%s/%s] complete in %0.2f seconds", bucket, key, duration.Seconds()))
+	logDebug(s.log, fmt.Sprintf("head [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
 	return err == nil
 }
 
@@ -523,7 +534,7 @@ func (s *s3Storage) s3List(bucket string, key string) ([]string, error) {
 	}
 
 	duration := time.Since(start)
-	logDebug(s.log, fmt.Sprintf("list [%s/%s] complete in %0.2f seconds", bucket, key, duration.Seconds()))
+	logDebug(s.log, fmt.Sprintf("list [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(nil)))
 	return result, nil
 }
 
@@ -531,6 +542,13 @@ func (s *s3Storage) s3List(bucket string, key string) ([]string, error) {
 // s3://bucket-name/namespace/object-identifier/asset-name
 func (s *s3Storage) assetKey(namespace string, identifier string, assetName string) string {
 	return fmt.Sprintf("%s/%s/%s", namespace, identifier, assetName)
+}
+
+func (s *s3Storage) statusText(err error) string {
+	if err == nil {
+		return "ok"
+	}
+	return "ERR"
 }
 
 //
