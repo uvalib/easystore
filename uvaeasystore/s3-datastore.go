@@ -18,7 +18,7 @@ import (
 
 // DatastoreS3Config -- this is our S3 configuration implementation
 type DatastoreS3Config struct {
-	Bucket          string      // storage bucket name
+	Bucket          string      // storage Bucket name
 	SignerAccessKey string      // the signer access key
 	SignerSecretKey string      // the signer secret key
 	DbHost          string      // host endpoint
@@ -93,12 +93,12 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	return &s3Storage{
+	return &S3Storage{
 		serialize:       newEasyStoreSerializer(),
-		bucket:          c.Bucket,
+		Bucket:          c.Bucket,
 		signerAccessKey: c.SignerAccessKey,
 		signerSecretKey: c.SignerSecretKey,
-		s3Client:        client,
+		S3Client:        client,
 		s3SignClient:    signer,
 		log:             c.Log,
 		DB:              db,
