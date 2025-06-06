@@ -71,7 +71,7 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	logDebug(config.Logger(), fmt.Sprintf("using [s3://%s] for dbStorage", c.Bucket))
+	logDebug(config.Logger(), fmt.Sprintf("using [s3://%s] for storage", c.Bucket))
 
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {

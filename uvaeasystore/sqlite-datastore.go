@@ -59,7 +59,7 @@ func newSqliteStore(config EasyStoreImplConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for dbStorage", c.DataSource))
+	logDebug(config.Logger(), fmt.Sprintf("using [sqlite:%s] for storage", c.DataSource))
 
 	db, err := sql.Open("sqlite3", c.DataSource)
 	if err != nil {

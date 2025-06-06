@@ -65,7 +65,7 @@ func newPostgresStore(config EasyStoreImplConfig) (DataStore, error) {
 		return nil, err
 	}
 
-	logDebug(config.Logger(), fmt.Sprintf("using [postgres:%s/%s] for dbStorage", c.DbHost, c.DbName))
+	logDebug(config.Logger(), fmt.Sprintf("using [postgres:%s/%s] for storage", c.DbHost, c.DbName))
 
 	// connect to database (postgres)
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
