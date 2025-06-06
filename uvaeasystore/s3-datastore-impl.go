@@ -579,7 +579,7 @@ func (s *s3Storage) signedUrl(bucket string, key string) (string, error) {
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
-		}, s3.WithPresignExpires(time.Hour*24))
+		}, s3.WithPresignExpires(time.Hour*1)) // FIXME
 
 	if err != nil {
 		return "", err
