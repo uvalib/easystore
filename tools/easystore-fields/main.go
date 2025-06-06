@@ -24,8 +24,8 @@ func main() {
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&id, "identifier", "", "Object to change, ns/oid")
 	flag.StringVar(&oper, "operation", "add", "Tag operation, add|del")
-	flag.StringVar(&name, "name", "", "Tag name")
-	flag.StringVar(&value, "value", "", "Tag value (add only)")
+	flag.StringVar(&name, "name", "", "Field name")
+	flag.StringVar(&value, "value", "", "Field value (add only)")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
 
@@ -118,10 +118,10 @@ func main() {
 	if err == nil {
 		fields := eso.Fields()
 		if oper == "add" {
-			log.Printf("INFO: adding tag '%s'='%s'", name, value)
+			log.Printf("INFO: adding field '%s'='%s'", name, value)
 			fields[name] = value
 		} else {
-			log.Printf("INFO: removing tag '%s'", name)
+			log.Printf("INFO: removing field '%s'", name)
 			delete(fields, name)
 		}
 

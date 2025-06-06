@@ -1,4 +1,4 @@
-module github.com/uvalib/easystore-tags
+module github.com/uvalib/easystore-fields
 
 go 1.23.0
 
