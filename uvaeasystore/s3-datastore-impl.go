@@ -15,13 +15,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"golang.org/x/exp/maps"
 	"log"
+	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 var s3ObjectFileName = "object.json"
 var s3FieldsFileName = "fields.json"
 var s3MetadataFileName = "metadata.json"
+var s3BlobFileNameSuffix = "-es.json"
 
 // this is our S3 implementation
 type s3Storage struct {
@@ -30,6 +33,7 @@ type s3Storage struct {
 	signerSecretKey string              // signing secret
 	serialize       EasyStoreSerializer // standard serializer
 	s3Client        *s3.Client          // the s3 client
+	s3SignClient    *s3.PresignClient   // the signing client (creates signed access urls)
 	log             *log.Logger         // logger
 	*sql.DB                             // database connection
 }
@@ -72,7 +76,7 @@ func (s *s3Storage) UpdateObject(key DataStoreKey) error {
 // AddBlob -- add a new blob object
 func (s *s3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	// check asset does not exist
-	if s.checkExists(key.namespace, key.objectId, fmt.Sprintf("%s.json", blob.Name())) == true {
+	if s.checkExists(key.namespace, key.objectId, fmt.Sprintf("%s%s", blob.Name(), s3BlobFileNameSuffix)) == true {
 		return ErrAlreadyExists
 	}
 	return s.addBlob(key.namespace, key.objectId, blob)
@@ -320,7 +324,8 @@ func (s *s3Storage) removeAsset(namespace string, identifier string, assetName s
 func (s *s3Storage) addBlob(namespace string, identifier string, blob EasyStoreBlob) error {
 
 	// we add the serialized blob and create the original file
-	key := s.assetKey(namespace, identifier, fmt.Sprintf("%s.json", blob.Name()))
+	blobKey := s.assetKey(namespace, identifier, fmt.Sprintf("%s%s", blob.Name(), s3BlobFileNameSuffix))
+	fileKey := s.assetKey(namespace, identifier, blob.Name())
 
 	// for setting the timestamps
 	impl, ok := blob.(*easyStoreBlobImpl)
@@ -329,9 +334,20 @@ func (s *s3Storage) addBlob(namespace string, identifier string, blob EasyStoreB
 	}
 	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
-	b := s.serialize.BlobSerialize(impl).([]byte)
+	// we want to store as the original file rather than a serialized byte stream...
+	fBytes := impl.Payload_
 	// upload to S3
-	return s.s3UploadFromBuffer(s.bucket, key, b)
+	err := s.s3UploadFromBuffer(s.bucket, fileKey, fBytes)
+	if err != nil {
+		return err
+	}
+
+	// dont want to serialize the payload
+	impl.Payload_ = nil
+	bBytes := s.serialize.BlobSerialize(impl).([]byte)
+
+	// upload to S3
+	return s.s3UploadFromBuffer(s.bucket, blobKey, bBytes)
 }
 
 func (s *s3Storage) addFields(namespace string, identifier string, fields EasyStoreObjectFields) error {
@@ -381,6 +397,18 @@ func (s *s3Storage) getBlob(key string) (*EasyStoreBlob, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// if the payload is empty, we check for the original file
+	pl, err := blob.Payload()
+	if pl == nil || len(pl) == 0 {
+		// for setting the timestamps
+		impl, ok := blob.(*easyStoreBlobImpl)
+		if ok == false {
+			return nil, fmt.Errorf("%q: %w", "cast failed, not an easyStoreBlobImpl", ErrBadParameter)
+		}
+		impl.Url_, err = s.signedUrl(s.bucket, strings.TrimSuffix(key, s3BlobFileNameSuffix))
+	}
+
 	return &blob, nil
 }
 
@@ -430,10 +458,10 @@ func (s *s3Storage) getObject(namespace string, identifier string) (EasyStoreObj
 }
 
 func (s *s3Storage) isBlobName(name string) bool {
-	if name == s3FieldsFileName || name == s3MetadataFileName || name == s3ObjectFileName {
-		return false
+	if strings.HasSuffix(name, s3BlobFileNameSuffix) {
+		return true
 	}
-	return true
+	return false
 }
 
 //
@@ -542,6 +570,25 @@ func (s *s3Storage) s3List(bucket string, key string) ([]string, error) {
 // s3://bucket-name/namespace/object-identifier/asset-name
 func (s *s3Storage) assetKey(namespace string, identifier string, assetName string) string {
 	return fmt.Sprintf("%s/%s/%s", namespace, identifier, assetName)
+}
+
+// create a signed access URL for this blob
+func (s *s3Storage) signedUrl(bucket string, key string) (string, error) {
+
+	ps, err := s.s3SignClient.PresignGetObject(context.Background(),
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
+		}, s3.WithPresignExpires(time.Hour*24))
+
+	if err != nil {
+		return "", err
+	}
+	decode, err := url.QueryUnescape(ps.URL)
+	if err != nil {
+		return "", err
+	}
+	return decode, nil
 }
 
 func (s *s3Storage) statusText(err error) string {

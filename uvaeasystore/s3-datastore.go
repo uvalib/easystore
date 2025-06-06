@@ -79,6 +79,7 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 	}
 
 	client := s3.NewFromConfig(cfg)
+	signer := s3.NewPresignClient(client)
 
 	// connect to database (postgres)
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
@@ -98,6 +99,7 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 		signerAccessKey: c.SignerAccessKey,
 		signerSecretKey: c.SignerSecretKey,
 		s3Client:        client,
+		s3SignClient:    signer,
 		log:             c.Log,
 		DB:              db,
 	}, nil
