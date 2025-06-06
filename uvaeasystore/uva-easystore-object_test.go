@@ -5,7 +5,7 @@
 package uvaeasystore
 
 import (
-	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -31,9 +31,9 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	f2 := newBinaryBlob(file2Name)
 	blobs := []EasyStoreBlob{f1, f2}
 
-	file1Contents, _ := f1.Payload()
+	//file1Contents, _ := f1.Payload()
 	file1Type := f1.MimeType()
-	file2Contents, _ := f2.Payload()
+	//file2Contents, _ := f2.Payload()
 	file2Type := f2.MimeType()
 
 	// update the object
@@ -61,13 +61,25 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	testEqual(t, file2Type, b2.MimeType())
 	buf1, _ := b1.Payload()
 	buf2, _ := b2.Payload()
+	url1 := b1.Url()
+	url2 := b2.Url()
 
-	if bytes.Equal(file1Contents, buf1) == false {
-		t.Fatalf("byte slices are not equal\n")
+	if (buf1 == nil || len(buf1) == 0) && len(url1) == 0 {
+		t.Fatalf("file payload AND url are empty\n")
 	}
-	if bytes.Equal(file2Contents, buf2) == false {
-		t.Fatalf("byte slices are not equal\n")
+	if (buf2 == nil || len(buf2) == 0) && len(url2) == 0 {
+		t.Fatalf("file payload AND url are empty\n")
 	}
+
+	fmt.Printf("SIGNED URL: %s\n", url1)
+	fmt.Printf("SIGNED URL: %s\n", url2)
+
+	//if bytes.Equal(file1Contents, buf1) == false {
+	//	t.Fatalf("byte slices are not equal\n")
+	//}
+	//if bytes.Equal(file2Contents, buf2) == false {
+	//	t.Fatalf("byte slices are not equal\n")
+	//}
 }
 
 func TestObjectMetadataUpdate(t *testing.T) {

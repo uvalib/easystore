@@ -6,6 +6,7 @@ package uvaeasystore
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -90,6 +91,9 @@ func TestFilesCreate(t *testing.T) {
 	}
 	testEqual(t, "file1.bin", o.Files()[0].Name())
 	testEqual(t, "file2.bin", o.Files()[1].Name())
+
+	fmt.Printf("SIGNED URL: %s\n", o.Files()[0].Url())
+	fmt.Printf("SIGNED URL: %s\n", o.Files()[1].Url())
 }
 
 func TestDuplicateFilesCreate(t *testing.T) {
