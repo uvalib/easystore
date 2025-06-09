@@ -28,14 +28,15 @@ var S3BlobFileNameSuffix = "-es.json"
 
 // this is our S3 implementation
 type S3Storage struct {
-	Bucket          string              // Bucket name
-	signerAccessKey string              // signing key
-	signerSecretKey string              // signing secret
-	serialize       EasyStoreSerializer // standard serializer
-	S3Client        *s3.Client          // the s3 client
-	s3SignClient    *s3.PresignClient   // the signing client (creates signed access urls)
-	log             *log.Logger         // logger
-	*sql.DB                             // database connection
+	Bucket string // Bucket name
+	//signerAccessKey     string              // signing key
+	//signerSecretKey     string              // signing secret
+	serialize           EasyStoreSerializer // standard serializer
+	S3Client            *s3.Client          // the s3 client
+	s3SignClient        *s3.PresignClient   // the signing client (creates signed access urls)
+	s3SignExpireMinutes int                 // signature expire time in minutes
+	log                 *log.Logger         // logger
+	*sql.DB                                 // database connection
 }
 
 // Check -- check our database health
@@ -579,7 +580,7 @@ func (s *S3Storage) signedUrl(bucket string, key string) (string, error) {
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
-		}, s3.WithPresignExpires(time.Hour*1)) // FIXME
+		}, s3.WithPresignExpires(time.Minute*time.Duration(s.s3SignExpireMinutes)))
 
 	if err != nil {
 		return "", err

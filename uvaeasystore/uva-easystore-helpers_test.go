@@ -25,14 +25,15 @@ var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 // can be "sqlite", "postgres", "s3" or "proxy"
 // var datastore = "sqlite"
 // var datastore = "postgres"
-// var datastore = "s3"
-var datastore = "proxy"
+var datastore = "s3"
+
+//var datastore = "proxy"
 
 // do we want event telemetry
 var enableBus = false
 
 // enable datastore debugging
-var debug = true
+var debug = false
 
 func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
@@ -81,18 +82,19 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	case "s3":
 		implConfig = DatastoreS3Config{
-			Bucket:          os.Getenv("BUCKET"),
-			SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
-			SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
-			DbHost:          os.Getenv("DBHOST"),
-			DbPort:          asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:          os.Getenv("DBNAME"),
-			DbUser:          os.Getenv("DBUSER"),
-			DbPassword:      os.Getenv("DBPASS"),
-			DbTimeout:       asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:         busName,
-			SourceName:      sourceName,
-			Log:             logger,
+			Bucket: os.Getenv("BUCKET"),
+			//SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
+			//SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
+			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGN_EXPIRE_MINUTES"), 60),
+			DbHost:              os.Getenv("DBHOST"),
+			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:              os.Getenv("DBNAME"),
+			DbUser:              os.Getenv("DBUSER"),
+			DbPassword:          os.Getenv("DBPASS"),
+			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:             busName,
+			SourceName:          sourceName,
+			Log:                 logger,
 		}
 		esro, err = NewEasyStoreReadonly(implConfig)
 
@@ -159,18 +161,19 @@ func testSetup(t *testing.T) EasyStore {
 
 	case "s3":
 		implConfig = DatastoreS3Config{
-			Bucket:          os.Getenv("BUCKET"),
-			SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
-			SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
-			DbHost:          os.Getenv("DBHOST"),
-			DbPort:          asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:          os.Getenv("DBNAME"),
-			DbUser:          os.Getenv("DBUSER"),
-			DbPassword:      os.Getenv("DBPASS"),
-			DbTimeout:       asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:         busName,
-			SourceName:      sourceName,
-			Log:             logger,
+			Bucket: os.Getenv("BUCKET"),
+			//SignerAccessKey: os.Getenv("SIGNER_ACCESS_KEY"),
+			//SignerSecretKey: os.Getenv("SIGNER_SECRET_KEY"),
+			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGN_EXPIRE_MINUTES"), 60),
+			DbHost:              os.Getenv("DBHOST"),
+			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:              os.Getenv("DBNAME"),
+			DbUser:              os.Getenv("DBUSER"),
+			DbPassword:          os.Getenv("DBPASS"),
+			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			BusName:             busName,
+			SourceName:          sourceName,
+			Log:                 logger,
 		}
 		es, err = NewEasyStore(implConfig)
 

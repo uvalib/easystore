@@ -11,25 +11,25 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"log"
-
 	// postgres
 	_ "github.com/lib/pq"
 )
 
 // DatastoreS3Config -- this is our S3 configuration implementation
 type DatastoreS3Config struct {
-	Bucket          string      // storage Bucket name
-	SignerAccessKey string      // the signer access key
-	SignerSecretKey string      // the signer secret key
-	DbHost          string      // host endpoint
-	DbPort          int         // port
-	DbName          string      // database name
-	DbUser          string      // database user
-	DbPassword      string      // database password
-	DbTimeout       int         // timeout
-	BusName         string      // the message bus name
-	SourceName      string      // the event source name
-	Log             *log.Logger // the logger
+	Bucket string // storage Bucket name
+	//SignerAccessKey     string      // the signer access key
+	//SignerSecretKey     string      // the signer secret key
+	SignerExpireMinutes int         // signed link expire time in minutes
+	DbHost              string      // host endpoint
+	DbPort              int         // port
+	DbName              string      // database name
+	DbUser              string      // database user
+	DbPassword          string      // database password
+	DbTimeout           int         // timeout
+	BusName             string      // the message bus name
+	SourceName          string      // the event source name
+	Log                 *log.Logger // the logger
 }
 
 func (impl DatastoreS3Config) Logger() *log.Logger {
@@ -94,14 +94,15 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 	}
 
 	return &S3Storage{
-		serialize:       newEasyStoreSerializer(),
-		Bucket:          c.Bucket,
-		signerAccessKey: c.SignerAccessKey,
-		signerSecretKey: c.SignerSecretKey,
-		S3Client:        client,
-		s3SignClient:    signer,
-		log:             c.Log,
-		DB:              db,
+		serialize: newEasyStoreSerializer(),
+		Bucket:    c.Bucket,
+		//signerAccessKey:     c.SignerAccessKey,
+		//signerSecretKey:     c.SignerSecretKey,
+		S3Client:            client,
+		s3SignClient:        signer,
+		s3SignExpireMinutes: c.SignerExpireMinutes,
+		log:                 c.Log,
+		DB:                  db,
 	}, nil
 }
 
@@ -133,6 +134,10 @@ func validateS3Config(config DatastoreS3Config) error {
 
 	if config.DbTimeout == 0 {
 		return fmt.Errorf("%q: %w", "config.DbTimeout is 0", ErrBadParameter)
+	}
+
+	if config.SignerExpireMinutes == 0 {
+		return fmt.Errorf("%q: %w", "config.SignerExpireMinutes is 0", ErrBadParameter)
 	}
 
 	if len(config.BusName) != 0 && len(config.SourceName) == 0 {
