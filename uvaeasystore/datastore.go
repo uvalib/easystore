@@ -9,8 +9,8 @@ import (
 )
 
 type DataStoreKey struct {
-	namespace string
-	objectId  string
+	Namespace string
+	ObjectId  string
 }
 
 // our dbStorage interface

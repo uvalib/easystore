@@ -65,7 +65,7 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy3(stmt, impl.Vtag_, key.namespace, key.objectId)
+	err = execPreparedBy3(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
 	if err != nil {
 		return err
 	}
@@ -76,10 +76,10 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 // AddBlob -- add a new blob object
 func (s *S3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	// check asset does not exist
-	if s.checkExists(key.namespace, key.objectId, fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)) == true {
+	if s.checkExists(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)) == true {
 		return ErrAlreadyExists
 	}
-	return s.addBlob(key.namespace, key.objectId, blob)
+	return s.addBlob(key.Namespace, key.ObjectId, blob)
 }
 
 // AddFields -- add a new fields object
@@ -95,22 +95,22 @@ func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 	}
 
 	for n, v := range fields {
-		_, err = stmt.Exec(key.namespace, key.objectId, n, v)
+		_, err = stmt.Exec(key.Namespace, key.ObjectId, n, v)
 		if err != nil {
 			return errorMapper(err)
 		}
 	}
 
-	return s.addFields(key.namespace, key.objectId, fields)
+	return s.addFields(key.Namespace, key.ObjectId, fields)
 }
 
 // AddMetadata -- add a new metadata object
 func (s *S3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) error {
 	// check asset does not exist
-	if s.checkExists(key.namespace, key.objectId, S3MetadataFileName) == true {
+	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == true {
 		return ErrAlreadyExists
 	}
-	return s.addMetadata(key.namespace, key.objectId, metadata)
+	return s.addMetadata(key.Namespace, key.ObjectId, metadata)
 }
 
 // AddObject -- add a new object
@@ -135,7 +135,7 @@ func (s *S3Storage) AddObject(obj EasyStoreObject) error {
 
 // GetBlobsByKey -- get all blob data associated with the specified object
 func (s *S3Storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
-	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.namespace, key.objectId))
+	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.Namespace, key.ObjectId))
 	if err != nil {
 		return nil, err
 	}
@@ -161,28 +161,28 @@ func (s *S3Storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 // GetFieldsByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
 	// check asset exists
-	if s.checkExists(key.namespace, key.objectId, S3FieldsFileName) == false {
+	if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
 		return nil, ErrNotFound
 	}
-	return s.getFields(key.namespace, key.objectId)
+	return s.getFields(key.Namespace, key.ObjectId)
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
 	// check asset exists
-	if s.checkExists(key.namespace, key.objectId, S3MetadataFileName) == false {
+	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == false {
 		return nil, ErrNotFound
 	}
-	return s.getMetadata(key.namespace, key.objectId)
+	return s.getMetadata(key.Namespace, key.ObjectId)
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 	// check asset exists
-	if s.checkExists(key.namespace, key.objectId, S3ObjectFileName) == false {
+	if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
 		return nil, ErrNotFound
 	}
-	return s.getObject(key.namespace, key.objectId)
+	return s.getObject(key.Namespace, key.ObjectId)
 }
 
 // GetObjectsByKey -- get all field data associated with the specified object
@@ -190,8 +190,8 @@ func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 
 	results := make([]EasyStoreObject, 0, len(keys))
 	for _, key := range keys {
-		if s.checkExists(key.namespace, key.objectId, S3ObjectFileName) == true {
-			obj, err := s.getObject(key.namespace, key.objectId)
+		if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == true {
+			obj, err := s.getObject(key.Namespace, key.ObjectId)
 			if err != nil {
 				return nil, err
 			}
@@ -206,7 +206,7 @@ func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
 func (s *S3Storage) DeleteBlobsByKey(key DataStoreKey) error {
-	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.namespace, key.objectId))
+	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.Namespace, key.ObjectId))
 	if err != nil {
 		return err
 	}
@@ -229,17 +229,17 @@ func (s *S3Storage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy2(stmt, key.namespace, key.objectId)
+	err = execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 	if err != nil {
 		return err
 	}
 
-	return s.removeAsset(key.namespace, key.objectId, S3FieldsFileName)
+	return s.removeAsset(key.Namespace, key.ObjectId, S3FieldsFileName)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
 func (s *S3Storage) DeleteMetadataByKey(key DataStoreKey) error {
-	return s.removeAsset(key.namespace, key.objectId, S3MetadataFileName)
+	return s.removeAsset(key.Namespace, key.ObjectId, S3MetadataFileName)
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
@@ -249,12 +249,12 @@ func (s *S3Storage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy2(stmt, key.namespace, key.objectId)
+	err = execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 	if err != nil {
 		return err
 	}
 
-	return s.removeAsset(key.namespace, key.objectId, S3ObjectFileName)
+	return s.removeAsset(key.Namespace, key.ObjectId, S3ObjectFileName)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values

@@ -35,7 +35,7 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 	}
 
 	newVTag := newVtag()
-	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.namespace, key.objectId)
+	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
 }
 
 // AddBlob -- add a new blob object
@@ -52,7 +52,7 @@ func (s *dbStorage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 		return err
 	}
 
-	_, err = stmt.Exec(key.namespace, key.objectId, blob.Name(), blob.MimeType(), buf)
+	_, err = stmt.Exec(key.Namespace, key.ObjectId, blob.Name(), blob.MimeType(), buf)
 	return errorMapper(err)
 }
 
@@ -65,7 +65,7 @@ func (s *dbStorage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 	}
 
 	for n, v := range fields {
-		_, err = stmt.Exec(key.namespace, key.objectId, n, v)
+		_, err = stmt.Exec(key.Namespace, key.ObjectId, n, v)
 		if err != nil {
 			return errorMapper(err)
 		}
@@ -87,7 +87,7 @@ func (s *dbStorage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 		return err
 	}
 
-	_, err = stmt.Exec(key.namespace, key.objectId, blobMetadataName, obj.MimeType(), buf)
+	_, err = stmt.Exec(key.Namespace, key.ObjectId, blobMetadataName, obj.MimeType(), buf)
 	return errorMapper(err)
 }
 
@@ -105,7 +105,7 @@ func (s *dbStorage) AddObject(obj EasyStoreObject) error {
 // GetBlobsByKey -- get all blob data associated with the specified object
 func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.namespace, key.objectId, blobMetadataName)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.Namespace, key.ObjectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 // GetFieldsByKey -- get all field data associated with the specified object
 func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
 
-	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.namespace, key.objectId)
+	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, er
 // GetMetadataByKey -- get all field data associated with the specified object
 func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
 
-	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.namespace, key.objectId, blobMetadataName)
+	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.Namespace, key.ObjectId, blobMetadataName)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 
-	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.namespace, key.objectId)
+	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 		}
 		query += fmt.Sprintf("(namespace = $%d AND oid = $%d)", variableNum, variableNum+1)
 		variableNum += 2
-		args = append(args, k.namespace, k.objectId)
+		args = append(args, k.Namespace, k.ObjectId)
 	}
 
 	query += " ORDER BY updated_at"
@@ -198,7 +198,7 @@ func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, key.namespace, key.objectId, blobMetadataName)
+	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
 // DeleteFieldsByKey -- delete all field data associated with the specified object
@@ -208,7 +208,7 @@ func (s *dbStorage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.namespace, key.objectId)
+	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
@@ -218,7 +218,7 @@ func (s *dbStorage) DeleteMetadataByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, key.namespace, key.objectId, blobMetadataName)
+	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
@@ -228,7 +228,7 @@ func (s *dbStorage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.namespace, key.objectId)
+	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
