@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -19,11 +19,13 @@ func main() {
 	var namespace string
 	var debug bool
 	var delBefore bool
+	var dryRun bool
 	var limit int
 	var logger *log.Logger
 
 	flag.StringVar(&namespace, "namespace", "", "namespace to rebuild")
 	flag.BoolVar(&delBefore, "delete", false, "Delete before adding")
+	flag.BoolVar(&dryRun, "dryrun", false, "Log but dont rebuild")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.IntVar(&limit, "limit", 0, "Rebuild count limit, 0 is no limit")
 	flag.Parse()
@@ -32,8 +34,8 @@ func main() {
 		logger = log.Default()
 	}
 
-	// create S3 store configuration
-	cfg := uvaeasystore.DatastoreS3Config{
+	// create the S3 store configuration
+	s3Config := uvaeasystore.DatastoreS3Config{
 		Bucket:     os.Getenv("BUCKET"),
 		DbHost:     os.Getenv("DBHOST"),
 		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
@@ -44,28 +46,111 @@ func main() {
 		Log:        logger,
 	}
 
-	// the S3 datastore
-	ds, err := uvaeasystore.NewDatastore(cfg)
+	// create the postgres store configuration
+	pgConfig := uvaeasystore.DatastorePostgresConfig{
+		DbHost:     os.Getenv("DBHOST"),
+		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+		DbName:     os.Getenv("DBNAME"),
+		DbUser:     os.Getenv("DBUSER"),
+		DbPassword: os.Getenv("DBPASS"),
+		DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+		Log:        logger,
+	}
+
+	// create the S3 datastore
+	s3ds, err := uvaeasystore.NewDatastore(s3Config)
 	if err != nil {
 		log.Fatalf("ERROR: creating S3 datastore (%s)", err.Error())
 	}
 
 	// important, cleanup properly
-	defer ds.Close()
+	defer s3ds.Close()
 
-	// we need access to the actual implementation
-	s3store, ok := ds.(*uvaeasystore.S3Storage)
+	// create the S3 datastore
+	pgds, err := uvaeasystore.NewDatastore(pgConfig)
+	if err != nil {
+		log.Fatalf("ERROR: creating DB datastore (%s)", err.Error())
+	}
+
+	// important, cleanup properly
+	defer pgds.Close()
+
+	// we need access to the actual S3 implementation
+	s3store, ok := s3ds.(*uvaeasystore.S3Storage)
 	if ok == false {
 		log.Fatalf("ERROR: cast failed, not an s3Storage")
 	}
 
+	// get the ID's that exist in the S3 datastore
 	ids, err := getIds(namespace, s3store)
 	if err != nil {
 		log.Fatalf("ERROR: enumerating objects in S3 datastore (%s)", err.Error())
 	}
 
+	// for each of the objects we located
+	okCount := 0
+	errorCount := 0
 	for _, id := range ids {
-		fmt.Printf("OBJ: [%s]\n", id)
+		log.Printf("INFO: rebuilding ns/oid [%s/%s]\n", namespace, id)
+		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
+		if delBefore == true {
+			log.Printf("INFO: deleting object and fields\n")
+			if dryRun == false {
+				_ = pgds.DeleteFieldsByKey(key)
+				_ = pgds.DeleteObjectByKey(key)
+			}
+		}
+
+		obj, err := s3ds.GetObjectByKey(key)
+		if err != nil {
+			log.Printf("ERROR: getting object from S3 datastore, continuing\n")
+			errorCount++
+			continue
+		}
+
+		fields, err := s3ds.GetFieldsByKey(key)
+		if err != nil {
+			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+				log.Printf("INFO: no fields for this object\n")
+			} else {
+				log.Printf("ERROR: getting fields from S3 datastore, continuing\n")
+				errorCount++
+				continue
+			}
+		} else {
+			log.Printf("INFO: %d fields for this object\n", len(*fields))
+		}
+
+		if dryRun == false {
+			err = pgds.AddObject(obj)
+			if err != nil {
+				log.Printf("ERROR: adding object to DB datastore, continuing\n")
+				errorCount++
+				continue
+			}
+
+			// do we have fields to regenerate?
+			if len(*fields) != 0 {
+				err = pgds.AddFields(key, *fields)
+				if err != nil {
+					log.Printf("ERROR: adding fields to DB datastore, continuing\n")
+					errorCount++
+					continue
+				}
+			}
+		}
+
+		okCount++
+		if limit != 0 && ((okCount + errorCount) >= limit) {
+			log.Printf("INFO: terminating after %d item(s)", limit)
+			break
+		}
+	}
+
+	if dryRun == true {
+		log.Printf("INFO: terminate normally, would rebuild %d object(s), encountered %d error(s)", okCount, errorCount)
+	} else {
+		log.Printf("INFO: terminate normally, rebuilt %d object(s), encountered %d error(s)", okCount, errorCount)
 	}
 }
 
@@ -74,7 +159,6 @@ func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error)
 	res, err := s3Store.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(s3Store.Bucket),
 		Prefix: aws.String(namespace),
-		//Key:       aws.String("/"),
 	})
 	if err != nil {
 		return nil, err
