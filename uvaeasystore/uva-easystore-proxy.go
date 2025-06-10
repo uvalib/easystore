@@ -101,7 +101,7 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 		return nil, ErrBadParameter
 	}
 
-	//logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// create the request payload
 	reqBytes, err := json.Marshal(obj)
@@ -162,6 +162,8 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 	if len(attribs) != 0 {
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
+
+	logInfo(impl.config.Logger(), fmt.Sprintf("updating ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// create the request payload
 	reqBytes, err := json.Marshal(obj)
@@ -231,6 +233,8 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 		vtag = fmt.Sprintf("&%s", vtag)
 	}
 
+	logInfo(impl.config.Logger(), fmt.Sprintf("deleting ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs, vtag)
 	respBytes, err := httpDelete(impl.HTTPClient, url)
@@ -280,6 +284,8 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
 
+	logInfo(impl.config.Logger(), fmt.Sprintf("getting ns/oid [%s/%s]", namespace, id))
+
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), namespace, id, attribs)
 	respBytes, err := httpGet(impl.HTTPClient, url)
@@ -327,6 +333,8 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
 
+	logInfo(impl.config.Logger(), fmt.Sprintf("getting ns/oid's [%s/%s]", namespace, strings.Join(ids, ",")))
+
 	// create the request payload
 	var req getObjectsRequest
 	req.Ids = ids
@@ -372,7 +380,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
 
-	//logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))
+	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields ns/fields [%s/%v]", namespace, fields))
 
 	// create the request payload
 	reqBytes, err := json.Marshal(fields)
