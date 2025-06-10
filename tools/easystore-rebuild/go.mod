@@ -3,6 +3,7 @@ module github.com/uvalib/easystore-rebuild
 go 1.24.4
 
 require github.com/uvalib/easystore/uvaeasystore v0.0.0
+replace github.com/uvalib/easystore/uvaeasystore => ../../uvaeasystore
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect
@@ -31,5 +32,3 @@ require (
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f // indirect
 	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476 // indirect
 )
-
-replace github.com/uvalib/easystore/uvaeasystore => ../../uvaeasystore

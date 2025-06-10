@@ -175,16 +175,6 @@ type EasyStoreSerializer interface {
 // factory/helper methods
 //
 
-// NewEasyStore - factory for our EasyStore interface
-func NewEasyStore(config EasyStoreImplConfig) (EasyStore, error) {
-	return newEasyStore(config)
-}
-
-// NewEasyStoreReadonly - factory for our EasyStoreReadonly implementation
-func NewEasyStoreReadonly(config EasyStoreImplConfig) (EasyStoreReadonly, error) {
-	return newEasyStoreReadonly(config)
-}
-
 // NewEasyStoreProxy - factory for our EasyStoreProxy implementation
 func NewEasyStoreProxy(config EasyStoreProxyConfig) (EasyStore, error) {
 	return newEasyStoreProxy(config)

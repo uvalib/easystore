@@ -2,6 +2,11 @@
 // Postgres implementation of the datastore interface
 //
 
+// only include this file for service builds
+
+//go:build service
+// +build service
+
 package uvaeasystore
 
 import (

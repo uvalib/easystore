@@ -30,7 +30,7 @@ func main() {
 		logger = log.Default()
 	}
 
-	var implConfig uvaeasystore.EasyStoreImplConfig
+	//var implConfig uvaeasystore.EasyStoreImplConfig
 	var proxyConfig uvaeasystore.EasyStoreProxyConfig
 
 	// the easystore (or the proxy)
@@ -38,37 +38,37 @@ func main() {
 	var err error
 
 	switch mode {
-	case "sqlite":
-		implConfig = uvaeasystore.DatastoreSqliteConfig{
-			DataSource: os.Getenv("SQLITEFILE"),
-			Log:        logger,
-		}
-		es, err = uvaeasystore.NewEasyStore(implConfig)
-
-	case "postgres":
-		implConfig = uvaeasystore.DatastorePostgresConfig{
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			Log:        logger,
-		}
-		es, err = uvaeasystore.NewEasyStore(implConfig)
-
-	case "s3":
-		implConfig = uvaeasystore.DatastoreS3Config{
-			Bucket:     os.Getenv("BUCKET"),
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			Log:        logger,
-		}
-		es, err = uvaeasystore.NewEasyStore(implConfig)
+	//	case "sqlite":
+	//		implConfig = uvaeasystore.DatastoreSqliteConfig{
+	//			DataSource: os.Getenv("SQLITEFILE"),
+	//			Log:        logger,
+	//		}
+	//		es, err = uvaeasystore.NewEasyStore(implConfig)
+	//
+	//	case "postgres":
+	//		implConfig = uvaeasystore.DatastorePostgresConfig{
+	//			DbHost:     os.Getenv("DBHOST"),
+	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//			DbName:     os.Getenv("DBNAME"),
+	//			DbUser:     os.Getenv("DBUSER"),
+	//			DbPassword: os.Getenv("DBPASS"),
+	//			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//			Log:        logger,
+	//		}
+	//		es, err = uvaeasystore.NewEasyStore(implConfig)
+	//
+	//	case "s3":
+	//		implConfig = uvaeasystore.DatastoreS3Config{
+	//			Bucket:     os.Getenv("BUCKET"),
+	//			DbHost:     os.Getenv("DBHOST"),
+	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//			DbName:     os.Getenv("DBNAME"),
+	//			DbUser:     os.Getenv("DBUSER"),
+	//			DbPassword: os.Getenv("DBPASS"),
+	//			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//			Log:        logger,
+	//		}
+	//		es, err = uvaeasystore.NewEasyStore(implConfig)
 
 	case "proxy":
 		proxyConfig = uvaeasystore.ProxyConfigImpl{
@@ -97,7 +97,7 @@ func main() {
 		dirname := fmt.Sprintf("%s/export-%03d", inDir, ix)
 
 		// load the object
-		obj, err = makeObject(serializer, dirname)
+		obj, err = makeObject(serializer, dirname, namespace)
 		if err != nil {
 			//log.Printf("ERROR: %s", err.Error())
 			break
@@ -119,7 +119,7 @@ func main() {
 	}
 }
 
-func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvaeasystore.EasyStoreObject, error) {
+func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string, namespace string) (uvaeasystore.EasyStoreObject, error) {
 
 	log.Printf("INFO: importing from %s", indir)
 
@@ -210,6 +210,8 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string) (uvae
 		}
 	}
 
+	// update the namespace so we import into the correct one
+	
 	return obj, nil
 }
 

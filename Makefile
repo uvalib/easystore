@@ -9,7 +9,7 @@ PACKAGENAME = uvaeasystore
 build: test
 
 test:
-	cd $(PACKAGENAME); $(GOTEST) -v $(if $(TEST),-run $(TEST),)
+	cd $(PACKAGENAME); $(GOTEST) -tags service -v $(if $(TEST),-run $(TEST),)
 
 dep:
 	cd $(PACKAGENAME); $(GOGET) -u
