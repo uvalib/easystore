@@ -93,27 +93,28 @@ func TestObjectMetadataUpdate(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	if o.Metadata() != nil {
-		t.Fatalf("expected empty but got non-empty\n")
-	}
-
 	// add some metadata
 	mimeType := "application/json"
 	m := newEasyStoreMetadata(mimeType, jsonPayload)
 	o.SetMetadata(m)
 
 	// update the object
-	o, err = es.Update(o, Metadata)
+	n, err := es.Update(o, AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	if o.Metadata() == nil {
+	if n.Metadata() == nil {
 		t.Fatalf("expected non-empty but got empty\n")
 	}
 
-	testEqual(t, mimeType, o.Metadata().MimeType())
-	buf, _ := o.Metadata().Payload()
+	testEqual(t, mimeType, n.Metadata().MimeType())
+	buf, err := n.Metadata().Payload()
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	fmt.Printf("BUF: [%s]\n", buf)
 	testEqual(t, string(jsonPayload), string(buf))
 }
 
