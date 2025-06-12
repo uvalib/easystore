@@ -110,6 +110,8 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 		return nil, ErrSerialize
 	}
 
+	log.Printf("REQ: [%s]", string(reqBytes))
+
 	// issue the request
 	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), obj.Namespace())
 	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
@@ -171,6 +173,8 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
 		return nil, ErrSerialize
 	}
+
+	log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs)
