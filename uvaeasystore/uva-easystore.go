@@ -199,6 +199,11 @@ func NewEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlo
 	return newEasyStoreBlob(name, mimeType, payload)
 }
 
+// NewEasyStoreMetadata - factory for our easystore blob object
+func NewEasyStoreMetadata(mimeType string, payload []byte) EasyStoreMetadata {
+	return newEasyStoreMetadata(mimeType, payload)
+}
+
 // DefaultEasyStoreFields - factory for the default easystore fields object
 func DefaultEasyStoreFields() EasyStoreObjectFields {
 	f := EasyStoreObjectFields{}
