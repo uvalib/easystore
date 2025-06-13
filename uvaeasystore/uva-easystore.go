@@ -106,6 +106,7 @@ type EasyStoreObject interface {
 	Metadata() EasyStoreMetadata   // the opaque metadata
 	Files() []EasyStoreBlob        // the associated file(s)
 
+	SetNamespace(string)             // allows us to relocate into a different namespace
 	SetFields(EasyStoreObjectFields) // the fields
 	SetMetadata(EasyStoreMetadata)   // the opaque metadata
 	SetFiles([]EasyStoreBlob)        // the associated file(s)

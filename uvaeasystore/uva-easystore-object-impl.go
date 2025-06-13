@@ -75,6 +75,10 @@ func (impl *easyStoreObjectImpl) Files() []EasyStoreBlob {
 	return impl.Files_
 }
 
+func (impl *easyStoreObjectImpl) SetNamespace(namespace string) {
+	impl.Namespace_ = namespace
+}
+
 func (impl *easyStoreObjectImpl) SetFields(fields EasyStoreObjectFields) {
 	impl.Fields_ = fields
 }
