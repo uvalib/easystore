@@ -127,7 +127,7 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 				fmt.Printf("%s: %s %s failed with status %d\n", logLevel, req.Method, url, response.StatusCode)
 
 				body, _ := io.ReadAll(response.Body)
-				fmt.Printf("DEBUG: RESP [%s]\n", string(body))
+				//fmt.Printf("DEBUG: RESP: [%s]\n", string(body))
 
 				return body, fmt.Errorf("request returns HTTP %d", response.StatusCode)
 			}
@@ -136,7 +136,7 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			fmt.Printf("DEBUG: RESP [%s]\n", string(body))
+			//fmt.Printf("DEBUG: RESP: [%s]\n", string(body))
 			return body, nil
 		}
 	}

@@ -117,11 +117,13 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
 	}
+
+	//log.Printf("RESP: [%s]", string(respBytes))
 
 	// process the response payload
 	var resp easyStoreObjectImpl
@@ -181,7 +183,7 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
@@ -244,7 +246,7 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 	respBytes, err := httpDelete(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
@@ -262,7 +264,7 @@ func (impl easyStoreProxyReadonlyImpl) Check() error {
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return mapResponseToError(string(respBytes))
 		}
 		return err
@@ -295,7 +297,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
@@ -353,7 +355,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
@@ -398,7 +400,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
-			log.Printf("RESP: [%s]", string(respBytes))
+			//log.Printf("RESP: [%s]", string(respBytes))
 			return nil, mapResponseToError(string(respBytes))
 		}
 		return nil, err
