@@ -38,7 +38,7 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 
 	o := newEasyStoreObject(omap["ns"].(string), omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
-	obj.Vtag_ = omap["vtag"].(string)
+	obj.Vtag_ = newVtag() // vtags must be unique so mint a new one here
 	obj.Created_, obj.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
@@ -48,20 +48,30 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 }
 
 func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) interface{} {
-	nvTemplate := "{\"%s\":\"%s\"}"
+	nvTemplate := "{\"%s\":%s}"
 	arrTemplate := "[%s]"
 	fields := ""
 	for n, v := range f {
 		if len(fields) != 0 {
 			fields += ","
 		}
-		fields += fmt.Sprintf(nvTemplate, n, v)
+		b, _ := json.Marshal(v)
+		fields += fmt.Sprintf(nvTemplate, n, string(b))
 	}
 	str := fmt.Sprintf(arrTemplate, fields)
 	return []byte(str)
 }
 
 func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreObjectFields, error) {
+
+	// assume we are being passed a []byte
+	//s, ok := i.([]byte)
+	//if ok != true {
+	//	return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
+	//}
+
+	// unquote it cos the fields may have been quoted when serialized
+	//str, _ := strconv.Unquote(string(s))
 
 	// convert to an array of maps
 	omap, err := interfaceToArrayMap(i)
@@ -72,7 +82,7 @@ func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreO
 	f := DefaultEasyStoreFields()
 	for _, nv := range omap {
 		for n, v := range nv {
-			f[n] = v.(string)
+			f[n], _ = v.(string)
 		}
 	}
 
@@ -195,7 +205,7 @@ func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 
 	// deserialize to a map
 	var objmap []map[string]interface{}
-	if err := json.Unmarshal([]byte(s), &objmap); err != nil {
+	if err := json.Unmarshal(s, &objmap); err != nil {
 		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
 	}
 

@@ -211,6 +211,7 @@ func makeObject(serializer uvaeasystore.EasyStoreSerializer, indir string, names
 	}
 
 	// update the namespace so we import into the correct one
+	obj.SetNamespace(namespace)
 	
 	return obj, nil
 }
