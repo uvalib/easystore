@@ -36,14 +36,15 @@ func main() {
 
 	// create the S3 store configuration
 	s3Config := uvaeasystore.DatastoreS3Config{
-		Bucket:     os.Getenv("BUCKET"),
-		DbHost:     os.Getenv("DBHOST"),
-		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-		DbName:     os.Getenv("DBNAME"),
-		DbUser:     os.Getenv("DBUSER"),
-		DbPassword: os.Getenv("DBPASS"),
-		DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-		Log:        logger,
+		Bucket:              os.Getenv("BUCKET"),
+		SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
+		DbHost:              os.Getenv("DBHOST"),
+		DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
+		DbName:              os.Getenv("DBNAME"),
+		DbUser:              os.Getenv("DBUSER"),
+		DbPassword:          os.Getenv("DBPASS"),
+		DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+		Log:                 logger,
 	}
 
 	// create the postgres store configuration
@@ -91,16 +92,8 @@ func main() {
 	okCount := 0
 	errorCount := 0
 	for _, id := range ids {
-		log.Printf("INFO: rebuilding ns/oid [%s/%s]\n", namespace, id)
+		log.Printf("INFO: processing ns/oid [%s/%s]\n", namespace, id)
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
-		if delBefore == true {
-			log.Printf("INFO: deleting object and fields\n")
-			if dryRun == false {
-				_ = pgds.DeleteFieldsByKey(key)
-				_ = pgds.DeleteObjectByKey(key)
-			}
-		}
-
 		obj, err := s3ds.GetObjectByKey(key)
 		if err != nil {
 			log.Printf("ERROR: getting object from S3 datastore, continuing\n")
@@ -111,17 +104,24 @@ func main() {
 		fields, err := s3ds.GetFieldsByKey(key)
 		if err != nil {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-				log.Printf("INFO: no fields for this object\n")
+				log.Printf("INFO: no fields located for this object\n")
 			} else {
 				log.Printf("ERROR: getting fields from S3 datastore, continuing\n")
 				errorCount++
 				continue
 			}
 		} else {
-			log.Printf("INFO: %d fields for this object\n", len(*fields))
+			log.Printf("INFO: %d fields located for this object\n", len(*fields))
 		}
 
 		if dryRun == false {
+			if delBefore == true {
+				log.Printf("INFO: deleting object and fields before adding\n")
+				_ = pgds.DeleteFieldsByKey(key)
+				_ = pgds.DeleteObjectByKey(key)
+			}
+
+			log.Printf("INFO: adding object to DB datastore...\n")
 			err = pgds.AddObject(obj)
 			if err != nil {
 				log.Printf("ERROR: adding object to DB datastore, continuing\n")
@@ -130,12 +130,21 @@ func main() {
 			}
 
 			// do we have fields to regenerate?
-			if len(*fields) != 0 {
+			if fields != nil && len(*fields) != 0 {
+				log.Printf("INFO: adding fields to DB datastore...\n")
 				err = pgds.AddFields(key, *fields)
 				if err != nil {
 					log.Printf("ERROR: adding fields to DB datastore, continuing\n")
 					errorCount++
 					continue
+				}
+			}
+		} else {
+			if delBefore == true {
+				log.Printf("INFO: would delete object and fields before adding\n")
+				log.Printf("INFO: would add object to DB datastore...\n")
+				if fields != nil && len(*fields) != 0 {
+					log.Printf("INFO: would add fields to DB datastore...\n")
 				}
 			}
 		}
