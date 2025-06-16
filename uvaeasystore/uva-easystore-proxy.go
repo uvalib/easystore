@@ -110,7 +110,7 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 		return nil, ErrSerialize
 	}
 
-	log.Printf("REQ: [%s]", string(reqBytes))
+	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), obj.Namespace())
@@ -176,7 +176,7 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 		return nil, ErrSerialize
 	}
 
-	log.Printf("REQ: [%s]", string(reqBytes))
+	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs)
