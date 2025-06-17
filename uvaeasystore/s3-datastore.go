@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"fmt"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"log"
 	// postgres
@@ -22,9 +23,9 @@ import (
 
 // DatastoreS3Config -- this is our S3 configuration implementation
 type DatastoreS3Config struct {
-	Bucket string // storage Bucket name
-	//SignerAccessKey     string      // the signer access key
-	//SignerSecretKey     string      // the signer secret key
+	Bucket              string      // storage Bucket name
+	SignerAccessKey     string      // the signer access key
+	SignerSecretKey     string      // the signer secret key
 	SignerExpireMinutes int         // signed link expire time in minutes
 	DbHost              string      // host endpoint
 	DbPort              int         // port
@@ -83,8 +84,24 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 		return nil, err
 	}
 
+	// our role based S3 client
 	client := s3.NewFromConfig(cfg)
-	signer := s3.NewPresignClient(client)
+
+	// our signer S3 client
+	s3Cfg, err := awsconfig.LoadDefaultConfig(
+		context.TODO(),
+		awsconfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				c.SignerAccessKey,
+				c.SignerSecretKey,
+				""),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	s3Client := s3.NewFromConfig(s3Cfg)
+	signer := s3.NewPresignClient(s3Client)
 
 	// connect to database (postgres)
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d connect_timeout=%d",
@@ -99,10 +116,8 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 	}
 
 	return &S3Storage{
-		serialize: newEasyStoreSerializer(),
-		Bucket:    c.Bucket,
-		//signerAccessKey:     c.SignerAccessKey,
-		//signerSecretKey:     c.SignerSecretKey,
+		serialize:           newEasyStoreSerializer(),
+		Bucket:              c.Bucket,
 		S3Client:            client,
 		s3SignClient:        signer,
 		s3SignExpireMinutes: c.SignerExpireMinutes,
