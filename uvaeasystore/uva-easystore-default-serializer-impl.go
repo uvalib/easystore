@@ -38,7 +38,8 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 
 	o := newEasyStoreObject(omap["ns"].(string), omap["id"].(string))
 	obj := o.(*easyStoreObjectImpl)
-	obj.Vtag_ = newVtag() // vtags must be unique so mint a new one here
+	//obj.Vtag_ = newVtag() // vtags must be unique so mint a new one here
+	obj.Vtag_ = omap["vtag"].(string)
 	obj.Created_, obj.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
