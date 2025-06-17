@@ -83,7 +83,7 @@ type EasyStoreReadonly interface {
 // EasyStore - the store abstraction (read/write)
 type EasyStore interface {
 
-	// the read only features
+	// all the read only features
 	EasyStoreReadonly
 
 	// create new object
@@ -92,8 +92,11 @@ type EasyStore interface {
 	// update all or part of existing object, specify which components are to be updated
 	Update(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
-	// delete all or part of an existing object
+	// delete all or part of an existing object, specify which components are to be deleted
 	Delete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
+
+	// rename one of the blobs within the object, old name, new name
+	Rename(EasyStoreObject, string, string) (EasyStoreObject, error)
 }
 
 // EasyStoreObject - the objects stored in the easystore

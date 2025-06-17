@@ -255,6 +255,57 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 	return nil, nil
 }
 
+func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, name string, newName string) (EasyStoreObject, error) {
+
+	// validate the object
+	if obj == nil {
+		return nil, ErrBadParameter
+	}
+
+	// validate the object namespace/id
+	if len(obj.Namespace()) == 0 {
+		return nil, ErrBadParameter
+	}
+	if len(obj.Id()) == 0 {
+		return nil, ErrBadParameter
+	}
+
+	// validate the vtag is included
+	if len(obj.VTag()) == 0 {
+		return nil, ErrBadParameter
+	}
+
+	// ensure our inputs are good
+	if len(name) == 0 {
+		return nil, ErrBadParameter
+	}
+	if len(newName) == 0 {
+		return nil, ErrBadParameter
+	}
+
+	// ensure we actually have files
+	files := obj.Files()
+	if files == nil {
+		return nil, ErrBadParameter
+	}
+	// and we have one named as specified and not one named as its replacement
+	found := false
+	duplicate := false
+	for _, file := range files {
+		if file.Name() == name {
+			found = true
+		}
+		if file.Name() == newName {
+			duplicate = true
+		}
+	}
+	if found == false || duplicate == true {
+		return nil, ErrBadParameter
+	}
+
+	return nil, ErrNotImplemented
+}
+
 func (impl easyStoreProxyReadonlyImpl) Close() error {
 	return nil
 }
