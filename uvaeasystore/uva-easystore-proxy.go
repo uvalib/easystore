@@ -97,17 +97,10 @@ func newEasyStoreProxyReadonly(config EasyStoreProxyConfig) (EasyStoreReadonly, 
 
 func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := CreatePreflight(obj); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
@@ -147,27 +140,10 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 
 func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object Namespace_/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := UpdatePreflight(obj, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build the attributes list
@@ -211,27 +187,10 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 
 func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object Namespace_/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := DeletePreflight(obj, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build the attributes list
@@ -266,50 +225,10 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 
 func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, name string, newName string) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// ensure our inputs are good
-	if len(name) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(newName) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// ensure we actually have files
-	files := obj.Files()
-	if files == nil {
-		return nil, ErrBadParameter
-	}
-	// and we have one named as specified and not one named as its replacement
-	found := false
-	duplicate := false
-	for _, file := range files {
-		if file.Name() == name {
-			found = true
-		}
-		if file.Name() == newName {
-			duplicate = true
-		}
-	}
-	if found == false || duplicate == true {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := RenamePreflight(obj, name, newName); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	return nil, ErrNotImplemented
@@ -334,14 +253,10 @@ func (impl easyStoreProxyReadonlyImpl) Check() error {
 
 func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the id
-	if len(id) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByKeyPreflight(namespace, id, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build the attributes list
@@ -376,21 +291,10 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 
 func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
-	// validate the id list
-	if len(ids) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate each member
-	for _, id := range ids {
-		if len(id) == 0 {
-			return nil, ErrBadParameter
-		}
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByKeysPreflight(namespace, ids, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build the attributes list. We get these items lazily so just request the base component for now
@@ -439,9 +343,10 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 
 func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByFieldsPreflight(namespace, fields, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build the attributes list. We get these items lazily so just request the base component for now

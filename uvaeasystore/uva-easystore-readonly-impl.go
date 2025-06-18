@@ -46,14 +46,10 @@ func (impl easyStoreReadonlyImpl) Check() error {
 
 func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the id
-	if len(id) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByKeyPreflight(namespace, id, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// get the base object
@@ -68,21 +64,10 @@ func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which Ea
 
 func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
-	// validate the id list
-	if len(ids) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate each member
-	for _, id := range ids {
-		if len(id) == 0 {
-			return nil, ErrBadParameter
-		}
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByKeysPreflight(namespace, ids, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// build our list of objects
@@ -111,9 +96,10 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 
 func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := GetByFieldsPreflight(namespace, fields, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields"))

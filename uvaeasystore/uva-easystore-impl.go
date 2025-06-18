@@ -42,17 +42,10 @@ func newEasyStore(config EasyStoreImplConfig) (EasyStore, error) {
 
 func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := CreatePreflight(obj); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
@@ -104,27 +97,10 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 
 func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := UpdatePreflight(obj, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// get the current object and compare the vtag
@@ -223,27 +199,10 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 
 func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the component request
-	if which > AllComponents {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := DeletePreflight(obj, which); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	// get the current object and compare the vtag
@@ -318,50 +277,10 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 
 func (impl easyStoreImpl) Rename(obj EasyStoreObject, name string, newName string) (EasyStoreObject, error) {
 
-	// validate the object
-	if obj == nil {
-		return nil, ErrBadParameter
-	}
-
-	// validate the object namespace/id
-	if len(obj.Namespace()) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(obj.Id()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// validate the vtag is included
-	if len(obj.VTag()) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// ensure our inputs are good
-	if len(name) == 0 {
-		return nil, ErrBadParameter
-	}
-	if len(newName) == 0 {
-		return nil, ErrBadParameter
-	}
-
-	// ensure we actually have files
-	files := obj.Files()
-	if files == nil {
-		return nil, ErrBadParameter
-	}
-	// and we have one named as specified and not one named as its replacement
-	found := false
-	duplicate := false
-	for _, file := range files {
-		if file.Name() == name {
-			found = true
-		}
-		if file.Name() == newName {
-			duplicate = true
-		}
-	}
-	if found == false || duplicate == true {
-		return nil, ErrBadParameter
+	// preflight validation
+	if err := RenamePreflight(obj, name, newName); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return nil, err
 	}
 
 	return nil, ErrNotImplemented
