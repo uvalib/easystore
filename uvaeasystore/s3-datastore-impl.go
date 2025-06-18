@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -167,10 +168,19 @@ func (s *S3Storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 // GetFieldsByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
 	// check asset exists
-	if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
-		return nil, ErrNotFound
+	//if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
+	//	return nil, ErrNotFound
+	//}
+	//return s.getFields(key.Namespace, key.ObjectId)
+
+	// we can read from the database, its probably faster
+	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.Namespace, key.ObjectId)
+	if err != nil {
+		return nil, err
 	}
-	return s.getFields(key.Namespace, key.ObjectId)
+	defer rows.Close()
+
+	return fieldQueryResults(rows, s.log)
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
@@ -185,10 +195,19 @@ func (s *S3Storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 	// check asset exists
-	if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
-		return nil, ErrNotFound
+	//if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
+	//	return nil, ErrNotFound
+	//}
+	//return s.getObject(key.Namespace, key.ObjectId)
+
+	// we can read from the database, its probably faster
+	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.Namespace, key.ObjectId)
+	if err != nil {
+		return nil, err
 	}
-	return s.getObject(key.Namespace, key.ObjectId)
+	defer rows.Close()
+
+	return objectQueryResults(rows, s.log)
 }
 
 // GetObjectsByKey -- get all field data associated with the specified object
@@ -196,11 +215,13 @@ func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 
 	results := make([]EasyStoreObject, 0, len(keys))
 	for _, key := range keys {
-		if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == true {
-			obj, err := s.getObject(key.Namespace, key.ObjectId)
-			if err != nil {
+		obj, err := s.GetObjectByKey(key)
+		if err != nil {
+			if errors.Is(err, ErrNotFound) == false {
+				// a real error
 				return nil, err
 			}
+		} else {
 			results = append(results, obj)
 		}
 	}
