@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -209,11 +213,16 @@ func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreC
 	if what&uvaeasystore.Files == uvaeasystore.Files {
 		if len(obj.Files()) != 0 {
 			for ix, f := range obj.Files() {
-				b, err := f.Payload()
-				if err != nil {
-					fmt.Printf("       file: payload access error (%s)\n", err)
+				// check for a streaming URL
+				if len(f.Url()) != 0 {
+					fmt.Printf("       file %d: %s, url %s (%s)\n", ix+1, f.Name(), f.Url(), f.MimeType())
 				} else {
-					fmt.Printf("       file %d: %s, %d bytes (%s)\n", ix+1, f.Name(), len(b), f.MimeType())
+					b, err := f.Payload()
+					if err != nil {
+						fmt.Printf("       file: payload access error (%s)\n", err)
+					} else {
+						fmt.Printf("       file %d: %s, %d bytes (%s)\n", ix+1, f.Name(), len(b), f.MimeType())
+					}
 				}
 			}
 		} else {
@@ -247,9 +256,37 @@ func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
 	// dump files if they exist
 	if obj.Files() != nil {
 		for _, f := range obj.Files() {
-			buf, err := f.Payload()
-			if err != nil {
-				return err
+			var buf []byte
+			var err error
+
+			// check for a streaming URL
+			if len(f.Url()) != 0 {
+				fmt.Printf("       ==> streaming %s...\n", f.Url())
+
+				resp, err := http.Get(f.Url())
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+
+				// Check response
+				if resp.StatusCode != http.StatusOK {
+					return fmt.Errorf("bad status: %s", resp.Status)
+				}
+
+				// Write
+				var b bytes.Buffer
+				writer := bufio.NewWriter(&b)
+				_, err = io.Copy(writer, resp.Body)
+				if err != nil {
+					return err
+				}
+				buf = b.Bytes()
+			} else {
+				buf, err = f.Payload()
+				if err != nil {
+					return err
+				}
 			}
 			fname := fmt.Sprintf("%s/%s-%s-%s", outdir, obj.Namespace(), obj.Id(), f.Name())
 			fmt.Printf("       ==> writing %s...\n", fname)
