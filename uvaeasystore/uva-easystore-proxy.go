@@ -56,20 +56,29 @@ type easyStoreProxyReadonlyImpl struct {
 
 // this is our object set implementation (different from the native implementation
 type easyStoreProxyObjectSetImpl struct {
-	Index     int
-	ObjectSet []easyStoreObjectImpl
+	current int                        // current object index
+	which   EasyStoreComponents        // which components are we requesting
+	objects []easyStoreObjectImpl      // object list
+	proxy   easyStoreProxyReadonlyImpl // ourself so we can get the next item
 }
 
 func (impl *easyStoreProxyObjectSetImpl) Count() uint {
-	return uint(len(impl.ObjectSet))
+	return uint(len(impl.objects))
 }
 
 func (impl *easyStoreProxyObjectSetImpl) Next() (EasyStoreObject, error) {
-	if impl.Index == len(impl.ObjectSet) {
+	if impl.current == len(impl.objects) {
 		return nil, io.EOF
 	}
-	obj := impl.ObjectSet[impl.Index]
-	impl.Index++
+
+	obj := impl.objects[impl.current]
+	impl.current++
+
+	// do we need to get any more bits?
+	if impl.which > BaseComponent {
+		return impl.proxy.GetByKey(obj.Namespace(), obj.Id(), impl.which)
+	}
+
 	return &obj, nil
 }
 
@@ -384,8 +393,8 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 		return nil, ErrBadParameter
 	}
 
-	// build the attributes list
-	attribs := impl.componentHelper(which)
+	// build the attributes list. We get these items lazily so just request the base component for now
+	attribs := impl.componentHelper(BaseComponent)
 	if len(attribs) != 0 {
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
@@ -421,7 +430,11 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 	}
 
 	// return results in an iterator object
-	return &easyStoreProxyObjectSetImpl{0, resp.Results}, nil
+	return &easyStoreProxyObjectSetImpl{
+		current: 0,
+		which:   which,
+		objects: resp.Results,
+		proxy:   impl}, nil
 }
 
 func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
@@ -431,8 +444,8 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 		return nil, ErrBadParameter
 	}
 
-	// build the attributes list
-	attribs := impl.componentHelper(which)
+	// build the attributes list. We get these items lazily so just request the base component for now
+	attribs := impl.componentHelper(BaseComponent)
 	if len(attribs) != 0 {
 		attribs = fmt.Sprintf("?%s", attribs)
 	}
@@ -466,7 +479,11 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 	}
 
 	// return results in an iterator object
-	return &easyStoreProxyObjectSetImpl{0, resp.Results}, nil
+	return &easyStoreProxyObjectSetImpl{
+		current: 0,
+		which:   which,
+		objects: resp.Results,
+		proxy:   impl}, nil
 }
 
 func (impl easyStoreProxyReadonlyImpl) componentHelper(which EasyStoreComponents) string {
