@@ -83,8 +83,10 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 // AddBlob -- add a new blob object
 func (s *S3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	// check asset does not exist
-	if s.checkExists(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)) == true {
-		return ErrAlreadyExists
+	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
+	if s.checkExists(key.Namespace, key.ObjectId, jsonName) == true {
+		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrAlreadyExists)
+		//return ErrAlreadyExists
 	}
 	return s.addBlob(key.Namespace, key.ObjectId, blob)
 }
@@ -115,7 +117,8 @@ func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 func (s *S3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) error {
 	// check asset does not exist
 	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == true {
-		return ErrAlreadyExists
+		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3MetadataFileName), ErrAlreadyExists)
+		//return ErrAlreadyExists
 	}
 	return s.addMetadata(key.Namespace, key.ObjectId, metadata)
 }
