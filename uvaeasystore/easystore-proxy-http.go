@@ -18,11 +18,11 @@ func newHTTPClient(timeout int) *http.Client {
 	defaultTransport := &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:   2 * time.Second,
-			KeepAlive: 600 * time.Second,
+			KeepAlive: 15 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 2 * time.Second,
-		MaxIdleConns:        10,
-		MaxIdleConnsPerHost: 10,
+		MaxIdleConns:        1,
+		MaxIdleConnsPerHost: 1,
 	}
 	return &http.Client{
 		Transport: defaultTransport,
