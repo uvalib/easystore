@@ -235,6 +235,9 @@ func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, name string, newName 
 }
 
 func (impl easyStoreProxyReadonlyImpl) Close() error {
+
+	// need to do this
+	impl.HTTPClient.CloseIdleConnections()
 	return nil
 }
 
