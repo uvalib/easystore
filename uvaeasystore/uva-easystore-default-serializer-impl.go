@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -65,15 +66,6 @@ func (impl easyStoreSerializerImpl) FieldsSerialize(f EasyStoreObjectFields) int
 
 func (impl easyStoreSerializerImpl) FieldsDeserialize(i interface{}) (EasyStoreObjectFields, error) {
 
-	// assume we are being passed a []byte
-	//s, ok := i.([]byte)
-	//if ok != true {
-	//	return nil, fmt.Errorf("%q: %w", "cast error deserializing, interface probably not a []byte", ErrDeserialize)
-	//}
-
-	// unquote it cos the fields may have been quoted when serialized
-	//str, _ := strconv.Unquote(string(s))
-
 	// convert to an array of maps
 	omap, err := interfaceToArrayMap(i)
 	if err != nil {
@@ -96,9 +88,9 @@ func (impl easyStoreSerializerImpl) BlobSerialize(b EasyStoreBlob) interface{} {
 	buf, _ := b.Payload()
 	enc := base64.StdEncoding.EncodeToString(buf)
 
-	template := "{\"name\":\"%s\",\"mimetype\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
+	template := "{\"name\":%s,\"mimetype\":\"%s\",\"payload\":\"%s\",\"created\":\"%s\",\"modified\":\"%s\"}"
 	str := fmt.Sprintf(template,
-		b.Name(),
+		jsonEncode(b.Name()),
 		b.MimeType(),
 		enc,
 		b.Created().UTC(),
@@ -122,7 +114,7 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 	}
 
 	b := newEasyStoreBlob(
-		omap["name"].(string),
+		jsonUnencode(omap["name"].(string)),
 		omap["mimetype"].(string),
 		buf)
 
@@ -178,6 +170,23 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 //
 // private methods
 //
+
+func jsonEncode(value string) string {
+	//fmt.Printf("ENC: [%s]\n", value)
+	v := strconv.Quote(value)
+	//fmt.Printf("RES: [%s]\n", v)
+	return strconv.Quote(v)
+}
+
+func jsonUnencode(value string) string {
+	//fmt.Printf("DEC: [%s]\n", value)
+	s, err := strconv.Unquote(value)
+	if err != nil {
+		return value
+	}
+	//fmt.Printf("RES: [%s]\n", s)
+	return s
+}
 
 func interfaceToMap(i interface{}) (map[string]interface{}, error) {
 
