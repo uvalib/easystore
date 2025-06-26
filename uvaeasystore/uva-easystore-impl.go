@@ -289,6 +289,12 @@ func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents,
 		return nil, err
 	}
 
+	// update the object (timestamp and vtag)
+	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
+	if err != nil {
+		return nil, err
+	}
+
 	// publish the appropriate event, errors are not too important
 	err = pubObjectUpdate(impl.messageBus, obj)
 	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
