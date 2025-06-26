@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"golang.org/x/exp/maps"
 	"log"
 	"net/url"
@@ -232,6 +231,67 @@ func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 		return nil, ErrNotFound
 	}
 	return results, nil
+}
+
+// RenameBlobByKey -- rename the named blob to the new name
+func (s *S3Storage) RenameBlobByKey(key DataStoreKey, curName string, newName string) error {
+
+	//fmt.Printf("INFO: Renaming [%s/%s] %s -> %s\n", key.Namespace, key.ObjectId, curName, newName)
+
+	// names of the blob description files
+	curBlobKey := s.assetKey(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", curName, S3BlobFileNameSuffix))
+	newBlobKey := s.assetKey(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", newName, S3BlobFileNameSuffix))
+
+	// check currently named asset exists
+	if s.s3Exists(s.Bucket, curBlobKey) == false {
+		//fmt.Printf("ERROR: %s does not exist\n", curBlobKey)
+		return ErrNotFound
+	}
+
+	// check new asset name does not already exist
+	if s.s3Exists(s.Bucket, newBlobKey) == true {
+		//fmt.Printf("ERROR: %s already exist\n", newBlobKey)
+		return ErrAlreadyExists
+	}
+
+	// download from S3
+	b, err := s.s3DownloadToBuffer(s.Bucket, curBlobKey)
+	if err != nil {
+		return err
+	}
+	blob, err := s.serialize.BlobDeserialize(b)
+	if err != nil {
+		return err
+	}
+
+	impl, ok := blob.(*easyStoreBlobImpl)
+	if ok == false {
+		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreBlobImpl", ErrBadParameter)
+	}
+
+	// update the attributes
+	impl.Name_ = newName
+	//impl.MimeType_ = // stays the same
+	//impl.Created_  = // stays the same
+	impl.Modified_ = time.Now()
+
+	// serialize and upload new blob descriptor to S3
+	bBytes := s.serialize.BlobSerialize(impl).([]byte)
+	err = s.s3UploadFromBuffer(s.Bucket, newBlobKey, bBytes)
+	if err != nil {
+		return err
+	}
+
+	// remove the old blob descriptor file
+	err = s.s3Remove(s.Bucket, curBlobKey)
+	if err != nil {
+		return err
+	}
+
+	// rename the actual asset file
+	curKey := s.assetKey(key.Namespace, key.ObjectId, curName)
+	newKey := s.assetKey(key.Namespace, key.ObjectId, newName)
+	return s.s3Rename(s.Bucket, curKey, newKey)
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
@@ -545,15 +605,39 @@ func (s *S3Storage) s3Remove(bucket string, key string) error {
 	logDebug(s.log, fmt.Sprintf("deleting [%s/%s]", bucket, key))
 	start := time.Now()
 
-	var objectIds []types.ObjectIdentifier
-	objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
-	_, err := s.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+	_, err := s.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
-		Delete: &types.Delete{Objects: objectIds},
+		Key:    aws.String(key),
 	})
 
 	duration := time.Since(start)
 	logDebug(s.log, fmt.Sprintf("delete [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
+	return err
+}
+
+func (s *S3Storage) s3Rename(bucket string, oldKey string, newKey string) error {
+
+	logDebug(s.log, fmt.Sprintf("renaming [%s/%s]->[%s/%s]", bucket, oldKey, bucket, newKey))
+	start := time.Now()
+
+	// copy
+	_, err := s.S3Client.CopyObject(context.TODO(), &s3.CopyObjectInput{
+		Bucket:     aws.String(bucket),
+		Key:        aws.String(newKey),
+		CopySource: aws.String(fmt.Sprintf("%s/%s", bucket, oldKey)),
+	})
+	if err != nil {
+		return err
+	}
+
+	// then delete
+	_, err = s.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(oldKey),
+	})
+
+	duration := time.Since(start)
+	logDebug(s.log, fmt.Sprintf("rename [%s/%s]->[%s/%s] complete in %0.2f seconds (%s)", bucket, oldKey, bucket, newKey, duration.Seconds(), s.statusText(err)))
 	return err
 }
 

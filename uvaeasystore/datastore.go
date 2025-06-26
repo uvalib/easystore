@@ -38,6 +38,9 @@ type DataStore interface {
 	GetObjectByKey(DataStoreKey) (EasyStoreObject, error)
 	GetObjectsByKey([]DataStoreKey) ([]EasyStoreObject, error)
 
+	// rename method
+	RenameBlobByKey(DataStoreKey, string, string) error
+
 	// delete methods
 	DeleteBlobsByKey(DataStoreKey) error
 	DeleteFieldsByKey(DataStoreKey) error

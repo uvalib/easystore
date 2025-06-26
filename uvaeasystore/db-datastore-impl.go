@@ -196,6 +196,11 @@ func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, err
 	return objectsQueryResults(rows, s.log)
 }
 
+// RenameBlobByKey -- rename the named blob to the new name
+func (s *dbStorage) RenameBlobByKey(key DataStoreKey, curName string, newName string) error {
+	return ErrNotImplemented
+}
+
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
 func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 

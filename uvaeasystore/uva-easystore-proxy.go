@@ -223,10 +223,10 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 	return nil, nil
 }
 
-func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, name string, newName string) (EasyStoreObject, error) {
+func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
 
 	// preflight validation
-	if err := RenamePreflight(obj, name, newName); err != nil {
+	if err := RenamePreflight(obj, which, name, newName); err != nil {
 		logError(impl.config.Logger(), "preflight failure")
 		return nil, err
 	}

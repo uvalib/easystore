@@ -113,6 +113,23 @@ func pubFileCreate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 	return bus.PublishEvent(&ev)
 }
 
+func pubFileUpdate(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
+	if bus == nil {
+		return ErrBusNotConfigured
+	}
+	detail, err := eventPayload(obj)
+	if err != nil {
+		return fmt.Errorf("%q: %w", err, ErrSerialize)
+	}
+	ev := uvalibrabus.UvaBusEvent{
+		EventName:  uvalibrabus.EventFileUpdate,
+		Namespace:  obj.Namespace(),
+		Identifier: obj.Id(),
+		Detail:     detail,
+	}
+	return bus.PublishEvent(&ev)
+}
+
 func eventPayload(obj EasyStoreObject) (json.RawMessage, error) {
 	pl := uvalibrabus.UvaStorageEvent{VTag: obj.VTag()}
 	return pl.Serialize()

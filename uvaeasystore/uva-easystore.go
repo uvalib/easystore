@@ -96,7 +96,7 @@ type EasyStore interface {
 	Delete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
 	// rename one of the blobs within the object, old name, new name
-	Rename(EasyStoreObject, string, string) (EasyStoreObject, error)
+	Rename(EasyStoreObject, EasyStoreComponents, string, string) (EasyStoreObject, error)
 }
 
 // EasyStoreObject - the objects stored in the easystore

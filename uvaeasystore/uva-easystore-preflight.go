@@ -147,7 +147,7 @@ func DeletePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
 	return nil
 }
 
-func RenamePreflight(obj EasyStoreObject, name string, newName string) error {
+func RenamePreflight(obj EasyStoreObject, which EasyStoreComponents, curName string, newName string) error {
 
 	// validate the object
 	if obj == nil {
@@ -167,31 +167,16 @@ func RenamePreflight(obj EasyStoreObject, name string, newName string) error {
 		return ErrBadParameter
 	}
 
-	// ensure our inputs are good
-	if len(name) == 0 {
-		return ErrBadParameter
-	}
-	if len(newName) == 0 {
+	// validate the component request
+	if which > AllComponents {
 		return ErrBadParameter
 	}
 
-	// ensure we actually have files
-	files := obj.Files()
-	if files == nil {
+	// ensure our inputs are good
+	if len(curName) == 0 {
 		return ErrBadParameter
 	}
-	// and we have one named as specified and not one named as its replacement
-	found := false
-	duplicate := false
-	for _, file := range files {
-		if file.Name() == name {
-			found = true
-		}
-		if file.Name() == newName {
-			duplicate = true
-		}
-	}
-	if found == false || duplicate == true {
+	if len(newName) == 0 {
 		return ErrBadParameter
 	}
 
