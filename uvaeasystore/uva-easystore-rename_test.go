@@ -70,6 +70,11 @@ func TestRenameFiles(t *testing.T) {
 			t.Fatalf("unexpected name, got '%s'\n", files[0].Name())
 		}
 	}
+
+	// check the vtags are updated
+	if o.VTag() == after.VTag() {
+		t.Fatalf("object vtags are equal but should not be\n")
+	}
 }
 
 //
