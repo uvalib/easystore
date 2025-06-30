@@ -145,6 +145,8 @@ func (s *S3Storage) AddObject(obj EasyStoreObject) error {
 // GetBlobsByKey -- get all blob data associated with the specified object
 func (s *S3Storage) GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreBlob, error) {
 
+	// ignore useCache, we do not cache blob information
+
 	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.Namespace, key.ObjectId))
 	if err != nil {
 		return nil, err
@@ -170,13 +172,17 @@ func (s *S3Storage) GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreB
 
 // GetFieldsByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreObjectFields, error) {
-	// check asset exists
-	//if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
-	//	return nil, ErrNotFound
-	//}
-	//return s.getFields(key.Namespace, key.ObjectId)
 
-	// we can read from the database, its probably faster
+	// dont use the cache
+	if useCache == NOCACHE {
+		// check asset exists
+		if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
+			return nil, ErrNotFound
+		}
+		return s.getFields(key.Namespace, key.ObjectId)
+	}
+
+	// we can read from the database (cache), its probably faster
 	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
@@ -188,6 +194,9 @@ func (s *S3Storage) GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreO
 
 // GetMetadataByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStoreMetadata, error) {
+
+	// ignore useCache, we do not cache metadata
+
 	// check asset exists
 	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == false {
 		return nil, ErrNotFound
@@ -197,13 +206,17 @@ func (s *S3Storage) GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStore
 
 // GetObjectByKey -- get all field data associated with the specified object
 func (s *S3Storage) GetObjectByKey(key DataStoreKey, useCache bool) (EasyStoreObject, error) {
-	// check asset exists
-	//if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
-	//	return nil, ErrNotFound
-	//}
-	//return s.getObject(key.Namespace, key.ObjectId)
 
-	// we can read from the database, its probably faster
+	// dont use the cache
+	if useCache == NOCACHE {
+		// check asset exists
+		if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
+			return nil, ErrNotFound
+		}
+		return s.getObject(key.Namespace, key.ObjectId)
+	}
+
+	// we can read from the database (cache), its probably faster
 	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
