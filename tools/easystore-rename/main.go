@@ -103,9 +103,9 @@ func main() {
 	// important, cleanup properly
 	defer es.Close()
 
-	eso, err := es.GetByKey(namespace, oid, uvaeasystore.Files)
+	eso, err := es.GetByKey(namespace, oid, uvaeasystore.BaseComponent)
 	if err == nil {
-		_, err = es.Rename(eso, curName, newName)
+		_, err = es.Rename(eso, uvaeasystore.BaseComponent, curName, newName)
 	} else {
 		if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 			log.Printf("INFO: not found ns/oid [%s/%s]\n", namespace, oid)
