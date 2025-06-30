@@ -54,12 +54,18 @@ func GetByKeysPreflight(namespace string, ids []string, which EasyStoreComponent
 
 func GetByFieldsPreflight(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) error {
 
+	// namespace can be blank for this query
 	// validate the namespace
-	if len(namespace) == 0 {
-		return ErrBadParameter
-	}
+	//if len(namespace) == 0 {
+	//	return ErrBadParameter
+	//}
 
 	// validate fields here!!!
+	for k, v := range fields {
+		if len(k) == 0 || len(v) == 0 {
+			return ErrBadParameter
+		}
+	}
 
 	// validate the component request
 	if which > AllComponents {
