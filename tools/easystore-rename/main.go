@@ -80,7 +80,7 @@ func main() {
 			DbUser:              os.Getenv("DBUSER"),
 			DbPassword:          os.Getenv("DBPASS"),
 			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			SignerExpireMinutes: asIntWithDefault(os.Getenv("DBEXPIRE"), 60),
+			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 			Log:                 logger,
 		}
 		es, err = uvaeasystore.NewEasyStore(implConfig)
