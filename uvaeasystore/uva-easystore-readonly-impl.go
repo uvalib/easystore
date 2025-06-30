@@ -140,7 +140,7 @@ func (impl easyStoreReadonlyImpl) getByKey(namespace string, id string) (EasySto
 	logDebug(impl.config.Logger(), fmt.Sprintf("getting ns/oid [%s/%s]", namespace, id))
 
 	// get the base object (always required)
-	o, err := impl.store.GetObjectByKey(DataStoreKey{namespace, id})
+	o, err := impl.store.GetObjectByKey(DataStoreKey{namespace, id}, FROMCACHE)
 	if err != nil {
 		// known error
 		if errors.Is(err, ErrNotFound) {
@@ -175,7 +175,7 @@ func (impl easyStoreReadonlyImpl) getByKeys(keys []DataStoreKey) ([]EasyStoreObj
 		}
 
 	}
-	return impl.store.GetObjectsByKey(keys)
+	return impl.store.GetObjectsByKey(keys, FROMCACHE)
 }
 
 func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -183,7 +183,7 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 	// first get the fields (if required)
 	if (which & Fields) == Fields {
 		logDebug(impl.config.Logger(), fmt.Sprintf("getting fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		fields, err := impl.store.GetFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+		fields, err := impl.store.GetFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()}, FROMCACHE)
 		if err == nil {
 			obj.SetFields(*fields)
 		} else {
@@ -199,7 +199,7 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 	// then, the blobs (if required)
 	if (which & Files) == Files {
 		logDebug(impl.config.Logger(), fmt.Sprintf("getting blobs for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		blobs, err := impl.store.GetBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+		blobs, err := impl.store.GetBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()}, FROMCACHE)
 		if err == nil {
 			obj.SetFiles(blobs)
 		} else {
@@ -215,7 +215,7 @@ func (impl easyStoreReadonlyImpl) populateObject(obj EasyStoreObject, which Easy
 	// lastly the opaque metadata (if required)
 	if (which & Metadata) == Metadata {
 		logDebug(impl.config.Logger(), fmt.Sprintf("getting metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		md, err := impl.store.GetMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+		md, err := impl.store.GetMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()}, FROMCACHE)
 		if err == nil {
 			obj.SetMetadata(md)
 		} else {

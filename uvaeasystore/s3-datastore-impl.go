@@ -54,7 +54,7 @@ func (s *S3Storage) Check() error {
 
 // UpdateObject -- update a couple of object fields
 func (s *S3Storage) UpdateObject(key DataStoreKey) error {
-	obj, err := s.GetObjectByKey(key)
+	obj, err := s.GetObjectByKey(key, FROMCACHE)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,8 @@ func (s *S3Storage) AddObject(obj EasyStoreObject) error {
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
-func (s *S3Storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
+func (s *S3Storage) GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreBlob, error) {
+
 	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.Namespace, key.ObjectId))
 	if err != nil {
 		return nil, err
@@ -168,7 +169,7 @@ func (s *S3Storage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 }
 
 // GetFieldsByKey -- get all field data associated with the specified object
-func (s *S3Storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
+func (s *S3Storage) GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreObjectFields, error) {
 	// check asset exists
 	//if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
 	//	return nil, ErrNotFound
@@ -186,7 +187,7 @@ func (s *S3Storage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, er
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
-func (s *S3Storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
+func (s *S3Storage) GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStoreMetadata, error) {
 	// check asset exists
 	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == false {
 		return nil, ErrNotFound
@@ -195,7 +196,7 @@ func (s *S3Storage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
-func (s *S3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
+func (s *S3Storage) GetObjectByKey(key DataStoreKey, useCache bool) (EasyStoreObject, error) {
 	// check asset exists
 	//if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
 	//	return nil, ErrNotFound
@@ -213,11 +214,11 @@ func (s *S3Storage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 }
 
 // GetObjectsByKey -- get all field data associated with the specified object
-func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
+func (s *S3Storage) GetObjectsByKey(keys []DataStoreKey, useCache bool) ([]EasyStoreObject, error) {
 
 	results := make([]EasyStoreObject, 0, len(keys))
 	for _, key := range keys {
-		obj, err := s.GetObjectByKey(key)
+		obj, err := s.GetObjectByKey(key, useCache)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) == false {
 				// a real error
@@ -497,6 +498,9 @@ func (s *S3Storage) getBlob(key string) (*EasyStoreBlob, error) {
 			return nil, fmt.Errorf("%q: %w", "cast failed, not an easyStoreBlobImpl", ErrBadParameter)
 		}
 		impl.Url_, err = s.signedUrl(s.Bucket, strings.TrimSuffix(key, S3BlobFileNameSuffix))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &blob, nil
@@ -672,6 +676,7 @@ func (s *S3Storage) s3List(bucket string, key string) ([]string, error) {
 	// make the result set
 	result := make([]string, 0)
 	for _, o := range res.Contents {
+		logDebug(s.log, fmt.Sprintf("found [%s]", *o.Key))
 		result = append(result, *o.Key)
 	}
 

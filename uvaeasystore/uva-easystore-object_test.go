@@ -114,7 +114,6 @@ func TestObjectMetadataUpdate(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	fmt.Printf("BUF: [%s]\n", buf)
 	testEqual(t, string(jsonPayload), string(buf))
 }
 

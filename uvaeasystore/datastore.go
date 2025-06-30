@@ -18,6 +18,12 @@ type DataStoreKey struct {
 	ObjectId  string
 }
 
+// do we use the contents from the cache or not
+const (
+	FROMCACHE = true
+	NOCACHE   = false
+)
+
 // our dbStorage interface
 type DataStore interface {
 	Check() error
@@ -31,12 +37,12 @@ type DataStore interface {
 	AddMetadata(DataStoreKey, EasyStoreMetadata) error
 	AddObject(EasyStoreObject) error
 
-	// get methods
-	GetBlobsByKey(DataStoreKey) ([]EasyStoreBlob, error)
-	GetFieldsByKey(DataStoreKey) (*EasyStoreObjectFields, error)
-	GetMetadataByKey(DataStoreKey) (EasyStoreMetadata, error)
-	GetObjectByKey(DataStoreKey) (EasyStoreObject, error)
-	GetObjectsByKey([]DataStoreKey) ([]EasyStoreObject, error)
+	// get methods (bool is read from cache or not)
+	GetBlobsByKey(DataStoreKey, bool) ([]EasyStoreBlob, error)
+	GetFieldsByKey(DataStoreKey, bool) (*EasyStoreObjectFields, error)
+	GetMetadataByKey(DataStoreKey, bool) (EasyStoreMetadata, error)
+	GetObjectByKey(DataStoreKey, bool) (EasyStoreObject, error)
+	GetObjectsByKey([]DataStoreKey, bool) ([]EasyStoreObject, error)
 
 	// rename method
 	RenameBlobByKey(DataStoreKey, string, string) error

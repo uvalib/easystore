@@ -108,7 +108,9 @@ func (s *dbStorage) AddObject(obj EasyStoreObject) error {
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
-func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
+func (s *dbStorage) GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreBlob, error) {
+
+	// this implementation does not use a cache so useCache is ignored
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name != $3 ORDER BY updated_at", key.Namespace, key.ObjectId, blobMetadataName)
 	if err != nil {
@@ -120,7 +122,9 @@ func (s *dbStorage) GetBlobsByKey(key DataStoreKey) ([]EasyStoreBlob, error) {
 }
 
 // GetFieldsByKey -- get all field data associated with the specified object
-func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, error) {
+func (s *dbStorage) GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreObjectFields, error) {
+
+	// this implementation does not use a cache so useCache is ignored
 
 	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.Namespace, key.ObjectId)
 	if err != nil {
@@ -132,7 +136,9 @@ func (s *dbStorage) GetFieldsByKey(key DataStoreKey) (*EasyStoreObjectFields, er
 }
 
 // GetMetadataByKey -- get all field data associated with the specified object
-func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error) {
+func (s *dbStorage) GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStoreMetadata, error) {
+
+	// this implementation does not use a cache so useCache is ignored
 
 	rows, err := s.Query("SELECT name, mimetype, payload, created_at, updated_at FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3 LIMIT 1", key.Namespace, key.ObjectId, blobMetadataName)
 	if err != nil {
@@ -156,7 +162,9 @@ func (s *dbStorage) GetMetadataByKey(key DataStoreKey) (EasyStoreMetadata, error
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
-func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
+func (s *dbStorage) GetObjectByKey(key DataStoreKey, useCache bool) (EasyStoreObject, error) {
+
+	// this implementation does not use a cache so useCache is ignored
 
 	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.Namespace, key.ObjectId)
 	if err != nil {
@@ -168,7 +176,9 @@ func (s *dbStorage) GetObjectByKey(key DataStoreKey) (EasyStoreObject, error) {
 }
 
 // GetObjectsByKey -- get all field data associated with the specified object
-func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey) ([]EasyStoreObject, error) {
+func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey, useCache bool) ([]EasyStoreObject, error) {
+
+	// this implementation does not use a cache so useCache is ignored
 
 	args := make([]any, 0)
 	query := "SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE "
