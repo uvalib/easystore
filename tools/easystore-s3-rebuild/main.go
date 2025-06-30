@@ -95,14 +95,14 @@ func main() {
 	for ix, id := range ids {
 		log.Printf("INFO: processing ns/oid [%s/%s] (%d of %d)\n", namespace, id, ix+1, count)
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
-		obj, err := s3ds.GetObjectByKey(key)
+		obj, err := s3ds.GetObjectByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
 			log.Printf("ERROR: getting object from S3 datastore, continuing\n")
 			errorCount++
 			continue
 		}
 
-		fields, err := s3ds.GetFieldsByKey(key)
+		fields, err := s3ds.GetFieldsByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				log.Printf("INFO: no fields located for this object\n")
@@ -166,7 +166,7 @@ func main() {
 
 func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error) {
 
-	log.Printf("INFO: getting list of stored objects (this may take a while)\n")
+	log.Printf("INFO: getting list of stored objects (this may take a while)...\n")
 
 	// query parameters
 	params := &s3.ListObjectsV2Input{
@@ -193,7 +193,7 @@ func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error)
 		}
 
 		// Log the objects found
-		log.Printf("INFO: evaluating %d objects...\n", len(page.Contents))
+		//log.Printf("INFO: evaluating %d objects...\n", len(page.Contents))
 
 		for _, o := range page.Contents {
 			if strings.HasSuffix(*o.Key, uvaeasystore.S3ObjectFileName) {

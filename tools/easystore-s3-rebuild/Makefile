@@ -6,7 +6,7 @@ GOGET = $(GOCMD) get
 GOMOD = $(GOCMD) mod
 GOFMT = $(GOCMD) fmt
 GOVET = $(GOCMD) vet
-BINNAME = easystore-rebuild
+BINNAME = easystore-s3-rebuild
 
 build: darwin
 
