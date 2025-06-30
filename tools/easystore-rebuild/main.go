@@ -91,8 +91,9 @@ func main() {
 	// for each of the objects we located
 	okCount := 0
 	errorCount := 0
-	for _, id := range ids {
-		log.Printf("INFO: processing ns/oid [%s/%s]\n", namespace, id)
+	count := len(ids)
+	for ix, id := range ids {
+		log.Printf("INFO: processing ns/oid [%s/%s] (%d of %d)\n", namespace, id, ix+1, count)
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
 		obj, err := s3ds.GetObjectByKey(key)
 		if err != nil {
@@ -165,20 +166,40 @@ func main() {
 
 func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error) {
 
-	res, err := s3Store.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	log.Printf("INFO: getting list of stored objects (this may take a while)\n")
+
+	// query parameters
+	params := &s3.ListObjectsV2Input{
 		Bucket: aws.String(s3Store.Bucket),
 		Prefix: aws.String(namespace),
-	})
-	if err != nil {
-		return nil, err
 	}
+
+	// create a paginator
+	var limit int32 = 1000
+	paginate := s3.NewListObjectsV2Paginator(s3Store.S3Client, params, func(o *s3.ListObjectsV2PaginatorOptions) {
+		o.Limit = limit
+	})
 
 	// make the result set
 	result := make([]string, 0)
-	for _, o := range res.Contents {
-		if strings.HasSuffix(*o.Key, uvaeasystore.S3ObjectFileName) {
-			bits := strings.Split(*o.Key, "/")
-			result = append(result, bits[1])
+
+	// iterate through the pages
+	for paginate.HasMorePages() {
+
+		// get the next page
+		page, err := paginate.NextPage(context.TODO())
+		if err != nil {
+			return nil, err
+		}
+
+		// Log the objects found
+		log.Printf("INFO: evaluating %d objects...\n", len(page.Contents))
+
+		for _, o := range page.Contents {
+			if strings.HasSuffix(*o.Key, uvaeasystore.S3ObjectFileName) {
+				bits := strings.Split(*o.Key, "/")
+				result = append(result, bits[1])
+			}
 		}
 	}
 
