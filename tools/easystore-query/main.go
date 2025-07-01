@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -43,7 +44,7 @@ func main() {
 		logger = log.Default()
 	}
 
-	//var implConfig uvaeasystore.EasyStoreImplConfig
+	var implConfig uvaeasystore.EasyStoreImplConfig
 	var proxyConfig uvaeasystore.EasyStoreProxyConfig
 
 	// the easystore (or the proxy)
@@ -51,37 +52,38 @@ func main() {
 	var err error
 
 	switch mode {
-	//	case "sqlite":
-	//		implConfig = uvaeasystore.DatastoreSqliteConfig{
-	//			DataSource: os.Getenv("SQLITEFILE"),
-	//			Log:        logger,
-	//		}
-	//		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
-	//
-	//	case "postgres":
-	//		implConfig = uvaeasystore.DatastorePostgresConfig{
-	//			DbHost:     os.Getenv("DBHOST"),
-	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//			DbName:     os.Getenv("DBNAME"),
-	//			DbUser:     os.Getenv("DBUSER"),
-	//			DbPassword: os.Getenv("DBPASS"),
-	//			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//			Log:        logger,
-	//		}
-	//		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
-	//
-	//	case "s3":
-	//		implConfig = uvaeasystore.DatastoreS3Config{
-	//			Bucket:     os.Getenv("BUCKET"),
-	//			DbHost:     os.Getenv("DBHOST"),
-	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//			DbName:     os.Getenv("DBNAME"),
-	//			DbUser:     os.Getenv("DBUSER"),
-	//			DbPassword: os.Getenv("DBPASS"),
-	//			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//			Log:        logger,
-	//		}
-	//		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+	case "sqlite":
+		implConfig = uvaeasystore.DatastoreSqliteConfig{
+			DataSource: os.Getenv("SQLITEFILE"),
+			Log:        logger,
+		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
+	case "postgres":
+		implConfig = uvaeasystore.DatastorePostgresConfig{
+			DbHost:     os.Getenv("DBHOST"),
+			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:     os.Getenv("DBNAME"),
+			DbUser:     os.Getenv("DBUSER"),
+			DbPassword: os.Getenv("DBPASS"),
+			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:        logger,
+		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+
+	case "s3":
+		implConfig = uvaeasystore.DatastoreS3Config{
+			Bucket:              os.Getenv("BUCKET"),
+			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
+			DbHost:              os.Getenv("DBHOST"),
+			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
+			DbName:              os.Getenv("DBNAME"),
+			DbUser:              os.Getenv("DBUSER"),
+			DbPassword:          os.Getenv("DBPASS"),
+			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+			Log:                 logger,
+		}
+		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
 
 	case "proxy":
 		proxyConfig = uvaeasystore.ProxyConfigImpl{
@@ -191,8 +193,14 @@ func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreC
 
 	if what&uvaeasystore.Fields == uvaeasystore.Fields {
 		if len(obj.Fields()) != 0 {
-			for n, v := range obj.Fields() {
-				fmt.Printf("       field: %s=%s\n", n, v)
+			// output our fields in sorted order
+			keys := make([]string, 0, len(obj.Fields()))
+			for k := range obj.Fields() {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
+				fmt.Printf("       field: %s=%s\n", k, obj.Fields()[k])
 			}
 		} else {
 			fmt.Printf("       no fields\n")
