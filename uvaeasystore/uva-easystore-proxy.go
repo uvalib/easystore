@@ -146,10 +146,13 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 		return nil, err
 	}
 
-	// build the attributes list
+	// build the attributes list (this is optional)
 	attribs := impl.componentHelper(which)
+
+	// build the query parameters
+	query := ""
 	if len(attribs) != 0 {
-		attribs = fmt.Sprintf("?%s", attribs)
+		query = fmt.Sprintf("?%s", attribs)
 	}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("updating ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
@@ -164,7 +167,7 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs)
+	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -193,24 +196,24 @@ func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreCompon
 		return nil, err
 	}
 
-	// build the attributes list
-	attribs := impl.componentHelper(which)
-	if len(attribs) != 0 {
-		attribs = fmt.Sprintf("?%s", attribs)
-	}
-
-	// add the vtag parameter
+	// create the vtag parameter
 	vtag := fmt.Sprintf("vtag=%s", obj.VTag())
-	if len(attribs) == 0 {
-		vtag = fmt.Sprintf("?%s", vtag)
-	} else {
-		vtag = fmt.Sprintf("&%s", vtag)
+
+	// build the attributes list (this is optional)
+	attribs := impl.componentHelper(which)
+
+	// build the query parameters
+	query := fmt.Sprintf("?%s", vtag)
+
+	// if we have the optional attribute component
+	if len(attribs) != 0 {
+		query = fmt.Sprintf("%s&%s", query, attribs)
 	}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("deleting ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), attribs, vtag)
+	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
 	respBytes, err := httpDelete(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -231,7 +234,48 @@ func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreCompon
 		return nil, err
 	}
 
-	return nil, ErrNotImplemented
+	// create the vtag parameter
+	vtag := fmt.Sprintf("vtag=%s", obj.VTag())
+
+	// build the attributes list (this is optional)
+	attribs := impl.componentHelper(which)
+
+	// build the query parameters
+	query := fmt.Sprintf("?%s", vtag)
+
+	// if we have the optional attribute component
+	if len(attribs) != 0 {
+		query = fmt.Sprintf("%s&%s", query, attribs)
+	}
+
+	// create the request payload
+	req := RenameBlobRequest{CurrentName: name, NewName: newName}
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return nil, ErrSerialize
+	}
+
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
+	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
+	if err != nil {
+		if len(respBytes) > 0 {
+			//log.Printf("RESP: [%s]", string(respBytes))
+			return nil, mapResponseToError(string(respBytes))
+		}
+		return nil, err
+	}
+
+	// process the response payload
+	var resp easyStoreObjectImpl
+	err = json.Unmarshal(respBytes, &resp)
+	if err != nil {
+		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
+		return nil, ErrDeserialize
+	}
+
+	return &resp, nil
 }
 
 func (impl easyStoreProxyReadonlyImpl) Close() error {
@@ -262,16 +306,19 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 		return nil, err
 	}
 
-	// build the attributes list
+	// build the attributes list (this is optional)
 	attribs := impl.componentHelper(which)
+
+	// build the query parameters
+	query := ""
 	if len(attribs) != 0 {
-		attribs = fmt.Sprintf("?%s", attribs)
+		query = fmt.Sprintf("?%s", attribs)
 	}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("getting ns/oid [%s/%s]", namespace, id))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), namespace, id, attribs)
+	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), namespace, id, query)
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -301,15 +348,15 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 	}
 
 	// build the attributes list. We get these items lazily so just request the base component for now
-	attribs := impl.componentHelper(BaseComponent)
-	if len(attribs) != 0 {
-		attribs = fmt.Sprintf("?%s", attribs)
-	}
+	//attribs := impl.componentHelper(BaseComponent)
+	//if len(attribs) != 0 {
+	//	attribs = fmt.Sprintf("?%s", attribs)
+	//}
 
 	logInfo(impl.config.Logger(), fmt.Sprintf("getting ns/oid's [%s/%s]", namespace, strings.Join(ids, ",")))
 
 	// create the request payload
-	var req getObjectsRequest
+	var req GetObjectsRequest
 	req.Ids = ids
 	reqBytes, err := json.Marshal(req)
 	if err != nil {
@@ -318,7 +365,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 	}
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s%s", impl.config.Endpoint(), namespace, attribs)
+	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), namespace)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -329,7 +376,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 	}
 
 	// process the response payload
-	var resp getObjectsResponse
+	var resp GetObjectsResponse
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
@@ -353,10 +400,10 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 	}
 
 	// build the attributes list. We get these items lazily so just request the base component for now
-	attribs := impl.componentHelper(BaseComponent)
-	if len(attribs) != 0 {
-		attribs = fmt.Sprintf("?%s", attribs)
-	}
+	//attribs := impl.componentHelper(BaseComponent)
+	//if len(attribs) != 0 {
+	//	attribs = fmt.Sprintf("?%s", attribs)
+	//}
 
 	logDebug(impl.config.Logger(), fmt.Sprintf("getting by fields ns/fields [%s/%v]", namespace, fields))
 
@@ -368,7 +415,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 	}
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/search%s", impl.config.Endpoint(), namespace, attribs)
+	url := fmt.Sprintf("%s/%s/search", impl.config.Endpoint(), namespace)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -379,7 +426,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 	}
 
 	// process the response payload
-	var resp searchObjectsResponse
+	var resp SearchObjectsResponse
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())

@@ -6,15 +6,20 @@ import (
 	"strings"
 )
 
-type getObjectsRequest struct {
+type GetObjectsRequest struct {
 	Ids []string `json:"ids"`
 }
 
-type getObjectsResponse struct {
+type RenameBlobRequest struct {
+	CurrentName string `json:"current-name"`
+	NewName     string `json:"new-name"`
+}
+
+type GetObjectsResponse struct {
 	Results []easyStoreObjectImpl `json:"results"`
 }
 
-type searchObjectsResponse struct {
+type SearchObjectsResponse struct {
 	Results []easyStoreObjectImpl `json:"results"`
 }
 

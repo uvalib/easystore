@@ -185,6 +185,9 @@ func RenamePreflight(obj EasyStoreObject, which EasyStoreComponents, curName str
 	if len(newName) == 0 {
 		return ErrBadParameter
 	}
+	if curName == newName {
+		return ErrBadParameter
+	}
 
 	// preflight good
 	return nil
