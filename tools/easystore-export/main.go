@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -124,6 +127,7 @@ func main() {
 		basedir := fmt.Sprintf("%s/export-%03d", outDir, num)
 		_ = os.Mkdir(basedir, 0755)
 
+		log.Printf("INFO: exporting %s (%d of %d)", o.Id(), num+1, iter.Count())
 		exportObject(o, serializer, basedir)
 		o, err = iter.Next()
 		num++
@@ -137,7 +141,6 @@ func main() {
 }
 
 func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.EasyStoreSerializer, outdir string) {
-	log.Printf("INFO: exporting %s", obj.Id())
 
 	// export base object
 	i := serializer.ObjectSerialize(obj)
@@ -169,6 +172,12 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 		if err != nil {
 			log.Fatalf("ERROR: writing file (%s)", err.Error())
 		}
+		if len(f.Url()) != 0 {
+			err = streamFile(fmt.Sprintf("%s/%s", outdir, f.Name()), f.Url())
+			if err != nil {
+				log.Fatalf("ERROR: writing file (%s)", err.Error())
+			}
+		}
 	}
 }
 
@@ -182,6 +191,38 @@ func outputFile(name string, contents []byte) error {
 
 	// write the payload
 	_, err = payloadFile.Write(contents)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func streamFile(name string, url string) error {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check response
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	// Write
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+	_, err = io.Copy(writer, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	buf := b.Bytes()
+
+	//fmt.Printf("       ==> writing %s...\n", name)
+	err = os.WriteFile(name, buf, 0644)
 	if err != nil {
 		return err
 	}
