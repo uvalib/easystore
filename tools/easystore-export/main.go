@@ -147,26 +147,29 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 
 	// export base object
 	i := serializer.ObjectSerialize(obj)
-	err := outputFile(fmt.Sprintf("%s/object.json", outdir), i.([]byte))
+	fname := fmt.Sprintf("%s/object.json", outdir)
+	err := outputFile(fname, i.([]byte))
 	if err != nil {
-		//log.Printf("ERROR: writing file (%s)", err.Error())
+		log.Printf("ERROR: writing %s (%s)", fname, err.Error())
 		return err
 	}
 
 	// export fields if they exist
 	i = serializer.FieldsSerialize(obj.Fields())
-	err = outputFile(fmt.Sprintf("%s/fields.json", outdir), i.([]byte))
+	fname = fmt.Sprintf("%s/fields.json", outdir)
+	err = outputFile(fname, i.([]byte))
 	if err != nil {
-		//log.Printf("ERROR: writing file (%s)", err.Error())
+		log.Printf("ERROR: writing %s (%s)", fname, err.Error())
 		return err
 	}
 
 	// export metadata if it exists
 	if obj.Metadata() != nil {
 		i = serializer.MetadataSerialize(obj.Metadata())
-		err = outputFile(fmt.Sprintf("%s/metadata.json", outdir), i.([]byte))
+		fname = fmt.Sprintf("%s/metadata.json", outdir)
+		err = outputFile(fname, i.([]byte))
 		if err != nil {
-			//log.Printf("ERROR: writing file (%s)", err.Error())
+			log.Printf("ERROR: writing %s (%s)", fname, err.Error())
 			return err
 		}
 	}
@@ -176,15 +179,19 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 
 		// serialize the blob object
 		i = serializer.BlobSerialize(f)
-		err = outputFile(fmt.Sprintf("%s/blob-%03d.json", outdir, ix+1), i.([]byte))
+		fname = fmt.Sprintf("%s/blob-%03d.json", outdir, ix+1)
+		err = outputFile(fname, i.([]byte))
 		if err != nil {
+			log.Printf("ERROR: writing %s (%s)", fname, err.Error())
 			return err
 		}
 
 		// and stream the file locally if appropriate
 		if len(f.Url()) != 0 {
-			err = streamFile(fmt.Sprintf("%s/%s", outdir, f.Name()), f.Url())
+			fname = fmt.Sprintf("%s/%s", outdir, f.Name())
+			err = streamFile(fname, f.Url())
 			if err != nil {
+				log.Printf("ERROR: streaming/writing %s (%s)", fname, err.Error())
 				return err
 			}
 		}
@@ -194,20 +201,8 @@ func exportObject(obj uvaeasystore.EasyStoreObject, serializer uvaeasystore.Easy
 }
 
 func outputFile(name string, contents []byte) error {
-
-	payloadFile, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer payloadFile.Close()
-
-	// write the payload
-	_, err = payloadFile.Write(contents)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	err := os.WriteFile(name, contents, 0644)
+	return err
 }
 
 func streamFile(name string, url string) error {
@@ -234,8 +229,7 @@ func streamFile(name string, url string) error {
 	}
 
 	// and write
-	buf := b.Bytes()
-	err = os.WriteFile(name, buf, 0644)
+	err = outputFile(name, b.Bytes())
 	if err != nil {
 		return err
 	}
