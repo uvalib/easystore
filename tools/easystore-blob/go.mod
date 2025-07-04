@@ -1,4 +1,4 @@
-module github.com/uvalib/easystore-rename
+module github.com/uvalib/easystore-blob
 
 go 1.24.4
 
