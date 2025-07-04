@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,19 +17,50 @@ func main() {
 
 	var mode string
 	var id string
-	var curName string
+	var cmd string
+	var name string
+	var fname string
 	var newName string
 	var debug bool
 	var logger *log.Logger
 
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&id, "identifier", "", "Object to change, ns/oid")
-	flag.StringVar(&curName, "current", "", "Current file name")
-	flag.StringVar(&newName, "new", "", "New file name")
+	flag.StringVar(&cmd, "cmd", "", "Command, add, del, show, rename")
+	flag.StringVar(&name, "name", "", "Name (add, del, rename only)")
+	flag.StringVar(&fname, "file", "", "New file name (add only)")
+	flag.StringVar(&newName, "new", "", "New name (rename only)")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
 
-	if len(id) == 0 || len(curName) == 0 || len(newName) == 0 {
+	// check the must haves
+	if len(id) == 0 || len(cmd) == 0 {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	switch cmd {
+	case "add":
+		if len(name) == 0 || len(fname) == 0 {
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+
+	case "del":
+		if len(name) == 0 {
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+
+	case "show":
+
+	case "rename":
+		if len(name) == 0 || len(newName) == 0 {
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+
+	default:
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -103,9 +136,31 @@ func main() {
 	// important, cleanup properly
 	defer es.Close()
 
-	eso, err := es.GetByKey(namespace, oid, uvaeasystore.BaseComponent)
+	// get the appropriate components
+	components := uvaeasystore.BaseComponent
+	if cmd == "show" {
+		components = uvaeasystore.Files
+	}
+	eso, err := es.GetByKey(namespace, oid, components)
 	if err == nil {
-		_, err = es.Rename(eso, uvaeasystore.BaseComponent, curName, newName)
+
+		switch cmd {
+		case "add":
+
+			err = addBlob(es, eso, name, fname)
+
+		case "del":
+
+			err = delBlob(es, eso, name)
+
+		case "rename":
+
+			err = renameBlob(es, eso, name, newName)
+
+		case "show":
+			err = show(eso)
+		}
+
 	} else {
 		if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 			log.Printf("INFO: not found ns/oid [%s/%s]\n", namespace, oid)
@@ -118,6 +173,44 @@ func main() {
 	} else {
 		log.Printf("ERROR: terminate with '%s'", err.Error())
 	}
+}
+
+func addBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, fname string) error {
+
+	// read the file
+	buf, err := os.ReadFile(fname)
+	if err != nil {
+		return err
+	}
+
+	// attempt to determine the content type
+	mt := http.DetectContentType(buf)
+
+	// make the new blob
+	_ = uvaeasystore.NewEasyStoreBlob(name, mt, buf)
+
+	return uvaeasystore.ErrNotImplemented
+}
+
+func delBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string) error {
+	return uvaeasystore.ErrNotImplemented
+}
+
+func renameBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, newName string) error {
+	_, err := es.Rename(eso, uvaeasystore.BaseComponent, name, newName)
+	return err
+}
+
+func show(eso uvaeasystore.EasyStoreObject) error {
+
+	for ix, b := range eso.Files() {
+		fmt.Printf("--------------------------------------------------\n")
+		fmt.Printf("%02d name:     %s\n", ix+1, b.Name())
+		fmt.Printf("%02d url:      %s\n", ix+1, b.Url())
+		fmt.Printf("%02d created:  %s\n", ix+1, b.Created())
+		fmt.Printf("%02d modified: %s\n", ix+1, b.Modified())
+	}
+	return nil
 }
 
 func asIntWithDefault(str string, def int) int {
