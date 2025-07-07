@@ -62,14 +62,17 @@ func main() {
 	//
 	//	case "s3":
 	//		implConfig = uvaeasystore.DatastoreS3Config{
-	//			Bucket:     os.Getenv("BUCKET"),
-	//			DbHost:     os.Getenv("DBHOST"),
-	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-	//			DbName:     os.Getenv("DBNAME"),
-	//			DbUser:     os.Getenv("DBUSER"),
-	//			DbPassword: os.Getenv("DBPASS"),
-	//			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-	//			Log:        logger,
+	//			Bucket:              os.Getenv("BUCKET"),
+	//          SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
+	//      	SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
+	//          SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
+	//			DbHost:              os.Getenv("DBHOST"),
+	//			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//			DbName:              os.Getenv("DBNAME"),
+	//			DbUser:              os.Getenv("DBUSER"),
+	//			DbPassword:          os.Getenv("DBPASS"),
+	//			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//			Log:                 logger,
 	//		}
 	//		es, err = uvaeasystore.NewEasyStore(implConfig)
 

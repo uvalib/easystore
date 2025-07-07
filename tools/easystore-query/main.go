@@ -74,6 +74,8 @@ func main() {
 	case "s3":
 		implConfig = uvaeasystore.DatastoreS3Config{
 			Bucket:              os.Getenv("BUCKET"),
+			SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
+			SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
 			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 			DbHost:              os.Getenv("DBHOST"),
 			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
