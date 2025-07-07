@@ -26,7 +26,7 @@ func main() {
 
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&id, "identifier", "", "Object to change, ns/oid")
-	flag.StringVar(&cmd, "cmd", "", "Command, add, del, show, rename")
+	flag.StringVar(&cmd, "cmd", "", "Command, add, del, rename, show, update")
 	flag.StringVar(&name, "name", "", "Name (add, del, rename only)")
 	flag.StringVar(&fname, "file", "", "New file name (add only)")
 	flag.StringVar(&newName, "new", "", "New name (rename only)")
@@ -56,6 +56,12 @@ func main() {
 
 	case "rename":
 		if len(name) == 0 || len(newName) == 0 {
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+
+	case "update":
+		if len(name) == 0 || len(fname) == 0 {
 			flag.PrintDefaults()
 			os.Exit(1)
 		}
@@ -158,6 +164,9 @@ func main() {
 
 		case "show":
 			err = show(eso)
+
+		case "update":
+			err = updateBlob(es, eso, name, fname)
 		}
 
 	} else {
@@ -179,7 +188,8 @@ func addBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name s
 	// read the file
 	buf, err := os.ReadFile(fname)
 	if err != nil {
-		return err
+		log.Printf("INFO: %s not found or not readable\n", fname)
+		return nil
 	}
 
 	// attempt to determine the content type
@@ -229,6 +239,32 @@ func show(eso uvaeasystore.EasyStoreObject) error {
 		fmt.Printf("%02d modified: %s\n", ix+1, b.Modified())
 	}
 	return nil
+}
+
+func updateBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, fname string) error {
+
+	// read the file
+	buf, err := os.ReadFile(fname)
+	if err != nil {
+		log.Printf("INFO: %s not found or not readable\n", fname)
+		return nil
+	}
+
+	// attempt to determine the content type
+	mt := http.DetectContentType(buf)
+
+	// make the new blob
+	bl := uvaeasystore.NewEasyStoreBlob(name, mt, buf)
+	// and update it
+	err = es.FileUpdate(eso.Namespace(), eso.Id(), bl)
+
+	// handle this case differently
+	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		err = nil
+	}
+
+	return err
 }
 
 func asIntWithDefault(str string, def int) int {
