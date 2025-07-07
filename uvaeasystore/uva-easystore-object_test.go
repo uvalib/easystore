@@ -5,7 +5,6 @@
 package uvaeasystore
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -71,8 +70,8 @@ func TestObjectBlobsUpdate(t *testing.T) {
 		t.Fatalf("file payload AND url are empty\n")
 	}
 
-	fmt.Printf("SIGNED URL: %s\n", url1)
-	fmt.Printf("SIGNED URL: %s\n", url2)
+	//fmt.Printf("SIGNED URL: %s\n", url1)
+	//fmt.Printf("SIGNED URL: %s\n", url2)
 
 	//if bytes.Equal(file1Contents, buf1) == false {
 	//	t.Fatalf("byte slices are not equal\n")
