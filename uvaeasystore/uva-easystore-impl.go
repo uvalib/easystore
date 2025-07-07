@@ -275,6 +275,7 @@ func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents)
 	return obj, nil
 }
 
+// RETIRE ME
 func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
 
 	// preflight validation
@@ -303,6 +304,26 @@ func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents,
 
 	// get the full object
 	return impl.GetByKey(obj.Namespace(), obj.Id(), which)
+}
+
+// create a file
+func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {
+	return ErrNotImplemented
+}
+
+// delete a file
+func (impl easyStoreImpl) FileDelete(namespace string, oid string, name string) error {
+	return ErrNotImplemented
+}
+
+// rename a file, old name, new name
+func (impl easyStoreImpl) FileRename(namespace string, oid string, name string, new string) error {
+	return ErrNotImplemented
+}
+
+// update a file
+func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStoreBlob) error {
+	return ErrNotImplemented
 }
 
 //

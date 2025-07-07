@@ -278,6 +278,26 @@ func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreCompon
 	return &resp, nil
 }
 
+// create a file
+func (impl easyStoreProxyImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {
+	return ErrNotImplemented
+}
+
+// delete a file
+func (impl easyStoreProxyImpl) FileDelete(namespace string, oid string, name string) error {
+	return ErrNotImplemented
+}
+
+// rename a file, old name, new name
+func (impl easyStoreProxyImpl) FileRename(namespace string, oid string, name string, new string) error {
+	return ErrNotImplemented
+}
+
+// update a file
+func (impl easyStoreProxyImpl) FileUpdate(namespace string, oid string, file EasyStoreBlob) error {
+	return ErrNotImplemented
+}
+
 func (impl easyStoreProxyReadonlyImpl) Close() error {
 
 	// need to do this
@@ -439,6 +459,10 @@ func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields Easy
 		which:   which,
 		objects: resp.Results,
 		proxy:   impl}, nil
+}
+
+func (impl easyStoreProxyReadonlyImpl) FileGetByKey(namespace string, oid string, name string) (EasyStoreBlob, error) {
+	return nil, ErrNotImplemented
 }
 
 func (impl easyStoreProxyReadonlyImpl) componentHelper(which EasyStoreComponents) string {

@@ -107,13 +107,15 @@ func main() {
 	case "s3":
 		implConfig = uvaeasystore.DatastoreS3Config{
 			Bucket:              os.Getenv("BUCKET"),
+			SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
+			SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
+			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 			DbHost:              os.Getenv("DBHOST"),
 			DbPort:              asIntWithDefault(os.Getenv("DBPORT"), 0),
 			DbName:              os.Getenv("DBNAME"),
 			DbUser:              os.Getenv("DBUSER"),
 			DbPassword:          os.Getenv("DBPASS"),
 			DbTimeout:           asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 			Log:                 logger,
 		}
 		es, err = uvaeasystore.NewEasyStore(implConfig)
@@ -146,15 +148,12 @@ func main() {
 
 		switch cmd {
 		case "add":
-
 			err = addBlob(es, eso, name, fname)
 
 		case "del":
-
 			err = delBlob(es, eso, name)
 
 		case "rename":
-
 			err = renameBlob(es, eso, name, newName)
 
 		case "show":
@@ -187,17 +186,36 @@ func addBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name s
 	mt := http.DetectContentType(buf)
 
 	// make the new blob
-	_ = uvaeasystore.NewEasyStoreBlob(name, mt, buf)
+	bl := uvaeasystore.NewEasyStoreBlob(name, mt, buf)
+	// and add it
+	err = es.FileCreate(eso.Namespace(), eso.Id(), bl)
 
-	return uvaeasystore.ErrNotImplemented
+	return err
 }
 
 func delBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string) error {
-	return uvaeasystore.ErrNotImplemented
+
+	// delete the file
+	err := es.FileDelete(eso.Namespace(), eso.Id(), name)
+
+	// handle this case differently
+	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		err = nil
+	}
+
+	return err
 }
 
 func renameBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, newName string) error {
 	_, err := es.Rename(eso, uvaeasystore.BaseComponent, name, newName)
+
+	// handle this case differently
+	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		err = nil
+	}
+
 	return err
 }
 

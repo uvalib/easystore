@@ -66,12 +66,21 @@ type EasyStoreBlobSet interface {
 // EasyStoreReadonly - the store abstraction (read only)
 type EasyStoreReadonly interface {
 
+	// object API calls
+
 	// get object(s) by identifier
 	GetByKey(string, string, EasyStoreComponents) (EasyStoreObject, error)
 	GetByKeys(string, []string, EasyStoreComponents) (EasyStoreObjectSet, error)
 
 	// get object(s) by fields, all specified are combined in an AND operation
 	GetByFields(string, EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
+
+	// file API calls
+
+	// get file by identifier
+	FileGetByKey(namespace string, oid string, name string) (EasyStoreBlob, error)
+
+	// lifecycle API
 
 	// close connections
 	Close() error
@@ -86,6 +95,8 @@ type EasyStore interface {
 	// all the read only features
 	EasyStoreReadonly
 
+	// object API calls
+
 	// create new object
 	Create(EasyStoreObject) (EasyStoreObject, error)
 
@@ -96,7 +107,22 @@ type EasyStore interface {
 	Delete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
 	// rename one of the blobs within the object, old name, new name
+	// RETIRE ME
 	Rename(EasyStoreObject, EasyStoreComponents, string, string) (EasyStoreObject, error)
+
+	// file API calls
+
+	// create a file
+	FileCreate(namespace string, oid string, file EasyStoreBlob) error
+
+	// delete a file
+	FileDelete(namespace string, oid string, name string) error
+
+	// rename a file, old name, new name
+	FileRename(namespace string, oid string, name string, new string) error
+
+	// update a file
+	FileUpdate(namespace string, oid string, file EasyStoreBlob) error
 }
 
 // EasyStoreObject - the objects stored in the easystore

@@ -131,6 +131,10 @@ func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStore
 	return newEasyStoreObjectSet(impl, objs, which), nil
 }
 
+func (impl easyStoreReadonlyImpl) FileGetByKey(namespace string, oid string, name string) (EasyStoreBlob, error) {
+	return nil, ErrNotImplemented
+}
+
 //
 // private methods
 //
