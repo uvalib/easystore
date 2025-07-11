@@ -76,7 +76,7 @@ func GetByFieldsPreflight(namespace string, fields EasyStoreObjectFields, which 
 	return nil
 }
 
-func CreatePreflight(obj EasyStoreObject) error {
+func ObjectCreatePreflight(obj EasyStoreObject) error {
 
 	// validate the object
 	if obj == nil {
@@ -95,7 +95,7 @@ func CreatePreflight(obj EasyStoreObject) error {
 	return nil
 }
 
-func UpdatePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
+func ObjectUpdatePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
 
 	// validate the object
 	if obj == nil {
@@ -124,7 +124,7 @@ func UpdatePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
 	return nil
 }
 
-func DeletePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
+func ObjectDeletePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
 
 	// validate the object
 	if obj == nil {
@@ -148,6 +148,30 @@ func DeletePreflight(obj EasyStoreObject, which EasyStoreComponents) error {
 	if which > AllComponents {
 		return ErrBadParameter
 	}
+
+	// preflight good
+	return nil
+}
+
+func FileCreatePreflight(namespace string, oid string, file EasyStoreBlob) error {
+
+	// preflight good
+	return nil
+}
+
+func FileDeletePreflight(namespace string, oid string, name string) error {
+
+	// preflight good
+	return nil
+}
+
+func FileRenamePreflight(namespace string, oid string, name string, new string) error {
+
+	// preflight good
+	return nil
+}
+
+func FileUpdatePreflight(namespace string, oid string, file EasyStoreBlob) error {
 
 	// preflight good
 	return nil

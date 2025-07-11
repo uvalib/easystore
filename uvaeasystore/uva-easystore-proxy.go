@@ -98,7 +98,7 @@ func newEasyStoreProxyReadonly(config EasyStoreProxyConfig) (EasyStoreReadonly, 
 func (impl easyStoreProxyImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// preflight validation
-	if err := CreatePreflight(obj); err != nil {
+	if err := ObjectCreatePreflight(obj); err != nil {
 		logError(impl.config.Logger(), "preflight failure")
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (impl easyStoreProxyImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObjec
 func (impl easyStoreProxyImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
-	if err := UpdatePreflight(obj, which); err != nil {
+	if err := ObjectUpdatePreflight(obj, which); err != nil {
 		logError(impl.config.Logger(), "preflight failure")
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (impl easyStoreProxyImpl) ObjectUpdate(obj EasyStoreObject, which EasyStore
 func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
-	if err := DeletePreflight(obj, which); err != nil {
+	if err := ObjectDeletePreflight(obj, which); err != nil {
 		logError(impl.config.Logger(), "preflight failure")
 		return nil, err
 	}
@@ -280,21 +280,49 @@ func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreCompon
 
 // create a file
 func (impl easyStoreProxyImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {
+
+	// preflight validation
+	if err := FileCreatePreflight(namespace, oid, file); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return err
+	}
+
 	return ErrNotImplemented
 }
 
 // delete a file
 func (impl easyStoreProxyImpl) FileDelete(namespace string, oid string, name string) error {
+
+	// preflight validation
+	if err := FileDeletePreflight(namespace, oid, name); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return err
+	}
+
 	return ErrNotImplemented
 }
 
 // rename a file, old name, new name
 func (impl easyStoreProxyImpl) FileRename(namespace string, oid string, name string, new string) error {
+
+	// preflight validation
+	if err := FileRenamePreflight(namespace, oid, name, new); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return err
+	}
+
 	return ErrNotImplemented
 }
 
 // update a file
 func (impl easyStoreProxyImpl) FileUpdate(namespace string, oid string, file EasyStoreBlob) error {
+
+	// preflight validation
+	if err := FileUpdatePreflight(namespace, oid, file); err != nil {
+		logError(impl.config.Logger(), "preflight failure")
+		return err
+	}
+
 	return ErrNotImplemented
 }
 
