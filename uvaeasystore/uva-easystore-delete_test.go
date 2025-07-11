@@ -15,7 +15,7 @@ func TestSimpleDelete(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -27,7 +27,7 @@ func TestSimpleDelete(t *testing.T) {
 	}
 
 	// now delete it
-	_, err = es.Delete(o, BaseComponent)
+	_, err = es.ObjectDelete(o, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -53,7 +53,7 @@ func TestFieldsDelete(t *testing.T) {
 	o.SetFields(fields)
 
 	// create the new object
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -65,7 +65,7 @@ func TestFieldsDelete(t *testing.T) {
 	}
 
 	// now delete it
-	_, err = es.Delete(o, Fields)
+	_, err = es.ObjectDelete(o, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -93,7 +93,7 @@ func TestFilesDelete(t *testing.T) {
 	o.SetFiles(files)
 
 	// create the new object
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -105,7 +105,7 @@ func TestFilesDelete(t *testing.T) {
 	}
 
 	// now delete it
-	_, err = es.Delete(o, Files)
+	_, err = es.ObjectDelete(o, Files)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -132,7 +132,7 @@ func TestMetadataDelete(t *testing.T) {
 	o.SetMetadata(metadata)
 
 	// create the new object
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -144,7 +144,7 @@ func TestMetadataDelete(t *testing.T) {
 	}
 
 	// now delete it
-	_, err = es.Delete(o, Metadata)
+	_, err = es.ObjectDelete(o, Metadata)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

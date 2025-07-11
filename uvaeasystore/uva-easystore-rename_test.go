@@ -21,7 +21,7 @@ func TestRenameFiles(t *testing.T) {
 	o.SetFiles(files)
 
 	// create it
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

@@ -14,7 +14,7 @@ func TestUpdateFields(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no fields
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -32,7 +32,7 @@ func TestUpdateFields(t *testing.T) {
 	o.SetFields(fields)
 
 	// update the object
-	_, err = es.Update(o, Fields)
+	_, err = es.ObjectUpdate(o, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -58,7 +58,7 @@ func TestUpdateFiles(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no files
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -76,7 +76,7 @@ func TestUpdateFiles(t *testing.T) {
 	o.SetFiles(files)
 
 	// update the object
-	_, err = es.Update(o, Files)
+	_, err = es.ObjectUpdate(o, Files)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -102,7 +102,7 @@ func TestUpdateMetadata(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no fields
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -119,7 +119,7 @@ func TestUpdateMetadata(t *testing.T) {
 	o.SetMetadata(metadata)
 
 	// update the object
-	_, err = es.Update(o, Metadata)
+	_, err = es.ObjectUpdate(o, Metadata)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

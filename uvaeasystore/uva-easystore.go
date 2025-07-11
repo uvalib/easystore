@@ -98,13 +98,13 @@ type EasyStore interface {
 	// object API calls
 
 	// create new object
-	Create(EasyStoreObject) (EasyStoreObject, error)
+	ObjectCreate(EasyStoreObject) (EasyStoreObject, error)
 
 	// update all or part of existing object, specify which components are to be updated
-	Update(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
+	ObjectUpdate(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
 	// delete all or part of an existing object, specify which components are to be deleted
-	Delete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
+	ObjectDelete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
 	// rename one of the blobs within the object, old name, new name
 	// RETIRE ME

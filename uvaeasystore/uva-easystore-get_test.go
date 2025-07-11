@@ -32,7 +32,7 @@ func TestGetById(t *testing.T) {
 	}
 
 	// create the object
-	_, err = es.Create(o)
+	_, err = es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -77,7 +77,7 @@ func TestGetByIds(t *testing.T) {
 	}
 
 	// create the object
-	_, err = es.Create(o)
+	_, err = es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -136,7 +136,7 @@ func TestGetByFoundFields(t *testing.T) {
 	o.SetFields(fields)
 
 	// create the object
-	_, err := es.Create(o)
+	_, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

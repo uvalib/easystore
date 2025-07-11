@@ -14,7 +14,7 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -37,7 +37,7 @@ func TestObjectBlobsUpdate(t *testing.T) {
 
 	// update the object
 	o.SetFiles(blobs)
-	o, err = es.Update(o, Files)
+	o, err = es.ObjectUpdate(o, Files)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -87,7 +87,7 @@ func TestObjectMetadataUpdate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -98,7 +98,7 @@ func TestObjectMetadataUpdate(t *testing.T) {
 	o.SetMetadata(m)
 
 	// update the object
-	n, err := es.Update(o, AllComponents)
+	n, err := es.ObjectUpdate(o, AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

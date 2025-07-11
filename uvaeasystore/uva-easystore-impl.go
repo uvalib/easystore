@@ -40,7 +40,7 @@ func newEasyStore(config EasyStoreImplConfig) (EasyStore, error) {
 	return easyStoreImpl{bus, easyStoreReadonlyImpl{config: config, store: store}}, nil
 }
 
-func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
+func (impl easyStoreImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := CreatePreflight(obj); err != nil {
@@ -95,7 +95,7 @@ func (impl easyStoreImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
-func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := UpdatePreflight(obj, which); err != nil {
@@ -197,7 +197,7 @@ func (impl easyStoreImpl) Update(obj EasyStoreObject, which EasyStoreComponents)
 	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
-func (impl easyStoreImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := DeletePreflight(obj, which); err != nil {

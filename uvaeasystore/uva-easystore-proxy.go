@@ -95,7 +95,7 @@ func newEasyStoreProxyReadonly(config EasyStoreProxyConfig) (EasyStoreReadonly, 
 	return i, i.Check()
 }
 
-func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, error) {
+func (impl easyStoreProxyImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := CreatePreflight(obj); err != nil {
@@ -138,7 +138,7 @@ func (impl easyStoreProxyImpl) Create(obj EasyStoreObject) (EasyStoreObject, err
 	return &resp, nil
 }
 
-func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreProxyImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := UpdatePreflight(obj, which); err != nil {
@@ -188,7 +188,7 @@ func (impl easyStoreProxyImpl) Update(obj EasyStoreObject, which EasyStoreCompon
 	return &resp, nil
 }
 
-func (impl easyStoreProxyImpl) Delete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := DeletePreflight(obj, which); err != nil {

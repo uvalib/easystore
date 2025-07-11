@@ -106,7 +106,7 @@ func main() {
 			break
 		}
 
-		_, err = es.Create(obj)
+		_, err = es.ObjectCreate(obj)
 		if err != nil {
 			//log.Printf("ERROR: %s", err.Error())
 			break

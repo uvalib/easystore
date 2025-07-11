@@ -120,7 +120,7 @@ func main() {
 					continue
 				}
 
-				_, err = es.Delete(o, uvaeasystore.BaseComponent)
+				_, err = es.ObjectDelete(o, uvaeasystore.BaseComponent)
 				if err != nil {
 					log.Printf("WARNING: delete %s/%s returns error (%s), continuing", parts[0], parts[1], err.Error())
 					errors++

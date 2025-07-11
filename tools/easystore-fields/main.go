@@ -129,7 +129,7 @@ func main() {
 		}
 
 		eso.SetFields(fields)
-		_, err = es.Update(eso, uvaeasystore.Fields)
+		_, err = es.ObjectUpdate(eso, uvaeasystore.Fields)
 	} else {
 		if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 			log.Printf("INFO: not found ns/oid [%s/%s]\n", namespace, oid)

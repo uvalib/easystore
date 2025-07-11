@@ -15,7 +15,7 @@ func TestUpdateBadVTagFiles(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object with no files
-	before, err := es.Create(o)
+	before, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -27,7 +27,7 @@ func TestUpdateBadVTagFiles(t *testing.T) {
 	o.SetFiles(files)
 
 	// update the object
-	after, err := es.Update(before, Files)
+	after, err := es.ObjectUpdate(before, Files)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -39,7 +39,7 @@ func TestUpdateBadVTagFiles(t *testing.T) {
 
 	// update the object using the old object
 	expected := ErrStaleObject
-	_, err = es.Update(before, Files)
+	_, err = es.ObjectUpdate(before, Files)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
@@ -51,7 +51,7 @@ func TestUpdateBadVTagMetadata(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	before, err := es.Create(o)
+	before, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -62,7 +62,7 @@ func TestUpdateBadVTagMetadata(t *testing.T) {
 	o.SetMetadata(metadata)
 
 	// update the object
-	after, err := es.Update(before, Metadata)
+	after, err := es.ObjectUpdate(before, Metadata)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -73,7 +73,7 @@ func TestUpdateBadVTagMetadata(t *testing.T) {
 
 	// update the object using the old object
 	expected := ErrStaleObject
-	_, err = es.Update(before, Metadata)
+	_, err = es.ObjectUpdate(before, Metadata)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}

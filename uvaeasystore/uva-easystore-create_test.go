@@ -15,7 +15,7 @@ func TestObjectCreate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -30,14 +30,14 @@ func TestDuplicateObjectCreate(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// try and create it again
 	expected := ErrAlreadyExists
-	o, err = es.Create(o)
+	o, err = es.ObjectCreate(o)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
@@ -55,7 +55,7 @@ func TestFieldsCreate(t *testing.T) {
 	o.SetFields(fields)
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -78,7 +78,7 @@ func TestFilesCreate(t *testing.T) {
 	o.SetFiles(files)
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -107,7 +107,7 @@ func TestDuplicateFilesCreate(t *testing.T) {
 
 	// create the new object
 	expected := ErrAlreadyExists
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
@@ -124,7 +124,7 @@ func TestMetadataCreate(t *testing.T) {
 	o.SetMetadata(metadata)
 
 	// create the new object
-	o, err := es.Create(o)
+	o, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
