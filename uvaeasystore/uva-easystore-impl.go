@@ -315,7 +315,36 @@ func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStor
 		return err
 	}
 
-	return ErrNotImplemented
+	// add it
+	key := DataStoreKey{namespace, oid}
+	err := impl.store.AddBlob(key, file)
+	if err != nil {
+		return err
+	}
+
+	// update the object (timestamp and vtag)
+	err = impl.store.UpdateObject(key)
+	if err != nil {
+		return err
+	}
+
+	// get the current object
+	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	if err != nil {
+		return err
+	}
+
+	// publish the appropriate events, errors are not too important
+	err = pubObjectUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+	err = pubFileCreate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+
+	return nil
 }
 
 // delete a file
@@ -327,7 +356,35 @@ func (impl easyStoreImpl) FileDelete(namespace string, oid string, name string) 
 		return err
 	}
 
+	// FIXME
 	return ErrNotImplemented
+
+	// delete the file
+	key := DataStoreKey{namespace, oid}
+
+	// update the object (timestamp and vtag)
+	err := impl.store.UpdateObject(key)
+	if err != nil {
+		return err
+	}
+
+	// get the current object
+	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	if err != nil {
+		return err
+	}
+
+	// publish the appropriate events, errors are not too important
+	err = pubObjectUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+	err = pubFileDelete(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+
+	return nil
 }
 
 // rename a file, old name, new name
@@ -339,7 +396,36 @@ func (impl easyStoreImpl) FileRename(namespace string, oid string, name string, 
 		return err
 	}
 
-	return ErrNotImplemented
+	// do the rename
+	key := DataStoreKey{namespace, oid}
+	err := impl.store.RenameBlobByKey(key, name, newName)
+	if err != nil {
+		return err
+	}
+
+	// update the object (timestamp and vtag)
+	err = impl.store.UpdateObject(key)
+	if err != nil {
+		return err
+	}
+
+	// get the current object
+	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	if err != nil {
+		return err
+	}
+
+	// publish the appropriate events, errors are not too important
+	err = pubObjectUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+	err = pubFileUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+
+	return nil
 }
 
 // update a file
@@ -351,7 +437,35 @@ func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStor
 		return err
 	}
 
+	// FIXME
 	return ErrNotImplemented
+
+	// do the update
+	key := DataStoreKey{namespace, oid}
+
+	// update the object (timestamp and vtag)
+	err := impl.store.UpdateObject(key)
+	if err != nil {
+		return err
+	}
+
+	// get the current object
+	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	if err != nil {
+		return err
+	}
+
+	// publish the appropriate events, errors are not too important
+	err = pubObjectUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+	err = pubFileUpdate(impl.messageBus, o)
+	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+	}
+
+	return nil
 }
 
 //

@@ -43,7 +43,7 @@ func TestDuplicateObjectCreate(t *testing.T) {
 	}
 }
 
-func TestFieldsCreate(t *testing.T) {
+func TestObjectWithFieldsCreate(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
@@ -66,7 +66,7 @@ func TestFieldsCreate(t *testing.T) {
 	testEqual(t, "value2", o.Fields()["field2"])
 }
 
-func TestFilesCreate(t *testing.T) {
+func TestObjectWithFilesCreate(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
@@ -78,24 +78,24 @@ func TestFilesCreate(t *testing.T) {
 	o.SetFiles(files)
 
 	// create the new object
-	o, err := es.ObjectCreate(o)
+	after, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// validate the object we got in return
-	validateObject(t, o, Files)
-	if len(o.Files()) != 2 {
-		t.Fatalf("expected '2' but got '%d'\n", len(o.Files()))
+	validateObject(t, after, Files)
+	if len(after.Files()) != 2 {
+		t.Fatalf("expected '2' but got '%d'\n", len(after.Files()))
 	}
-	testEqual(t, "file1.bin", o.Files()[0].Name())
-	testEqual(t, "file2.bin", o.Files()[1].Name())
+	testEqual(t, "file1.bin", after.Files()[0].Name())
+	testEqual(t, "file2.bin", after.Files()[1].Name())
 
-	//fmt.Printf("SIGNED URL: %s\n", o.Files()[0].Url())
-	//fmt.Printf("SIGNED URL: %s\n", o.Files()[1].Url())
+	//fmt.Printf("SIGNED URL: %s\n", after.Files()[0].Url())
+	//fmt.Printf("SIGNED URL: %s\n", after.Files()[1].Url())
 }
 
-func TestDuplicateFilesCreate(t *testing.T) {
+func TestObjectWithDuplicateFilesCreate(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
@@ -107,13 +107,13 @@ func TestDuplicateFilesCreate(t *testing.T) {
 
 	// create the new object
 	expected := ErrAlreadyExists
-	o, err := es.ObjectCreate(o)
+	_, err := es.ObjectCreate(o)
 	if errors.Is(err, expected) == false {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 }
 
-func TestMetadataCreate(t *testing.T) {
+func TestObjectWithMetadataCreate(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()
 	o := NewEasyStoreObject(goodNamespace, "")
@@ -124,16 +124,16 @@ func TestMetadataCreate(t *testing.T) {
 	o.SetMetadata(metadata)
 
 	// create the new object
-	o, err := es.ObjectCreate(o)
+	after, err := es.ObjectCreate(o)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
 	// validate the object we got in return
-	validateObject(t, o, Metadata)
+	validateObject(t, after, Metadata)
 
-	testEqual(t, mimeType, o.Metadata().MimeType())
-	buf, _ := o.Metadata().Payload()
+	testEqual(t, mimeType, after.Metadata().MimeType())
+	buf, _ := after.Metadata().Payload()
 	testEqual(t, string(jsonPayload), string(buf))
 }
 

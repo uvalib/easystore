@@ -155,23 +155,98 @@ func ObjectDeletePreflight(obj EasyStoreObject, which EasyStoreComponents) error
 
 func FileCreatePreflight(namespace string, oid string, file EasyStoreBlob) error {
 
+	// validate the object namespace/id
+	if len(namespace) == 0 {
+		return ErrBadParameter
+	}
+	if len(oid) == 0 {
+		return ErrBadParameter
+	}
+
+	// validate the file
+	if len(file.Name()) == 0 {
+		return ErrBadParameter
+	}
+	if len(file.MimeType()) == 0 {
+		return ErrBadParameter
+	}
+	pl, err := file.Payload()
+	if err != nil {
+		return ErrBadParameter
+	}
+	if len(pl) == 0 {
+		return ErrBadParameter
+	}
+
 	// preflight good
 	return nil
 }
 
 func FileDeletePreflight(namespace string, oid string, name string) error {
 
+	// validate the object namespace/id
+	if len(namespace) == 0 {
+		return ErrBadParameter
+	}
+	if len(oid) == 0 {
+		return ErrBadParameter
+	}
+
+	// validate the filename
+	if len(name) == 0 {
+		return ErrBadParameter
+	}
+
 	// preflight good
 	return nil
 }
 
-func FileRenamePreflight(namespace string, oid string, name string, new string) error {
+func FileRenamePreflight(namespace string, oid string, name string, newName string) error {
+
+	// validate the object namespace/id
+	if len(namespace) == 0 {
+		return ErrBadParameter
+	}
+	if len(oid) == 0 {
+		return ErrBadParameter
+	}
+
+	// validate the filenames
+	if len(name) == 0 {
+		return ErrBadParameter
+	}
+	if len(newName) == 0 {
+		return ErrBadParameter
+	}
 
 	// preflight good
 	return nil
 }
 
 func FileUpdatePreflight(namespace string, oid string, file EasyStoreBlob) error {
+
+	// validate the object namespace/id
+	if len(namespace) == 0 {
+		return ErrBadParameter
+	}
+	if len(oid) == 0 {
+		return ErrBadParameter
+	}
+
+	// validate the file
+	if len(file.Name()) == 0 {
+		return ErrBadParameter
+	}
+	if len(file.MimeType()) == 0 {
+		return ErrBadParameter
+	}
+	pl, err := file.Payload()
+	if err != nil {
+		return ErrBadParameter
+	}
+	if len(pl) == 0 {
+		return ErrBadParameter
+	}
 
 	// preflight good
 	return nil
