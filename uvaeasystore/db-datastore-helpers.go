@@ -11,9 +11,7 @@ package uvaeasystore
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	sqlite3 "github.com/mattn/go-sqlite3"
 	"log"
 	"strings"
 )
@@ -176,12 +174,12 @@ func errorMapper(err error) error {
 		}
 
 		// try sqlite errors
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) {
-			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
-				return fmt.Errorf("%q: %w", sqliteErr.Error(), ErrAlreadyExists)
-			}
-		}
+		//var sqliteErr sqlite3.Error
+		//if errors.As(err, &sqliteErr) {
+		//	if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
+		//		return fmt.Errorf("%q: %w", sqliteErr.Error(), ErrAlreadyExists)
+		//	}
+		//}
 
 	}
 	return err

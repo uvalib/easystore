@@ -52,24 +52,24 @@ func main() {
 	var err error
 
 	switch mode {
-	case "sqlite":
-		implConfig = uvaeasystore.DatastoreSqliteConfig{
-			DataSource: os.Getenv("SQLITEFILE"),
-			Log:        logger,
-		}
-		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+	//case "sqlite":
+	//	implConfig = uvaeasystore.DatastoreSqliteConfig{
+	//		DataSource: os.Getenv("SQLITEFILE"),
+	//		Log:        logger,
+	//	}
+	//	esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
 
-	case "postgres":
-		implConfig = uvaeasystore.DatastorePostgresConfig{
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			Log:        logger,
-		}
-		esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
+	//case "postgres":
+	//	implConfig = uvaeasystore.DatastorePostgresConfig{
+	//		DbHost:     os.Getenv("DBHOST"),
+	//		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//		DbName:     os.Getenv("DBNAME"),
+	//		DbUser:     os.Getenv("DBUSER"),
+	//		DbPassword: os.Getenv("DBPASS"),
+	//		DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//		Log:        logger,
+	//	}
+	//	esro, err = uvaeasystore.NewEasyStoreReadonly(implConfig)
 
 	case "s3":
 		implConfig = uvaeasystore.DatastoreS3Config{

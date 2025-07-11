@@ -58,28 +58,28 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	var proxyConfig EasyStoreProxyConfig
 
 	switch datastore {
-	case "sqlite":
-		implConfig = DatastoreSqliteConfig{
-			DataSource: goodSqliteFilename,
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
-		}
-		esro, err = NewEasyStoreReadonly(implConfig)
+	//case "sqlite":
+	//	implConfig = DatastoreSqliteConfig{
+	//		DataSource: goodSqliteFilename,
+	//		BusName:    busName,
+	//		SourceName: sourceName,
+	//		Log:        logger,
+	//	}
+	//	esro, err = NewEasyStoreReadonly(implConfig)
 
-	case "postgres":
-		implConfig = DatastorePostgresConfig{
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
-		}
-		esro, err = NewEasyStoreReadonly(implConfig)
+	//case "postgres":
+	//	implConfig = DatastorePostgresConfig{
+	//		DbHost:     os.Getenv("DBHOST"),
+	//		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//		DbName:     os.Getenv("DBNAME"),
+	//		DbUser:     os.Getenv("DBUSER"),
+	//		DbPassword: os.Getenv("DBPASS"),
+	//		DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//		BusName:    busName,
+	//		SourceName: sourceName,
+	//		Log:        logger,
+	//	}
+	//	esro, err = NewEasyStoreReadonly(implConfig)
 
 	case "s3":
 		implConfig = DatastoreS3Config{
@@ -137,28 +137,28 @@ func testSetup(t *testing.T) EasyStore {
 	var proxyConfig EasyStoreProxyConfig
 
 	switch datastore {
-	case "sqlite":
-		implConfig = DatastoreSqliteConfig{
-			DataSource: goodSqliteFilename,
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
-		}
-		es, err = NewEasyStore(implConfig)
+	//case "sqlite":
+	//	implConfig = DatastoreSqliteConfig{
+	//		DataSource: goodSqliteFilename,
+	//		BusName:    busName,
+	//		SourceName: sourceName,
+	//		Log:        logger,
+	//	}
+	//	es, err = NewEasyStore(implConfig)
 
-	case "postgres":
-		implConfig = DatastorePostgresConfig{
-			DbHost:     os.Getenv("DBHOST"),
-			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
-			DbName:     os.Getenv("DBNAME"),
-			DbUser:     os.Getenv("DBUSER"),
-			DbPassword: os.Getenv("DBPASS"),
-			DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
-			BusName:    busName,
-			SourceName: sourceName,
-			Log:        logger,
-		}
-		es, err = NewEasyStore(implConfig)
+	//case "postgres":
+	//	implConfig = DatastorePostgresConfig{
+	//		DbHost:     os.Getenv("DBHOST"),
+	//		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
+	//		DbName:     os.Getenv("DBNAME"),
+	//		DbUser:     os.Getenv("DBUSER"),
+	//		DbPassword: os.Getenv("DBPASS"),
+	//		DbTimeout:  asIntWithDefault(os.Getenv("DBTIMEOUT"), 0),
+	//		BusName:    busName,
+	//		SourceName: sourceName,
+	//		Log:        logger,
+	//	}
+	//	es, err = NewEasyStore(implConfig)
 
 	case "s3":
 		implConfig = DatastoreS3Config{

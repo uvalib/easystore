@@ -9,9 +9,9 @@
 
 package uvaeasystore
 
-import (
-	_ "github.com/mattn/go-sqlite3"
-)
+//import (
+//	_ "github.com/mattn/go-sqlite3"
+//)
 
 type DataStoreKey struct {
 	Namespace string
@@ -64,19 +64,19 @@ type DataStore interface {
 func NewDatastore(config EasyStoreImplConfig) (DataStore, error) {
 
 	// check for a sqlite configuration
-	_, ok := config.(DatastoreSqliteConfig)
-	if ok == true {
-		return newSqliteStore(config)
-	}
+	//_, ok := config.(DatastoreSqliteConfig)
+	//if ok == true {
+	//	return newSqliteStore(config)
+	//}
 
 	// check for postgres configuration
-	_, ok = config.(DatastorePostgresConfig)
-	if ok == true {
-		return newPostgresStore(config)
-	}
+	//_, ok = config.(DatastorePostgresConfig)
+	//if ok == true {
+	//	return newPostgresStore(config)
+	//}
 
 	// check for S3 configuration
-	_, ok = config.(DatastoreS3Config)
+	_, ok := config.(DatastoreS3Config)
 	if ok == true {
 		return newS3Store(config)
 	}
