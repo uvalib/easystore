@@ -28,33 +28,36 @@ const (
 type DataStore interface {
 	Check() error
 
-	// update methods
-	UpdateObject(DataStoreKey) error
+	// update methods (updates vtag and modified date)
+	UpdateObject(key DataStoreKey) error
 
 	// add methods
-	AddBlob(DataStoreKey, EasyStoreBlob) error
-	AddFields(DataStoreKey, EasyStoreObjectFields) error
-	AddMetadata(DataStoreKey, EasyStoreMetadata) error
-	AddObject(EasyStoreObject) error
+	AddBlob(key DataStoreKey, blob EasyStoreBlob) error
+	AddFields(key DataStoreKey, fields EasyStoreObjectFields) error
+	AddMetadata(key DataStoreKey, md EasyStoreMetadata) error
+	AddObject(obj EasyStoreObject) error
 
-	// get methods (bool is read from cache or not)
-	GetBlobsByKey(DataStoreKey, bool) ([]EasyStoreBlob, error)
-	GetFieldsByKey(DataStoreKey, bool) (*EasyStoreObjectFields, error)
-	GetMetadataByKey(DataStoreKey, bool) (EasyStoreMetadata, error)
-	GetObjectByKey(DataStoreKey, bool) (EasyStoreObject, error)
-	GetObjectsByKey([]DataStoreKey, bool) ([]EasyStoreObject, error)
+	// get methods
+	GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreBlob, error)
+	GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreObjectFields, error)
+	GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStoreMetadata, error)
+	GetObjectsByKey(keys []DataStoreKey, useCache bool) ([]EasyStoreObject, error)
+
+	// get single methods
+	//GetBlobByKey(key DataStoreKey, curName string, useCache bool) ([]EasyStoreBlob, error)
+	GetObjectByKey(key DataStoreKey, useCache bool) (EasyStoreObject, error)
 
 	// rename method
-	RenameBlobByKey(DataStoreKey, string, string) error
+	RenameBlobByKey(key DataStoreKey, curName string, newName string) error
 
 	// delete methods
-	DeleteBlobsByKey(DataStoreKey) error
-	DeleteFieldsByKey(DataStoreKey) error
-	DeleteMetadataByKey(DataStoreKey) error
-	DeleteObjectByKey(DataStoreKey) error
+	DeleteBlobsByKey(key DataStoreKey) error
+	DeleteFieldsByKey(key DataStoreKey) error
+	DeleteMetadataByKey(key DataStoreKey) error
+	DeleteObjectByKey(key DataStoreKey) error
 
 	// search methods
-	GetKeysByFields(string, EasyStoreObjectFields) ([]DataStoreKey, error)
+	GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error)
 
 	// close connections
 	Close() error
