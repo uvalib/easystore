@@ -107,7 +107,7 @@ type EasyStore interface {
 	ObjectDelete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
 	// rename one of the blobs within the object, old name, new name
-	// RETIRE ME
+	// FIXME: RETIRE ME
 	Rename(EasyStoreObject, EasyStoreComponents, string, string) (EasyStoreObject, error)
 
 	// file API calls

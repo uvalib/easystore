@@ -5,6 +5,7 @@
 package uvaeasystore
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -24,10 +25,8 @@ func TestFileCreate(t *testing.T) {
 	}
 
 	// add some files
-	file1Name := "file1.bin"
-	file2Name := "file2.bin"
-	f1 := newBinaryBlob(file1Name)
-	f2 := newBinaryBlob(file2Name)
+	f1 := newBinaryBlob("file1.bin")
+	f2 := newBinaryBlob("file2.bin")
 
 	// add the files via the file API
 	err = es.FileCreate(o.Namespace(), o.Id(), f1)
@@ -58,20 +57,32 @@ func TestFileCreate(t *testing.T) {
 
 	b1 := files[0]
 	b2 := files[1]
-	testEqual(t, file1Name, b1.Name())
-	testEqual(t, file2Name, b2.Name())
+	testEqual(t, f1.Name(), b1.Name())
+	testEqual(t, f2.Name(), b2.Name())
 	testEqual(t, f1.MimeType(), b1.MimeType())
 	testEqual(t, f2.MimeType(), b2.MimeType())
-	buf1, _ := b1.Payload()
-	buf2, _ := b2.Payload()
 	url1 := b1.Url()
 	url2 := b2.Url()
 
-	if (buf1 == nil || len(buf1) == 0) && len(url1) == 0 {
-		t.Fatalf("file payload AND url are empty\n")
+	if len(url1) == 0 {
+		t.Fatalf("file 1 url is empty\n")
 	}
-	if (buf2 == nil || len(buf2) == 0) && len(url2) == 0 {
-		t.Fatalf("file payload AND url are empty\n")
+	if len(url2) == 0 {
+		t.Fatalf("file 2 url is empty\n")
+	}
+
+	// verify payloads are correct
+	plBefore1, _ := f1.Payload()
+	plBefore2, _ := f2.Payload()
+	plAfter1, _ := getFileContents(url1)
+	plAfter2, _ := getFileContents(url2)
+
+	if !bytes.Equal(plBefore1, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+
+	if !bytes.Equal(plBefore2, plAfter2) {
+		t.Fatalf("file payloads are unequal but should be\n")
 	}
 
 	// check the vtags are updated
@@ -122,11 +133,18 @@ func TestFileDelete(t *testing.T) {
 	file1 := files[0]
 	testEqual(t, f2.Name(), file1.Name())
 	testEqual(t, f2.MimeType(), file1.MimeType())
-	buf1, _ := file1.Payload()
 	url1 := file1.Url()
 
-	if (buf1 == nil || len(buf1) == 0) && len(url1) == 0 {
-		t.Fatalf("file payload AND url are empty\n")
+	if len(url1) == 0 {
+		t.Fatalf("file 1 url is empty\n")
+	}
+
+	// verify payloads are correct
+	plBefore1, _ := f1.Payload()
+	plAfter1, _ := getFileContents(url1)
+
+	if !bytes.Equal(plBefore1, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
 	}
 
 	// check the vtags are updated
@@ -152,7 +170,49 @@ func TestFileRename(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// FIXME IMPLEMENT
+	// rename the first file
+	newName := "file99.bin"
+	err = es.FileRename(o.Namespace(), o.Id(), f1.Name(), newName)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// get the current object
+	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// test we got back what we expect
+	if after.Files() == nil {
+		t.Fatalf("expected non-empty but got empty\n")
+	}
+
+	files = after.Files()
+	if len(files) != 2 {
+		t.Fatalf("expected 1 but got %d\n", len(files))
+	}
+
+	//fmt.Printf("Name 0: [%s]\n", files[0].Name())
+	//fmt.Printf("Name 1: [%s]\n", files[1].Name())
+	if files[0].Name() == "file2.bin" {
+		if files[1].Name() != newName {
+			t.Fatalf("expected '%s' but got '%s'\n", newName, files[1].Name())
+		}
+	} else {
+		if files[0].Name() == newName {
+			if files[1].Name() != "file2.bin" {
+				t.Fatalf("expected 'file2.bin' but got '%s'\n", files[0].Name())
+			}
+		} else {
+			t.Fatalf("unexpected name, got '%s'\n", files[0].Name())
+		}
+	}
+
+	// check the vtags are updated
+	if o.VTag() == after.VTag() {
+		t.Fatalf("object vtags are equal but should not be\n")
+	}
 }
 
 func TestFileUpdate(t *testing.T) {
@@ -172,7 +232,64 @@ func TestFileUpdate(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// FIXME IMPLEMENT
+	// rewrite the existing content
+	f3 := newBinaryBlob("file2.bin")
+
+	err = es.FileUpdate(o.Namespace(), o.Id(), f3)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// get the current object
+	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// test we got back what we expect
+	if after.Files() == nil {
+		t.Fatalf("expected non-empty but got empty\n")
+	}
+
+	files = after.Files()
+	if len(files) != 2 {
+		t.Fatalf("expected 1 but got %d\n", len(files))
+	}
+
+	b1 := files[0]
+	b2 := files[1]
+	testEqual(t, f1.Name(), b1.Name())
+	testEqual(t, f2.Name(), b2.Name())
+	testEqual(t, f1.MimeType(), b1.MimeType())
+	testEqual(t, f2.MimeType(), b2.MimeType())
+	url1 := b1.Url()
+	url2 := b2.Url()
+
+	if len(url1) == 0 {
+		t.Fatalf("file 1 url is empty\n")
+	}
+	if len(url2) == 0 {
+		t.Fatalf("file 2 url is empty\n")
+	}
+
+	// verify payloads are correct
+	plBefore1, _ := f1.Payload()
+	plBefore2, _ := f3.Payload()
+	plAfter1, _ := getFileContents(url1)
+	plAfter2, _ := getFileContents(url2)
+
+	if !bytes.Equal(plBefore1, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+
+	if !bytes.Equal(plBefore2, plAfter2) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+
+	// check the vtags are updated
+	if o.VTag() == after.VTag() {
+		t.Fatalf("object vtags are equal but should not be\n")
+	}
 }
 
 //

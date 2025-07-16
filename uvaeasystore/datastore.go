@@ -28,8 +28,11 @@ const (
 type DataStore interface {
 	Check() error
 
-	// update methods (updates vtag and modified date)
+	// update object method (updates vtag and modified date)
 	UpdateObject(key DataStoreKey) error
+
+	// update blob method
+	UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error
 
 	// add methods
 	AddBlob(key DataStoreKey, blob EasyStoreBlob) error
@@ -37,7 +40,7 @@ type DataStore interface {
 	AddMetadata(key DataStoreKey, md EasyStoreMetadata) error
 	AddObject(obj EasyStoreObject) error
 
-	// get methods
+	// get multiples methods
 	GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreBlob, error)
 	GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreObjectFields, error)
 	GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStoreMetadata, error)
@@ -50,13 +53,16 @@ type DataStore interface {
 	// rename method
 	RenameBlobByKey(key DataStoreKey, curName string, newName string) error
 
-	// delete methods
+	// delete multiple methods
 	DeleteBlobsByKey(key DataStoreKey) error
+
+	// delete single methods
+	DeleteBlobByKey(key DataStoreKey, curName string) error
 	DeleteFieldsByKey(key DataStoreKey) error
 	DeleteMetadataByKey(key DataStoreKey) error
 	DeleteObjectByKey(key DataStoreKey) error
 
-	// search methods
+	// search method
 	GetKeysByFields(namespace string, fields EasyStoreObjectFields) ([]DataStoreKey, error)
 
 	// close connections

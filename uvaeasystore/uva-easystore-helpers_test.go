@@ -5,8 +5,13 @@
 package uvaeasystore
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
@@ -335,6 +340,31 @@ func newBinaryBlob(filename string) EasyStoreBlob {
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
 	return NewEasyStoreBlob(filename, "application/octet-stream", buf)
+}
+
+func getFileContents(url string) ([]byte, error) {
+
+	//fmt.Printf("streaming %s...\n", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check response
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	// Write
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+	_, err = io.Copy(writer, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
 }
 
 //

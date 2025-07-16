@@ -79,6 +79,18 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	return s.addObject(impl.Namespace(), impl.Id(), impl)
 }
 
+// UpdateBlob -- update the contents of an existing blob
+func (s *S3Storage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
+
+	// check asset already exist
+	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
+	if s.checkExists(key.Namespace, key.ObjectId, jsonName) == false {
+		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrNotFound)
+		//return ErrNotFound
+	}
+	return s.addBlob(key.Namespace, key.ObjectId, blob)
+}
+
 // AddBlob -- add a new blob object
 func (s *S3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	// check asset does not exist
@@ -259,13 +271,15 @@ func (s *S3Storage) RenameBlobByKey(key DataStoreKey, curName string, newName st
 	// check currently named asset exists
 	if s.s3Exists(s.Bucket, curBlobKey) == false {
 		//fmt.Printf("ERROR: %s does not exist\n", curBlobKey)
-		return ErrNotFound
+		return fmt.Errorf("%q: %w", curBlobKey, ErrNotFound)
+		//return ErrNotFound
 	}
 
 	// check new asset name does not already exist
 	if s.s3Exists(s.Bucket, newBlobKey) == true {
 		//fmt.Printf("ERROR: %s already exist\n", newBlobKey)
-		return ErrAlreadyExists
+		return fmt.Errorf("%q: %w", newBlobKey, ErrAlreadyExists)
+		//return ErrAlreadyExists
 	}
 
 	// download from S3
@@ -306,6 +320,16 @@ func (s *S3Storage) RenameBlobByKey(key DataStoreKey, curName string, newName st
 	curKey := s.assetKey(key.Namespace, key.ObjectId, curName)
 	newKey := s.assetKey(key.Namespace, key.ObjectId, newName)
 	return s.s3Rename(s.Bucket, curKey, newKey)
+}
+
+// DeleteBlobByKey -- delete a single blob associated with the specified object
+func (s *S3Storage) DeleteBlobByKey(key DataStoreKey, curName string) error {
+
+	// FIXME, what about the actual asset!!!!
+
+	curBlobKey := s.assetKey(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", curName, S3BlobFileNameSuffix))
+	// remove the old blob descriptor file
+	return s.s3Remove(s.Bucket, curBlobKey)
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
@@ -447,8 +471,10 @@ func (s *S3Storage) addBlob(namespace string, identifier string, blob EasyStoreB
 	}
 
 	// dont want to serialize the payload
-	impl.Payload_ = nil
-	bBytes := s.serialize.BlobSerialize(impl).([]byte)
+	// interfaces are pointers
+	implClone := *impl
+	implClone.Payload_ = nil
+	bBytes := s.serialize.BlobSerialize(implClone).([]byte)
 
 	// upload to S3
 	return s.s3UploadFromBuffer(s.Bucket, blobKey, bBytes)

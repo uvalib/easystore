@@ -43,6 +43,11 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
 }
 
+// UpdateBlob -- update the contents of an existing blob
+func (s *dbStorage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
+	return ErrNotImplemented
+}
+
 // AddBlob -- add a new blob object
 func (s *dbStorage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
@@ -209,6 +214,16 @@ func (s *dbStorage) GetObjectsByKey(keys []DataStoreKey, useCache bool) ([]EasyS
 // RenameBlobByKey -- rename the named blob to the new name
 func (s *dbStorage) RenameBlobByKey(key DataStoreKey, curName string, newName string) error {
 	return ErrNotImplemented
+}
+
+// DeleteBlobByKey -- delete a single blob associated with the specified object
+func (s *dbStorage) DeleteBlobByKey(key DataStoreKey, curName string) error {
+
+	stmt, err := s.Prepare("DELETE FROM blobs WHERE namespace = $1 AND oid = $2 and name = $3")
+	if err != nil {
+		return err
+	}
+	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, curName)
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object

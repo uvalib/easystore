@@ -275,7 +275,7 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 	return obj, nil
 }
 
-// RETIRE ME
+// FIXME: RETIRE ME
 func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
 
 	// preflight validation
@@ -356,14 +356,15 @@ func (impl easyStoreImpl) FileDelete(namespace string, oid string, name string) 
 		return err
 	}
 
-	// FIXME
-	return ErrNotImplemented
-
 	// delete the file
 	key := DataStoreKey{namespace, oid}
+	err := impl.store.DeleteBlobByKey(key, name)
+	if err != nil {
+		return err
+	}
 
 	// update the object (timestamp and vtag)
-	err := impl.store.UpdateObject(key)
+	err = impl.store.UpdateObject(key)
 	if err != nil {
 		return err
 	}
@@ -437,14 +438,15 @@ func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStor
 		return err
 	}
 
-	// FIXME
-	return ErrNotImplemented
-
 	// do the update
 	key := DataStoreKey{namespace, oid}
+	err := impl.store.UpdateBlob(key, file)
+	if err != nil {
+		return err
+	}
 
 	// update the object (timestamp and vtag)
-	err := impl.store.UpdateObject(key)
+	err = impl.store.UpdateObject(key)
 	if err != nil {
 		return err
 	}
