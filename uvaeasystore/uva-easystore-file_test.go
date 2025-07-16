@@ -140,10 +140,10 @@ func TestFileDelete(t *testing.T) {
 	}
 
 	// verify payloads are correct
-	plBefore1, _ := f1.Payload()
+	plBefore2, _ := f2.Payload()
 	plAfter1, _ := getFileContents(url1)
 
-	if !bytes.Equal(plBefore1, plAfter1) {
+	if !bytes.Equal(plBefore2, plAfter1) {
 		t.Fatalf("file payloads are unequal but should be\n")
 	}
 
