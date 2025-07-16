@@ -226,57 +226,57 @@ func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStore
 	return nil, nil
 }
 
-func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
-
-	// preflight validation
-	if err := RenamePreflight(obj, which, name, newName); err != nil {
-		logError(impl.config.Logger(), "preflight failure")
-		return nil, err
-	}
-
-	// create the vtag parameter
-	vtag := fmt.Sprintf("vtag=%s", obj.VTag())
-
-	// build the attributes list (this is optional)
-	attribs := impl.componentHelper(which)
-
-	// build the query parameters
-	query := fmt.Sprintf("?%s", vtag)
-
-	// if we have the optional attribute component
-	if len(attribs) != 0 {
-		query = fmt.Sprintf("%s&%s", query, attribs)
-	}
-
-	// create the request payload
-	req := RenameBlobRequest{CurrentName: name, NewName: newName}
-	reqBytes, err := json.Marshal(req)
-	if err != nil {
-		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
-		return nil, ErrSerialize
-	}
-
-	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
-	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
-	if err != nil {
-		if len(respBytes) > 0 {
-			//log.Printf("RESP: [%s]", string(respBytes))
-			return nil, mapResponseToError(string(respBytes))
-		}
-		return nil, err
-	}
-
-	// process the response payload
-	var resp easyStoreObjectImpl
-	err = json.Unmarshal(respBytes, &resp)
-	if err != nil {
-		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
-		return nil, ErrDeserialize
-	}
-
-	return &resp, nil
-}
+//func (impl easyStoreProxyImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
+//
+//	// preflight validation
+//	if err := RenamePreflight(obj, which, name, newName); err != nil {
+//		logError(impl.config.Logger(), "preflight failure")
+//		return nil, err
+//	}
+//
+//	// create the vtag parameter
+//	vtag := fmt.Sprintf("vtag=%s", obj.VTag())
+//
+//	// build the attributes list (this is optional)
+//	attribs := impl.componentHelper(which)
+//
+//	// build the query parameters
+//	query := fmt.Sprintf("?%s", vtag)
+//
+//	// if we have the optional attribute component
+//	if len(attribs) != 0 {
+//		query = fmt.Sprintf("%s&%s", query, attribs)
+//	}
+//
+//	// create the request payload
+//	req := RenameBlobRequest{CurrentName: name, NewName: newName}
+//	reqBytes, err := json.Marshal(req)
+//	if err != nil {
+//		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+//		return nil, ErrSerialize
+//	}
+//
+//	// issue the request
+//	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
+//	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
+//	if err != nil {
+//		if len(respBytes) > 0 {
+//			//log.Printf("RESP: [%s]", string(respBytes))
+//			return nil, mapResponseToError(string(respBytes))
+//		}
+//		return nil, err
+//	}
+//
+//	// process the response payload
+//	var resp easyStoreObjectImpl
+//	err = json.Unmarshal(respBytes, &resp)
+//	if err != nil {
+//		log.Printf("ERROR: Unable to unmarshal response (%s)", err.Error())
+//		return nil, ErrDeserialize
+//	}
+//
+//	return &resp, nil
+//}
 
 // create a file
 func (impl easyStoreProxyImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {

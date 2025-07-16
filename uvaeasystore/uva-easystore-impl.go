@@ -275,36 +275,35 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 	return obj, nil
 }
 
-// FIXME: RETIRE ME
-func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
-
-	// preflight validation
-	if err := RenamePreflight(obj, which, name, newName); err != nil {
-		logError(impl.config.Logger(), "preflight failure")
-		return nil, err
-	}
-
-	// do the rename
-	err := impl.store.RenameBlobByKey(DataStoreKey{obj.Namespace(), obj.Id()}, name, newName)
-	if err != nil {
-		return nil, err
-	}
-
-	// update the object (timestamp and vtag)
-	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
-	if err != nil {
-		return nil, err
-	}
-
-	// publish the appropriate event, errors are not too important
-	err = pubObjectUpdate(impl.messageBus, obj)
-	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-	}
-
-	// get the full object
-	return impl.GetByKey(obj.Namespace(), obj.Id(), which)
-}
+//func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
+//
+//	// preflight validation
+//	if err := RenamePreflight(obj, which, name, newName); err != nil {
+//		logError(impl.config.Logger(), "preflight failure")
+//		return nil, err
+//	}
+//
+//	// do the rename
+//	err := impl.store.RenameBlobByKey(DataStoreKey{obj.Namespace(), obj.Id()}, name, newName)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// update the object (timestamp and vtag)
+//	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// publish the appropriate event, errors are not too important
+//	err = pubObjectUpdate(impl.messageBus, obj)
+//	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+//		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+//	}
+//
+//	// get the full object
+//	return impl.GetByKey(obj.Namespace(), obj.Id(), which)
+//}
 
 // create a file
 func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {

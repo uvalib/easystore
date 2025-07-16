@@ -218,7 +218,7 @@ func delBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name s
 }
 
 func renameBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, newName string) error {
-	_, err := es.Rename(eso, uvaeasystore.BaseComponent, name, newName)
+	err := es.FileRename(eso.Namespace(), eso.Id(), name, newName)
 
 	// handle this case differently
 	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
