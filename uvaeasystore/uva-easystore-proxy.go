@@ -103,7 +103,7 @@ func (impl easyStoreProxyImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObjec
 		return nil, err
 	}
 
-	logInfo(impl.config.Logger(), fmt.Sprintf("creating new ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+	logInfo(impl.config.Logger(), fmt.Sprintf("creating new object ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// create the request payload
 	reqBytes, err := json.Marshal(obj)
@@ -155,7 +155,7 @@ func (impl easyStoreProxyImpl) ObjectUpdate(obj EasyStoreObject, which EasyStore
 		query = fmt.Sprintf("?%s", attribs)
 	}
 
-	logInfo(impl.config.Logger(), fmt.Sprintf("updating ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+	logInfo(impl.config.Logger(), fmt.Sprintf("updating object ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// create the request payload
 	reqBytes, err := json.Marshal(obj)
@@ -210,7 +210,7 @@ func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStore
 		query = fmt.Sprintf("%s&%s", query, attribs)
 	}
 
-	logInfo(impl.config.Logger(), fmt.Sprintf("deleting ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
+	logInfo(impl.config.Logger(), fmt.Sprintf("deleting object ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// issue the request
 	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
@@ -287,7 +287,29 @@ func (impl easyStoreProxyImpl) FileCreate(namespace string, oid string, file Eas
 		return err
 	}
 
-	return ErrNotImplemented
+	logInfo(impl.config.Logger(), fmt.Sprintf("creating new file for ns/oid [%s/%s]", namespace, oid))
+
+	// create the request payload
+	reqBytes, err := json.Marshal(file)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return ErrSerialize
+	}
+
+	//log.Printf("REQ: [%s]", string(reqBytes))
+
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s/file", impl.config.Endpoint(), namespace, oid)
+	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
+	if err != nil {
+		if len(respBytes) > 0 {
+			//log.Printf("RESP: [%s]", string(respBytes))
+			return mapResponseToError(string(respBytes))
+		}
+		return err
+	}
+
+	return nil
 }
 
 // delete a file
@@ -299,19 +321,45 @@ func (impl easyStoreProxyImpl) FileDelete(namespace string, oid string, name str
 		return err
 	}
 
-	return ErrNotImplemented
+	logInfo(impl.config.Logger(), fmt.Sprintf("deleting file ns/oid/name [%s/%s/%s]", namespace, oid, name))
+
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s/file/%s", impl.config.Endpoint(), namespace, oid, name)
+	respBytes, err := httpDelete(impl.HTTPClient, url)
+	if err != nil {
+		if len(respBytes) > 0 {
+			//log.Printf("RESP: [%s]", string(respBytes))
+			return mapResponseToError(string(respBytes))
+		}
+		return err
+	}
+
+	return nil
 }
 
 // rename a file, old name, new name
-func (impl easyStoreProxyImpl) FileRename(namespace string, oid string, name string, new string) error {
+func (impl easyStoreProxyImpl) FileRename(namespace string, oid string, name string, newName string) error {
 
 	// preflight validation
-	if err := FileRenamePreflight(namespace, oid, name, new); err != nil {
+	if err := FileRenamePreflight(namespace, oid, name, newName); err != nil {
 		logError(impl.config.Logger(), "preflight failure")
 		return err
 	}
 
-	return ErrNotImplemented
+	logInfo(impl.config.Logger(), fmt.Sprintf("renaming file ns/oid/name [%s/%s/%s] -> [%s]", namespace, oid, name, newName))
+
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s/file/%s?new=%s", impl.config.Endpoint(), namespace, oid, name, newName)
+	respBytes, err := httpPost(impl.HTTPClient, url, nil, "")
+	if err != nil {
+		if len(respBytes) > 0 {
+			//log.Printf("RESP: [%s]", string(respBytes))
+			return mapResponseToError(string(respBytes))
+		}
+		return err
+	}
+
+	return nil
 }
 
 // update a file
@@ -323,7 +371,29 @@ func (impl easyStoreProxyImpl) FileUpdate(namespace string, oid string, file Eas
 		return err
 	}
 
-	return ErrNotImplemented
+	logInfo(impl.config.Logger(), fmt.Sprintf("updating file ns/oid [%s/%s/%s]", namespace, oid, file.Name()))
+
+	// create the request payload
+	reqBytes, err := json.Marshal(file)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal request (%s)", err.Error())
+		return ErrSerialize
+	}
+
+	//log.Printf("REQ: [%s]", string(reqBytes))
+
+	// issue the request
+	url := fmt.Sprintf("%s/%s/%s/file", impl.config.Endpoint(), namespace, oid)
+	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
+	if err != nil {
+		if len(respBytes) > 0 {
+			//log.Printf("RESP: [%s]", string(respBytes))
+			return mapResponseToError(string(respBytes))
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (impl easyStoreProxyReadonlyImpl) Close() error {
