@@ -117,7 +117,7 @@ func main() {
 	// important, cleanup properly
 	defer es.Close()
 
-	eso, err := es.GetByKey(namespace, oid, uvaeasystore.Fields)
+	eso, err := es.ObjectGetByKey(namespace, oid, uvaeasystore.Fields)
 	if err == nil {
 		fields := eso.Fields()
 		if oper == "add" {

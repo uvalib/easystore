@@ -149,7 +149,7 @@ func main() {
 	if cmd == "show" {
 		components = uvaeasystore.Files
 	}
-	eso, err := es.GetByKey(namespace, oid, components)
+	eso, err := es.ObjectGetByKey(namespace, oid, components)
 	if err == nil {
 
 		switch cmd {

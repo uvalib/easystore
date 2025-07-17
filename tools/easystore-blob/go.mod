@@ -2,7 +2,7 @@ module github.com/uvalib/easystore-blob
 
 go 1.24.4
 
-require github.com/uvalib/easystore/uvaeasystore v0.0.0-20250707184652-94d3d2cbe807
+require github.com/uvalib/easystore/uvaeasystore v0.0.0-20250716200122-b0b6c11cc174
 
 replace github.com/uvalib/easystore/uvaeasystore => ../../uvaeasystore
 

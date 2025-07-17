@@ -113,7 +113,7 @@ func main() {
 	fields := uvaeasystore.DefaultEasyStoreFields()
 
 	// empty fields should return all items
-	iter, err := esro.GetByFields(namespace, fields, what)
+	iter, err := esro.ObjectGetByFields(namespace, fields, what)
 	if err != nil {
 		log.Fatalf("ERROR: getting objects (%s)", err.Error())
 	}

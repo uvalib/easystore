@@ -69,11 +69,11 @@ type EasyStoreReadonly interface {
 	// object API calls
 
 	// get object(s) by identifier
-	GetByKey(string, string, EasyStoreComponents) (EasyStoreObject, error)
-	GetByKeys(string, []string, EasyStoreComponents) (EasyStoreObjectSet, error)
+	ObjectGetByKey(string, string, EasyStoreComponents) (EasyStoreObject, error)
+	ObjectGetByKeys(string, []string, EasyStoreComponents) (EasyStoreObjectSet, error)
 
 	// get object(s) by fields, all specified are combined in an AND operation
-	GetByFields(string, EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
+	ObjectGetByFields(string, EasyStoreObjectFields, EasyStoreComponents) (EasyStoreObjectSet, error)
 
 	// file API calls
 

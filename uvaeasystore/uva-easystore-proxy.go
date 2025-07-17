@@ -76,7 +76,7 @@ func (impl *easyStoreProxyObjectSetImpl) Next() (EasyStoreObject, error) {
 
 	// do we need to get any more bits?
 	if impl.which > BaseComponent {
-		return impl.proxy.GetByKey(obj.Namespace(), obj.Id(), impl.which)
+		return impl.proxy.ObjectGetByKey(obj.Namespace(), obj.Id(), impl.which)
 	}
 
 	return &obj, nil
@@ -416,7 +416,7 @@ func (impl easyStoreProxyReadonlyImpl) Check() error {
 	return nil
 }
 
-func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreProxyReadonlyImpl) ObjectGetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := GetByKeyPreflight(namespace, id, which); err != nil {
@@ -457,7 +457,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKey(namespace string, id string, whi
 	return &resp, nil
 }
 
-func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreProxyReadonlyImpl) ObjectGetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// preflight validation
 	if err := GetByKeysPreflight(namespace, ids, which); err != nil {
@@ -509,7 +509,7 @@ func (impl easyStoreProxyReadonlyImpl) GetByKeys(namespace string, ids []string,
 		proxy:   impl}, nil
 }
 
-func (impl easyStoreProxyReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreProxyReadonlyImpl) ObjectGetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// preflight validation
 	if err := GetByFieldsPreflight(namespace, fields, which); err != nil {

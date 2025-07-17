@@ -44,7 +44,7 @@ func (impl easyStoreReadonlyImpl) Check() error {
 	return impl.store.Check()
 }
 
-func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
+func (impl easyStoreReadonlyImpl) ObjectGetByKey(namespace string, id string, which EasyStoreComponents) (EasyStoreObject, error) {
 
 	// preflight validation
 	if err := GetByKeyPreflight(namespace, id, which); err != nil {
@@ -62,7 +62,7 @@ func (impl easyStoreReadonlyImpl) GetByKey(namespace string, id string, which Ea
 	return impl.populateObject(o, which)
 }
 
-func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) ObjectGetByKeys(namespace string, ids []string, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// preflight validation
 	if err := GetByKeysPreflight(namespace, ids, which); err != nil {
@@ -94,7 +94,7 @@ func (impl easyStoreReadonlyImpl) GetByKeys(namespace string, ids []string, whic
 	return newEasyStoreObjectSet(impl, objs, which), nil
 }
 
-func (impl easyStoreReadonlyImpl) GetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
+func (impl easyStoreReadonlyImpl) ObjectGetByFields(namespace string, fields EasyStoreObjectFields, which EasyStoreComponents) (EasyStoreObjectSet, error) {
 
 	// preflight validation
 	if err := GetByFieldsPreflight(namespace, fields, which); err != nil {

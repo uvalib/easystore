@@ -15,7 +15,7 @@ func TestGetById(t *testing.T) {
 	defer es.Close()
 
 	// empty id
-	_, err := es.GetByKey(goodNamespace, "", BaseComponent)
+	_, err := es.ObjectGetByKey(goodNamespace, "", BaseComponent)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -25,7 +25,7 @@ func TestGetById(t *testing.T) {
 	o := NewEasyStoreObject(goodNamespace, "")
 
 	// does not already exist
-	_, err = es.GetByKey(goodNamespace, o.Id(), BaseComponent)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), BaseComponent)
 	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -38,7 +38,7 @@ func TestGetById(t *testing.T) {
 	}
 
 	// we expect to find this one
-	obj, err := es.GetByKey(goodNamespace, o.Id(), BaseComponent)
+	obj, err := es.ObjectGetByKey(goodNamespace, o.Id(), BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -46,7 +46,7 @@ func TestGetById(t *testing.T) {
 	validateObject(t, obj, BaseComponent)
 
 	// same thing with a bad namespace
-	_, err = es.GetByKey(badNamespace, o.Id(), BaseComponent)
+	_, err = es.ObjectGetByKey(badNamespace, o.Id(), BaseComponent)
 	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -59,7 +59,7 @@ func TestGetByIds(t *testing.T) {
 
 	// empty ids
 	ids := []string{}
-	_, err := es.GetByKeys(goodNamespace, ids, BaseComponent)
+	_, err := es.ObjectGetByKeys(goodNamespace, ids, BaseComponent)
 	expected := ErrBadParameter
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -70,7 +70,7 @@ func TestGetByIds(t *testing.T) {
 
 	// does not already exist
 	ids = []string{o.Id()}
-	_, err = es.GetByKeys(goodNamespace, ids, BaseComponent)
+	_, err = es.ObjectGetByKeys(goodNamespace, ids, BaseComponent)
 	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -84,7 +84,7 @@ func TestGetByIds(t *testing.T) {
 
 	// we expect to find this one
 	ids = []string{o.Id()}
-	iter, err := es.GetByKeys(goodNamespace, ids, BaseComponent)
+	iter, err := es.ObjectGetByKeys(goodNamespace, ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -99,7 +99,7 @@ func TestGetByIds(t *testing.T) {
 
 	// same thing with a bad namespace
 	ids = []string{o.Id()}
-	iter, err = es.GetByKeys(badNamespace, ids, BaseComponent)
+	iter, err = es.ObjectGetByKeys(badNamespace, ids, BaseComponent)
 	expected = ErrNotFound
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
@@ -107,7 +107,7 @@ func TestGetByIds(t *testing.T) {
 
 	// good and bad id
 	ids = []string{o.Id(), badId}
-	iter, err = es.GetByKeys(goodNamespace, ids, BaseComponent)
+	iter, err = es.ObjectGetByKeys(goodNamespace, ids, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -145,7 +145,7 @@ func TestGetByFoundFields(t *testing.T) {
 	fieldsSearch["key1"] = o.Id()
 
 	// search by specific namespace
-	iter, err := es.GetByFields(goodNamespace, fieldsSearch, Fields)
+	iter, err := es.ObjectGetByFields(goodNamespace, fieldsSearch, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -168,7 +168,7 @@ func TestGetByFoundFields(t *testing.T) {
 	}
 
 	// search by empty namespace
-	iter, err = es.GetByFields("", fieldsSearch, Fields)
+	iter, err = es.ObjectGetByFields("", fieldsSearch, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -198,7 +198,7 @@ func TestGetByNotFoundFields(t *testing.T) {
 	fields["key1"] = newObjectId()
 
 	// search by specific namespace
-	iter, err := esro.GetByFields(goodNamespace, fields, Fields)
+	iter, err := esro.ObjectGetByFields(goodNamespace, fields, Fields)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -215,7 +215,7 @@ func TestGetByEmptyFields(t *testing.T) {
 	fields := EasyStoreObjectFields{}
 
 	//empty fields, should be all items
-	iter, err := esro.GetByFields(goodNamespace, fields, BaseComponent)
+	iter, err := esro.ObjectGetByFields(goodNamespace, fields, BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

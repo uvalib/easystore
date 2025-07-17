@@ -168,7 +168,7 @@ func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what 
 		oid := whereCmd[4:]
 		fmt.Printf("Querying by OID: %s\n", oid)
 		oids := []string{oid}
-		return esro.GetByKeys(namespace, oids, what)
+		return esro.ObjectGetByKeys(namespace, oids, what)
 	}
 
 	// query by fields
@@ -184,7 +184,7 @@ func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what 
 	}
 
 	// return query by fields
-	return esro.GetByFields(namespace, fields, what)
+	return esro.ObjectGetByFields(namespace, fields, what)
 }
 
 func outputObject(obj uvaeasystore.EasyStoreObject, what uvaeasystore.EasyStoreComponents) error {

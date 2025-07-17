@@ -113,7 +113,7 @@ func main() {
 		if len(l) != 0 {
 			parts := strings.Split(l, "/")
 			if len(parts) == 2 {
-				o, err = es.GetByKey(parts[0], parts[1], uvaeasystore.BaseComponent)
+				o, err = es.ObjectGetByKey(parts[0], parts[1], uvaeasystore.BaseComponent)
 				if err != nil {
 					log.Printf("WARNING: get %s/%s returns error (%s), continuing", parts[0], parts[1], err.Error())
 					errors++

@@ -20,7 +20,7 @@ func TestUpdateFields(t *testing.T) {
 	}
 
 	// we can get it
-	before, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	before, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -38,7 +38,7 @@ func TestUpdateFields(t *testing.T) {
 	}
 
 	// we can still get it
-	after, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -64,7 +64,7 @@ func TestUpdateFiles(t *testing.T) {
 	}
 
 	// we can get it
-	before, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	before, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -82,7 +82,7 @@ func TestUpdateFiles(t *testing.T) {
 	}
 
 	// we can still get it
-	after, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -108,7 +108,7 @@ func TestUpdateMetadata(t *testing.T) {
 	}
 
 	// we can get it
-	before, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	before, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -125,7 +125,7 @@ func TestUpdateMetadata(t *testing.T) {
 	}
 
 	// we can still get it
-	after, err := es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

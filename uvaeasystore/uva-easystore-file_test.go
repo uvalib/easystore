@@ -40,7 +40,7 @@ func TestFileCreate(t *testing.T) {
 	}
 
 	// get the current object
-	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -115,7 +115,7 @@ func TestFileDelete(t *testing.T) {
 	}
 
 	// get the current object
-	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -178,7 +178,7 @@ func TestFileRename(t *testing.T) {
 	}
 
 	// get the current object
-	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -241,7 +241,7 @@ func TestFileUpdate(t *testing.T) {
 	}
 
 	// get the current object
-	after, err := es.GetByKey(o.Namespace(), o.Id(), AllComponents)
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

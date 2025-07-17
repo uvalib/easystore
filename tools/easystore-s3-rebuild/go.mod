@@ -5,8 +5,9 @@ go 1.24.4
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.84.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0
 )
+
+require github.com/uvalib/easystore/uvaeasystore v0.0.0
 
 replace github.com/uvalib/easystore/uvaeasystore => ../../uvaeasystore
 

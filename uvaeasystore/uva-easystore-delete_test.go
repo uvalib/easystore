@@ -21,7 +21,7 @@ func TestSimpleDelete(t *testing.T) {
 	}
 
 	// we can get it
-	_, err = es.GetByKey(goodNamespace, o.Id(), BaseComponent)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), BaseComponent)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -33,7 +33,7 @@ func TestSimpleDelete(t *testing.T) {
 	}
 
 	// now we cant
-	_, err = es.GetByKey(goodNamespace, o.Id(), BaseComponent)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), BaseComponent)
 	if errors.Is(err, ErrNotFound) == false {
 		if err != nil {
 			t.Fatalf("expected '%s' but got '%s'\n", ErrNotFound, err)
@@ -59,7 +59,7 @@ func TestFieldsDelete(t *testing.T) {
 	}
 
 	// we can get it
-	_, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -71,7 +71,7 @@ func TestFieldsDelete(t *testing.T) {
 	}
 
 	// we can still get it
-	o, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	o, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -99,7 +99,7 @@ func TestFilesDelete(t *testing.T) {
 	}
 
 	// we can get it
-	_, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -111,7 +111,7 @@ func TestFilesDelete(t *testing.T) {
 	}
 
 	// we can still get it
-	o, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	o, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -138,7 +138,7 @@ func TestMetadataDelete(t *testing.T) {
 	}
 
 	// we can get it
-	_, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	_, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
@@ -150,7 +150,7 @@ func TestMetadataDelete(t *testing.T) {
 	}
 
 	// we can still get it
-	o, err = es.GetByKey(goodNamespace, o.Id(), AllComponents)
+	o, err = es.ObjectGetByKey(goodNamespace, o.Id(), AllComponents)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}

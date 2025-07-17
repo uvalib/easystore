@@ -92,7 +92,7 @@ func (impl easyStoreImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObject, er
 	}
 
 	// get the full object
-	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
+	return impl.ObjectGetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -104,7 +104,7 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 	}
 
 	// get the current object and compare the vtag
-	current, err := impl.GetByKey(obj.Namespace(), obj.Id(), BaseComponent)
+	current, err := impl.ObjectGetByKey(obj.Namespace(), obj.Id(), BaseComponent)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 	}
 
 	// get the full object
-	return impl.GetByKey(obj.Namespace(), obj.Id(), AllComponents)
+	return impl.ObjectGetByKey(obj.Namespace(), obj.Id(), AllComponents)
 }
 
 func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreComponents) (EasyStoreObject, error) {
@@ -206,7 +206,7 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 	}
 
 	// get the current object and compare the vtag
-	current, err := impl.GetByKey(obj.Namespace(), obj.Id(), BaseComponent)
+	current, err := impl.ObjectGetByKey(obj.Namespace(), obj.Id(), BaseComponent)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 //	}
 //
 //	// get the full object
-//	return impl.GetByKey(obj.Namespace(), obj.Id(), which)
+//	return impl.ObjectGetByKey(obj.Namespace(), obj.Id(), which)
 //}
 
 // create a file
@@ -328,7 +328,7 @@ func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStor
 	}
 
 	// get the current object
-	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	o, err := impl.ObjectGetByKey(namespace, oid, BaseComponent)
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func (impl easyStoreImpl) FileDelete(namespace string, oid string, name string) 
 	}
 
 	// get the current object
-	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	o, err := impl.ObjectGetByKey(namespace, oid, BaseComponent)
 	if err != nil {
 		return err
 	}
@@ -410,7 +410,7 @@ func (impl easyStoreImpl) FileRename(namespace string, oid string, name string, 
 	}
 
 	// get the current object
-	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	o, err := impl.ObjectGetByKey(namespace, oid, BaseComponent)
 	if err != nil {
 		return err
 	}
@@ -451,7 +451,7 @@ func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStor
 	}
 
 	// get the current object
-	o, err := impl.GetByKey(namespace, oid, BaseComponent)
+	o, err := impl.ObjectGetByKey(namespace, oid, BaseComponent)
 	if err != nil {
 		return err
 	}
