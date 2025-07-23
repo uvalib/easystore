@@ -314,9 +314,15 @@ func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStor
 		return err
 	}
 
-	// add it
+	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	err := impl.store.AddBlob(key, file)
+	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	if err != nil {
+		return err
+	}
+
+	// add it
+	err = impl.store.AddBlob(key, file)
 	if err != nil {
 		return err
 	}
@@ -396,9 +402,15 @@ func (impl easyStoreImpl) FileRename(namespace string, oid string, name string, 
 		return err
 	}
 
-	// do the rename
+	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	err := impl.store.RenameBlobByKey(key, name, newName)
+	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	if err != nil {
+		return err
+	}
+
+	// do the rename
+	err = impl.store.RenameBlobByKey(key, name, newName)
 	if err != nil {
 		return err
 	}
@@ -437,9 +449,15 @@ func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStor
 		return err
 	}
 
-	// do the update
+	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	err := impl.store.UpdateBlob(key, file)
+	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	if err != nil {
+		return err
+	}
+
+	// do the update
+	err = impl.store.UpdateBlob(key, file)
 	if err != nil {
 		return err
 	}

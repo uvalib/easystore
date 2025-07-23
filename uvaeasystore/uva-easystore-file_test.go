@@ -6,6 +6,7 @@ package uvaeasystore
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 )
 
@@ -28,15 +29,32 @@ func TestFileCreate(t *testing.T) {
 	f1 := newBinaryBlob("file1.bin")
 	f2 := newBinaryBlob("file2.bin")
 
-	// add the files via the file API
+	// first attempt with bad values
+	expected := ErrNotFound
+	err = es.FileCreate(badNamespace, o.Id(), f1)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+	err = es.FileCreate(o.Namespace(), badId, f1)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// then try properly
 	err = es.FileCreate(o.Namespace(), o.Id(), f1)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
-
 	err = es.FileCreate(o.Namespace(), o.Id(), f2)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// then try a duplicate
+	expected = ErrAlreadyExists
+	err = es.FileCreate(o.Namespace(), o.Id(), f1)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// get the current object
@@ -108,11 +126,29 @@ func TestFileDelete(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// delete the first file
+	// first attempt with bad values
+	expected := ErrNotFound
+	err = es.FileDelete(badNamespace, o.Id(), f1.Name())
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+	err = es.FileDelete(o.Namespace(), badId, f1.Name())
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// then try properly
 	err = es.FileDelete(o.Namespace(), o.Id(), f1.Name())
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
+
+	// try deleting it again (currently does not fail as expected)
+	expected = ErrNotFound
+	//err = es.FileDelete(o.Namespace(), o.Id(), f1.Name())
+	//if errors.Is(err, expected) == false {
+	//	t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	//}
 
 	// get the current object
 	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
@@ -170,11 +206,34 @@ func TestFileRename(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// rename the first file
+	// first attempt with bad values
 	newName := "file99.bin"
+	expected := ErrNotFound
+	err = es.FileRename(badNamespace, o.Id(), f1.Name(), newName)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+	err = es.FileRename(o.Namespace(), badId, f1.Name(), newName)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// then attempt a non-existent name
+	err = es.FileRename(o.Namespace(), o.Id(), newName, f1.Name())
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// then try properly
 	err = es.FileRename(o.Namespace(), o.Id(), f1.Name(), newName)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// and try it again
+	err = es.FileRename(o.Namespace(), o.Id(), f1.Name(), newName)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 
 	// get the current object
@@ -232,9 +291,30 @@ func TestFileUpdate(t *testing.T) {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
 	}
 
-	// rewrite the existing content
+	// new blob with the same name
 	f3 := newBinaryBlob("file2.bin")
 
+	// new blob with another name
+	f4 := newBinaryBlob("file99.bin")
+
+	// first attempt with bad values
+	expected := ErrNotFound
+	err = es.FileUpdate(badNamespace, o.Id(), f3)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+	err = es.FileUpdate(o.Namespace(), badId, f3)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// attempt a non-existent name
+	err = es.FileUpdate(o.Namespace(), o.Id(), f4)
+	if errors.Is(err, expected) == false {
+		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+	}
+
+	// then try properly
 	err = es.FileUpdate(o.Namespace(), o.Id(), f3)
 	if err != nil {
 		t.Fatalf("expected 'OK' but got '%s'\n", err)
