@@ -79,13 +79,13 @@ func NewDatastore(config EasyStoreImplConfig) (DataStore, error) {
 	//}
 
 	// check for postgres configuration
-	//_, ok = config.(DatastorePostgresConfig)
-	//if ok == true {
-	//	return newPostgresStore(config)
-	//}
+	_, ok := config.(DatastorePostgresConfig)
+	if ok == true {
+		return newPostgresStore(config)
+	}
 
 	// check for S3 configuration
-	_, ok := config.(DatastoreS3Config)
+	_, ok = config.(DatastoreS3Config)
 	if ok == true {
 		return newS3Store(config)
 	}
