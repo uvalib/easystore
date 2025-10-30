@@ -28,11 +28,11 @@ const (
 type DataStore interface {
 	Check() error
 
-	// update object method (updates vtag and modified date)
-	UpdateObject(key DataStoreKey) error
-
-	// update blob method
+	// update methods
 	UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error
+	UpdateFields(key DataStoreKey, fields EasyStoreObjectFields) error
+	UpdateMetadata(key DataStoreKey, md EasyStoreMetadata) error
+	UpdateObject(key DataStoreKey) error
 
 	// add methods
 	AddBlob(key DataStoreKey, blob EasyStoreBlob) error

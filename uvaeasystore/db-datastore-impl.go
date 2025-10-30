@@ -12,8 +12,9 @@ package uvaeasystore
 import (
 	"database/sql"
 	"fmt"
-	"golang.org/x/exp/maps"
 	"log"
+
+	"golang.org/x/exp/maps"
 )
 
 // we store opaque metadata as a blob so need to distinguish it as special
@@ -31,6 +32,21 @@ func (s *dbStorage) Check() error {
 	return s.Ping()
 }
 
+// UpdateBlob -- update the contents of an existing blob
+func (s *dbStorage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
+	return ErrNotImplemented
+}
+
+// UpdateFields -- update the contents of an existing field set
+func (s *dbStorage) UpdateFields(key DataStoreKey, fields EasyStoreObjectFields) error {
+	return ErrNotImplemented
+}
+
+// UpdateMetadata -- update the contents of existing metadata
+func (s *dbStorage) UpdateMetadata(key DataStoreKey, md EasyStoreMetadata) error {
+	return ErrNotImplemented
+}
+
 // UpdateObject -- update a couple of object fields
 func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 
@@ -41,11 +57,6 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 
 	newVTag := newVtag()
 	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
-}
-
-// UpdateBlob -- update the contents of an existing blob
-func (s *dbStorage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
-	return ErrNotImplemented
 }
 
 // AddBlob -- add a new blob object

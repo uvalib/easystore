@@ -53,6 +53,27 @@ func (s *S3Storage) Check() error {
 	return s.Ping()
 }
 
+// UpdateBlob -- update the contents of an existing blob
+func (s *S3Storage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
+
+	// check asset already exist
+	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
+	if s.checkS3AssetExists(key.Namespace, key.ObjectId, jsonName) == false {
+		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrNotFound)
+	}
+	return s.addS3Blob(key.Namespace, key.ObjectId, blob)
+}
+
+// UpdateFields -- update the contents of an existing field set
+func (s *S3Storage) UpdateFields(key DataStoreKey, fields EasyStoreObjectFields) error {
+	return ErrNotImplemented
+}
+
+// UpdateMetadata -- update the contents of existing metadata
+func (s *S3Storage) UpdateMetadata(key DataStoreKey, md EasyStoreMetadata) error {
+	return ErrNotImplemented
+}
+
 // UpdateObject -- update a couple of object fields
 func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	obj, err := s.GetObjectByKey(key, FROMCACHE)
@@ -80,17 +101,6 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 		return err
 	}
 	return execPreparedBy3(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
-}
-
-// UpdateBlob -- update the contents of an existing blob
-func (s *S3Storage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
-
-	// check asset already exist
-	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
-	if s.checkS3AssetExists(key.Namespace, key.ObjectId, jsonName) == false {
-		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrNotFound)
-	}
-	return s.addS3Blob(key.Namespace, key.ObjectId, blob)
 }
 
 // AddBlob -- add a new blob object
