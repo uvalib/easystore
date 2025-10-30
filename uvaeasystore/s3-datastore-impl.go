@@ -15,15 +15,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"golang.org/x/exp/maps"
 	"log"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"golang.org/x/exp/maps"
 )
 
 var S3ObjectFileName = "object.json"
@@ -67,16 +68,18 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	impl.Vtag_ = newVtag()
 	impl.Modified_ = time.Now()
 
-	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = NOW() WHERE namespace = $2 AND oid = $3")
-	if err != nil {
-		return err
-	}
-	err = execPreparedBy3(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
+	// update the S3 asset
+	err = s.addS3Object(impl.Namespace(), impl.Id(), impl)
 	if err != nil {
 		return err
 	}
 
-	return s.addObject(impl.Namespace(), impl.Id(), impl)
+	// update the cache (database)
+	stmt, err := s.Prepare("UPDATE objects set vtag = $1, updated_at = NOW() WHERE namespace = $2 AND oid = $3")
+	if err != nil {
+		return err
+	}
+	return execPreparedBy3(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
 }
 
 // UpdateBlob -- update the contents of an existing blob
@@ -84,30 +87,29 @@ func (s *S3Storage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
 	// check asset already exist
 	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
-	if s.checkExists(key.Namespace, key.ObjectId, jsonName) == false {
+	if s.checkS3AssetExists(key.Namespace, key.ObjectId, jsonName) == false {
 		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrNotFound)
-		//return ErrNotFound
 	}
-	return s.addBlob(key.Namespace, key.ObjectId, blob)
+	return s.addS3Blob(key.Namespace, key.ObjectId, blob)
 }
 
 // AddBlob -- add a new blob object
 func (s *S3Storage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	// check asset does not exist
 	jsonName := fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix)
-	if s.checkExists(key.Namespace, key.ObjectId, jsonName) == true {
+	if s.checkS3AssetExists(key.Namespace, key.ObjectId, jsonName) == true {
 		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, jsonName), ErrAlreadyExists)
-		//return ErrAlreadyExists
 	}
-	return s.addBlob(key.Namespace, key.ObjectId, blob)
+	return s.addS3Blob(key.Namespace, key.ObjectId, blob)
 }
 
 // AddFields -- add a new fields object
 func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) error {
-	// check asset does not exist
-	//if s.checkExists(key.Namespace_, key.objectId, S3FieldsFileName) == true {
-	//	return ErrAlreadyExists
-	//}
+
+	err := s.addS3Fields(key.Namespace, key.ObjectId, fields)
+	if err != nil {
+		return err
+	}
 
 	stmt, err := s.Prepare("INSERT INTO fields( namespace, oid, name, value ) VALUES( $1,$2,$3,$4 )")
 	if err != nil {
@@ -121,37 +123,33 @@ func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 		}
 	}
 
-	return s.addFields(key.Namespace, key.ObjectId, fields)
+	return nil
 }
 
 // AddMetadata -- add a new metadata object
 func (s *S3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) error {
 	// check asset does not exist
-	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == true {
-		return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3MetadataFileName), ErrAlreadyExists)
-		//return ErrAlreadyExists
-	}
-	return s.addMetadata(key.Namespace, key.ObjectId, metadata)
+	//if s.checkS3AssetExists(key.Namespace, key.ObjectId, S3MetadataFileName) == true {
+	//	return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3MetadataFileName), ErrAlreadyExists)
+	//}
+	return s.addS3Metadata(key.Namespace, key.ObjectId, metadata)
 }
 
 // AddObject -- add a new object
 func (s *S3Storage) AddObject(obj EasyStoreObject) error {
-	// check asset does not exist
-	//if s.checkExists(obj.Namespace_(), obj.Id(), S3ObjectFileName) == true {
-	//	return ErrAlreadyExists
-	//}
 
-	// update the database
+	// add the asset
+	err := s.addS3Object(obj.Namespace(), obj.Id(), obj)
+	if err != nil {
+		return err
+	}
+
+	// update the cache (database)
 	stmt, err := s.Prepare("INSERT INTO objects( namespace, oid, vtag ) VALUES( $1,$2,$3 )")
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
-	if err != nil {
-		return err
-	}
-
-	return s.addObject(obj.Namespace(), obj.Id(), obj)
+	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
@@ -167,7 +165,7 @@ func (s *S3Storage) GetBlobsByKey(key DataStoreKey, useCache bool) ([]EasyStoreB
 	for _, fname := range fset {
 		bname := filepath.Base(fname)
 		if s.isBlobName(bname) == true {
-			blob, err := s.getBlob(fname)
+			blob, err := s.getS3Blob(fname)
 			if err != nil {
 				return nil, err
 			}
@@ -188,13 +186,13 @@ func (s *S3Storage) GetFieldsByKey(key DataStoreKey, useCache bool) (*EasyStoreO
 	// dont use the cache
 	if useCache == NOCACHE {
 		// check asset exists
-		if s.checkExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
-			return nil, ErrNotFound
+		if s.checkS3AssetExists(key.Namespace, key.ObjectId, S3FieldsFileName) == false {
+			return nil, fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3FieldsFileName), ErrNotFound)
 		}
-		return s.getFields(key.Namespace, key.ObjectId)
+		return s.getS3Fields(key.Namespace, key.ObjectId)
 	}
 
-	// we can read from the database (cache), its probably faster
+	// we can read from the cache (database)
 	rows, err := s.Query("SELECT name, value FROM fields WHERE namespace = $1 AND oid = $2 ORDER BY updated_at", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
@@ -210,10 +208,10 @@ func (s *S3Storage) GetMetadataByKey(key DataStoreKey, useCache bool) (EasyStore
 	// ignore useCache, we do not cache metadata
 
 	// check asset exists
-	if s.checkExists(key.Namespace, key.ObjectId, S3MetadataFileName) == false {
-		return nil, ErrNotFound
+	if s.checkS3AssetExists(key.Namespace, key.ObjectId, S3MetadataFileName) == false {
+		return nil, fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3MetadataFileName), ErrNotFound)
 	}
-	return s.getMetadata(key.Namespace, key.ObjectId)
+	return s.getS3Metadata(key.Namespace, key.ObjectId)
 }
 
 // GetObjectByKey -- get all field data associated with the specified object
@@ -222,13 +220,13 @@ func (s *S3Storage) GetObjectByKey(key DataStoreKey, useCache bool) (EasyStoreOb
 	// dont use the cache
 	if useCache == NOCACHE {
 		// check asset exists
-		if s.checkExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
-			return nil, ErrNotFound
+		if s.checkS3AssetExists(key.Namespace, key.ObjectId, S3ObjectFileName) == false {
+			return nil, fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3ObjectFileName), ErrNotFound)
 		}
-		return s.getObject(key.Namespace, key.ObjectId)
+		return s.getS3Object(key.Namespace, key.ObjectId)
 	}
 
-	// we can read from the database (cache), its probably faster
+	// we can read from the cache (database)
 	rows, err := s.Query("SELECT namespace, oid, vtag, created_at, updated_at FROM objects WHERE namespace = $1 AND oid = $2 LIMIT 1", key.Namespace, key.ObjectId)
 	if err != nil {
 		return nil, err
@@ -325,15 +323,19 @@ func (s *S3Storage) RenameBlobByKey(key DataStoreKey, curName string, newName st
 // DeleteBlobByKey -- delete a single blob associated with the specified object
 func (s *S3Storage) DeleteBlobByKey(key DataStoreKey, curName string) error {
 
-	// FIXME, what about the actual asset!!!!
+	// blob content is not cached
 
 	curBlobKey := s.assetKey(key.Namespace, key.ObjectId, fmt.Sprintf("%s%s", curName, S3BlobFileNameSuffix))
-	// remove the old blob descriptor file
 	return s.s3Remove(s.Bucket, curBlobKey)
+
+	// FIXME, what about the actual asset!!!!
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
 func (s *S3Storage) DeleteBlobsByKey(key DataStoreKey) error {
+
+	// blobs are not cached
+
 	fset, err := s.s3List(s.Bucket, fmt.Sprintf("%s/%s", key.Namespace, key.ObjectId))
 	if err != nil {
 		return err
@@ -353,36 +355,43 @@ func (s *S3Storage) DeleteBlobsByKey(key DataStoreKey) error {
 // DeleteFieldsByKey -- delete all field data associated with the specified object
 func (s *S3Storage) DeleteFieldsByKey(key DataStoreKey) error {
 
+	// remove the asset
+	err := s.removeS3Asset(key.Namespace, key.ObjectId, S3FieldsFileName)
+	if err != nil {
+		return err
+	}
+
+	// update the cache (database)
 	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
 	if err != nil {
 		return err
 	}
-	err = execPreparedBy2(stmt, key.Namespace, key.ObjectId)
-	if err != nil {
-		return err
-	}
-
-	return s.removeAsset(key.Namespace, key.ObjectId, S3FieldsFileName)
+	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
 func (s *S3Storage) DeleteMetadataByKey(key DataStoreKey) error {
-	return s.removeAsset(key.Namespace, key.ObjectId, S3MetadataFileName)
+
+	// metadata is not cached
+
+	return s.removeS3Asset(key.Namespace, key.ObjectId, S3MetadataFileName)
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
 func (s *S3Storage) DeleteObjectByKey(key DataStoreKey) error {
 
-	stmt, err := s.Prepare("DELETE FROM objects WHERE namespace = $1 AND oid = $2")
-	if err != nil {
-		return err
-	}
-	err = execPreparedBy2(stmt, key.Namespace, key.ObjectId)
+	// remove the asset
+	err := s.removeS3Asset(key.Namespace, key.ObjectId, S3ObjectFileName)
 	if err != nil {
 		return err
 	}
 
-	return s.removeAsset(key.Namespace, key.ObjectId, S3ObjectFileName)
+	// update the cache (database)
+	stmt, err := s.Prepare("DELETE FROM objects WHERE namespace = $1 AND oid = $2")
+	if err != nil {
+		return err
+	}
+	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
@@ -439,17 +448,17 @@ func (s *S3Storage) GetKeysByFields(namespace string, fields EasyStoreObjectFiel
 // private implementation methods
 //
 
-func (s *S3Storage) checkExists(namespace string, identifier string, assetName string) bool {
+func (s *S3Storage) checkS3AssetExists(namespace string, identifier string, assetName string) bool {
 	key := s.assetKey(namespace, identifier, assetName)
 	return s.s3Exists(s.Bucket, key)
 }
 
-func (s *S3Storage) removeAsset(namespace string, identifier string, assetName string) error {
+func (s *S3Storage) removeS3Asset(namespace string, identifier string, assetName string) error {
 	key := s.assetKey(namespace, identifier, assetName)
 	return s.s3Remove(s.Bucket, key)
 }
 
-func (s *S3Storage) addBlob(namespace string, identifier string, blob EasyStoreBlob) error {
+func (s *S3Storage) addS3Blob(namespace string, identifier string, blob EasyStoreBlob) error {
 
 	// we add the serialized blob and create the original file
 	blobKey := s.assetKey(namespace, identifier, fmt.Sprintf("%s%s", blob.Name(), S3BlobFileNameSuffix))
@@ -480,14 +489,14 @@ func (s *S3Storage) addBlob(namespace string, identifier string, blob EasyStoreB
 	return s.s3UploadFromBuffer(s.Bucket, blobKey, bBytes)
 }
 
-func (s *S3Storage) addFields(namespace string, identifier string, fields EasyStoreObjectFields) error {
+func (s *S3Storage) addS3Fields(namespace string, identifier string, fields EasyStoreObjectFields) error {
 	key := s.assetKey(namespace, identifier, S3FieldsFileName)
 	b := s.serialize.FieldsSerialize(fields).([]byte)
 	// upload to S3
 	return s.s3UploadFromBuffer(s.Bucket, key, b)
 }
 
-func (s *S3Storage) addMetadata(namespace string, identifier string, metadata EasyStoreMetadata) error {
+func (s *S3Storage) addS3Metadata(namespace string, identifier string, metadata EasyStoreMetadata) error {
 	key := s.assetKey(namespace, identifier, S3MetadataFileName)
 
 	// for setting the timestamps
@@ -502,7 +511,7 @@ func (s *S3Storage) addMetadata(namespace string, identifier string, metadata Ea
 	return s.s3UploadFromBuffer(s.Bucket, key, b)
 }
 
-func (s *S3Storage) addObject(namespace string, identifier string, obj EasyStoreObject) error {
+func (s *S3Storage) addS3Object(namespace string, identifier string, obj EasyStoreObject) error {
 	key := s.assetKey(namespace, identifier, S3ObjectFileName)
 
 	// for setting the timestamps
@@ -517,7 +526,7 @@ func (s *S3Storage) addObject(namespace string, identifier string, obj EasyStore
 	return s.s3UploadFromBuffer(s.Bucket, key, b)
 }
 
-func (s *S3Storage) getBlob(key string) (*EasyStoreBlob, error) {
+func (s *S3Storage) getS3Blob(key string) (*EasyStoreBlob, error) {
 	// download from S3
 	b, err := s.s3DownloadToBuffer(s.Bucket, key)
 	if err != nil {
@@ -545,7 +554,7 @@ func (s *S3Storage) getBlob(key string) (*EasyStoreBlob, error) {
 	return &blob, nil
 }
 
-func (s *S3Storage) getFields(namespace string, identifier string) (*EasyStoreObjectFields, error) {
+func (s *S3Storage) getS3Fields(namespace string, identifier string) (*EasyStoreObjectFields, error) {
 	key := s.assetKey(namespace, identifier, S3FieldsFileName)
 
 	// download from S3
@@ -560,7 +569,7 @@ func (s *S3Storage) getFields(namespace string, identifier string) (*EasyStoreOb
 	return &fields, nil
 }
 
-func (s *S3Storage) getMetadata(namespace string, identifier string) (EasyStoreMetadata, error) {
+func (s *S3Storage) getS3Metadata(namespace string, identifier string) (EasyStoreMetadata, error) {
 	key := s.assetKey(namespace, identifier, S3MetadataFileName)
 
 	// download from S3
@@ -575,7 +584,7 @@ func (s *S3Storage) getMetadata(namespace string, identifier string) (EasyStoreM
 	return metadata, nil
 }
 
-func (s *S3Storage) getObject(namespace string, identifier string) (EasyStoreObject, error) {
+func (s *S3Storage) getS3Object(namespace string, identifier string) (EasyStoreObject, error) {
 	key := s.assetKey(namespace, identifier, S3ObjectFileName)
 
 	// download from S3
