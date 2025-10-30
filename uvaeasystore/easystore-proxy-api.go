@@ -136,7 +136,7 @@ func mapResponseToError(strErr string) error {
 		return ErrRecurse
 	}
 
-	return fmt.Errorf(strErr)
+	return fmt.Errorf("%s", strErr)
 }
 
 //
