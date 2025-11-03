@@ -156,31 +156,33 @@ func main() {
 				continue
 			}
 
-			// get the fields
-			var fieldsCache *uvaeasystore.EasyStoreObjectFields
-			fieldsCache, err = s3ds.GetFieldsByKey(key, uvaeasystore.FROMCACHE)
-			if err != nil {
-				if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-					//log.Printf("INFO: no fields located for this object\n")
-				} else {
-					log.Printf("ERROR: getting cached fields from S3 datastore (%s), continuing\n", err.Error())
-					errorCount++
-					continue
-				}
-			} else {
-				//log.Printf("INFO: %d fields located for this object\n", len(*fields))
-			}
-
 			if verifyObject(eso, esoCache) == false {
 				log.Printf("ERROR: cached object and S3 datastore OUT OF SYNC, continuing\n")
 				errorCount++
 				continue
 			}
 
-			if verifyFields(*fields, *fieldsCache) == false {
-				log.Printf("ERROR: cached fields and S3 datastore OUT OF SYNC, continuing\n")
-				errorCount++
-				continue
+			// get the fields
+			if fields != nil {
+				var fieldsCache *uvaeasystore.EasyStoreObjectFields
+				fieldsCache, err = s3ds.GetFieldsByKey(key, uvaeasystore.FROMCACHE)
+				if err != nil {
+					if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+						//log.Printf("INFO: no fields located for this object\n")
+					} else {
+						log.Printf("ERROR: getting cached fields from S3 datastore (%s), continuing\n", err.Error())
+						errorCount++
+						continue
+					}
+				} else {
+					//log.Printf("INFO: %d fields located for this object\n", len(*fields))
+				}
+
+				if verifyFields(*fields, *fieldsCache) == false {
+					log.Printf("ERROR: cached fields and S3 datastore OUT OF SYNC, continuing\n")
+					errorCount++
+					continue
+				}
 			}
 		}
 
