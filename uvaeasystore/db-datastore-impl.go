@@ -56,7 +56,7 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 	}
 
 	newVTag := newVtag()
-	return execPreparedBy4(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
 }
 
 // AddBlob -- add a new blob object
@@ -120,7 +120,7 @@ func (s *dbStorage) AddObject(obj EasyStoreObject) error {
 		return err
 	}
 
-	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
+	return execPrepared(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
@@ -234,7 +234,7 @@ func (s *dbStorage) DeleteBlobByKey(key DataStoreKey, curName string) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, curName)
+	return execPrepared(stmt, key.Namespace, key.ObjectId, curName)
 }
 
 // DeleteBlobsByKey -- delete all blob data associated with the specified object
@@ -244,7 +244,7 @@ func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, blobMetadataName)
+	return execPrepared(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
 // DeleteFieldsByKey -- delete all field data associated with the specified object
@@ -254,7 +254,7 @@ func (s *dbStorage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
@@ -264,7 +264,7 @@ func (s *dbStorage) DeleteMetadataByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, key.Namespace, key.ObjectId, blobMetadataName)
+	return execPrepared(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
 // DeleteObjectByKey -- delete all field data associated with the specified object
@@ -274,7 +274,7 @@ func (s *dbStorage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values

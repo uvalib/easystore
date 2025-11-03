@@ -12,6 +12,7 @@ package uvaeasystore
 import (
 	"errors"
 	"fmt"
+
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
@@ -104,7 +105,7 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 	}
 
 	// get the current object and compare the vtag
-	current, err := impl.ObjectGetByKey(obj.Namespace(), obj.Id(), BaseComponent)
+	current, err := impl.ObjectGetByKey(obj.Namespace(), obj.Id(), which)
 	if err != nil {
 		return nil, err
 	}
@@ -113,20 +114,36 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 		return nil, ErrStaleObject
 	}
 
-	// do we update fields
+	// do we update the fields
 	if (which & Fields) == Fields {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating fields for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		// delete the current fields
-		err := impl.store.DeleteFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
-		if err != nil {
-			return nil, err
-		}
 
-		// if we have new fields, add them
-		if len(obj.Fields()) != 0 {
-			err := impl.store.AddFields(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Fields())
-			if err != nil {
-				return nil, err
+		// get the new field count
+		nfc := len(obj.Fields())
+
+		// do we have existing fields
+		if len(current.Fields()) != 0 {
+
+			// if we have new fields, update the current fields to match
+			if nfc != 0 {
+				err := impl.store.UpdateFields(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Fields())
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				// otherwise delete any existing fields
+				err := impl.store.DeleteFieldsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			// if we have new fields, add them
+			if nfc != 0 {
+				err := impl.store.AddFields(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Fields())
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -134,14 +151,22 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 	// do we update files
 	if (which & Files) == Files {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating files for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		// delete the current files
-		err := impl.store.DeleteBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
-		if err != nil {
-			return nil, err
+
+		// FIXME - try and update existing ones
+
+		// if we have existing files, just delete them
+		if len(current.Files()) != 0 {
+
+			// delete the current files
+			err := impl.store.DeleteBlobsByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		// if we have new files, add them
 		if len(obj.Files()) != 0 {
+
 			for _, b := range obj.Files() {
 				err = impl.store.AddBlob(DataStoreKey{obj.Namespace(), obj.Id()}, b)
 				if err != nil {
@@ -160,23 +185,45 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 	// do we update metadata
 	if (which & Metadata) == Metadata {
 		logDebug(impl.config.Logger(), fmt.Sprintf("updating metadata for ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
-		// delete the current metadata
-		err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
-		if err != nil {
-			return nil, err
-		}
 
-		// if we have new metadata, add it
-		if obj.Metadata() != nil {
-			err := impl.store.AddMetadata(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Metadata())
-			if err != nil {
-				return nil, err
+		// get new metadata
+		nmd := obj.Metadata()
+
+		// do we actually have metadata currently
+		if current.Metadata() != nil {
+
+			// if we have existing AND new metadata, update it to the new
+			if nmd != nil {
+				err := impl.store.UpdateMetadata(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Metadata())
+				if err != nil {
+					return nil, err
+				}
+
+				// publish the appropriate event, errors are not too important
+				err = pubMetadataUpdate(impl.messageBus, obj)
+				if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+					logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+				}
+			} else {
+				// otherwise nothing new so delete the current metadata
+				err := impl.store.DeleteMetadataByKey(DataStoreKey{obj.Namespace(), obj.Id()})
+				if err != nil {
+					return nil, err
+				}
 			}
+		} else {
+			// otherwise just add the new metadata (if we have it)
+			if nmd != nil {
+				err := impl.store.AddMetadata(DataStoreKey{obj.Namespace(), obj.Id()}, obj.Metadata())
+				if err != nil {
+					return nil, err
+				}
 
-			// publish the appropriate event, errors are not too important
-			err = pubMetadataUpdate(impl.messageBus, obj)
-			if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-				logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+				// publish the appropriate event, errors are not too important
+				err = pubMetadataUpdate(impl.messageBus, obj)
+				if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
+					logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
+				}
 			}
 		}
 	}
@@ -274,36 +321,6 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 	// return the original object
 	return obj, nil
 }
-
-//func (impl easyStoreImpl) Rename(obj EasyStoreObject, which EasyStoreComponents, name string, newName string) (EasyStoreObject, error) {
-//
-//	// preflight validation
-//	if err := RenamePreflight(obj, which, name, newName); err != nil {
-//		logError(impl.config.Logger(), "preflight failure")
-//		return nil, err
-//	}
-//
-//	// do the rename
-//	err := impl.store.RenameBlobByKey(DataStoreKey{obj.Namespace(), obj.Id()}, name, newName)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// update the object (timestamp and vtag)
-//	err = impl.store.UpdateObject(DataStoreKey{obj.Namespace(), obj.Id()})
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// publish the appropriate event, errors are not too important
-//	err = pubObjectUpdate(impl.messageBus, obj)
-//	if err != nil && errors.Is(err, ErrBusNotConfigured) == false {
-//		logError(impl.config.Logger(), fmt.Sprintf("publishing event (%s)", err.Error()))
-//	}
-//
-//	// get the full object
-//	return impl.ObjectGetByKey(obj.Namespace(), obj.Id(), which)
-//}
 
 // create a file
 func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStoreBlob) error {

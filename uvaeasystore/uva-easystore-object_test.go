@@ -81,6 +81,61 @@ func TestObjectBlobsUpdate(t *testing.T) {
 	//}
 }
 
+func TestObjectFieldsUpdate(t *testing.T) {
+	es := testSetup(t)
+	defer es.Close()
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// create the new object
+	o, err := es.ObjectCreate(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// create a couple of field sets
+	fieldSet1 := DefaultEasyStoreFields()
+	fieldSet2 := DefaultEasyStoreFields()
+
+	fieldSet1["field-one"] = "s1v1"
+	fieldSet1["field-two"] = "s1v2"
+	fieldSet1["field-three"] = "s1v3"
+
+	fieldSet2["field-one"] = "s2v1"
+	fieldSet2["another"] = "s2v2"
+
+	o.SetFields(fieldSet1)
+
+	// update the object
+	n, err := es.ObjectUpdate(o, AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	if n.Fields() == nil {
+		t.Fatalf("expected non-empty but got empty\n")
+	}
+
+	if fieldsEqual(fieldSet1, n.Fields()) == false {
+		t.Fatalf("expected fields to be equal\n")
+	}
+
+	n.SetFields(fieldSet2)
+
+	// update the object again
+	n, err = es.ObjectUpdate(n, AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	if n.Fields() == nil {
+		t.Fatalf("expected non-empty but got empty\n")
+	}
+
+	if fieldsEqual(fieldSet2, n.Fields()) == false {
+		t.Fatalf("expected fields to be equal\n")
+	}
+}
+
 func TestObjectMetadataUpdate(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()
@@ -114,6 +169,12 @@ func TestObjectMetadataUpdate(t *testing.T) {
 	}
 
 	testEqual(t, string(jsonPayload), string(buf))
+
+	// update the object again
+	_, err = es.ObjectUpdate(n, AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
 }
 
 //

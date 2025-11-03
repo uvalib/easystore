@@ -367,6 +367,18 @@ func getFileContents(url string) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func fieldsEqual(fs1, fs2 EasyStoreObjectFields) bool {
+	if len(fs1) != len(fs2) {
+		return false
+	}
+	for key, value := range fs1 {
+		if val, ok := fs2[key]; !ok || val != value {
+			return false
+		}
+	}
+	return true
+}
+
 //
 // end of file
 //

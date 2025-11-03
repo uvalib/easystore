@@ -66,12 +66,47 @@ func (s *S3Storage) UpdateBlob(key DataStoreKey, blob EasyStoreBlob) error {
 
 // UpdateFields -- update the contents of an existing field set
 func (s *S3Storage) UpdateFields(key DataStoreKey, fields EasyStoreObjectFields) error {
-	return ErrNotImplemented
+
+	err := s.addS3Fields(key.Namespace, key.ObjectId, fields)
+	if err != nil {
+		return err
+	}
+
+	// update the cache (database)
+
+	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
+	if err != nil {
+		return err
+	}
+	err = execPrepared(stmt, key.Namespace, key.ObjectId)
+	if err != nil {
+		return err
+	}
+
+	// dynamically build the statement because we have a variable number of fields
+	args := make([]any, 0)
+	insert := "INSERT INTO fields( namespace, oid, name, value ) VALUES"
+	variableIx := 1
+	for n, v := range fields {
+		insert += fmt.Sprintf(" ($%d,$%d,$%d,$%d),", variableIx, variableIx+1, variableIx+2, variableIx+3)
+		args = append(args, key.Namespace, key.ObjectId, n, v)
+		variableIx += 4
+	}
+
+	// remove trailing comma
+	insert = strings.TrimRight(insert, ",")
+
+	stmt, err = s.Prepare(insert)
+	if err != nil {
+		return err
+	}
+
+	return execPrepared(stmt, args...)
 }
 
 // UpdateMetadata -- update the contents of existing metadata
 func (s *S3Storage) UpdateMetadata(key DataStoreKey, md EasyStoreMetadata) error {
-	return ErrNotImplemented
+	return s.AddMetadata(key, md)
 }
 
 // UpdateObject -- update a couple of object fields
@@ -100,7 +135,7 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
 }
 
 // AddBlob -- add a new blob object
@@ -121,27 +156,31 @@ func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 		return err
 	}
 
-	stmt, err := s.Prepare("INSERT INTO fields( namespace, oid, name, value ) VALUES( $1,$2,$3,$4 )")
+	// update the cache (database)
+
+	// dynamically build the statement because we have a variable number of fields
+	args := make([]any, 0)
+	insert := "INSERT INTO fields( namespace, oid, name, value ) VALUES"
+	variableIx := 1
+	for n, v := range fields {
+		insert += fmt.Sprintf(" ($%d,$%d,$%d,$%d),", variableIx, variableIx+1, variableIx+2, variableIx+3)
+		args = append(args, key.Namespace, key.ObjectId, n, v)
+		variableIx += 4
+	}
+
+	// remove trailing comma
+	insert = strings.TrimRight(insert, ",")
+
+	stmt, err := s.Prepare(insert)
 	if err != nil {
 		return err
 	}
 
-	for n, v := range fields {
-		_, err = stmt.Exec(key.Namespace, key.ObjectId, n, v)
-		if err != nil {
-			return errorMapper(err)
-		}
-	}
-
-	return nil
+	return execPrepared(stmt, args...)
 }
 
 // AddMetadata -- add a new metadata object
 func (s *S3Storage) AddMetadata(key DataStoreKey, metadata EasyStoreMetadata) error {
-	// check asset does not exist
-	//if s.checkS3AssetExists(key.Namespace, key.ObjectId, S3MetadataFileName) == true {
-	//	return fmt.Errorf("%q: %w", fmt.Sprintf("%s/%s/%s", key.Namespace, key.ObjectId, S3MetadataFileName), ErrAlreadyExists)
-	//}
 	return s.addS3Metadata(key.Namespace, key.ObjectId, metadata)
 }
 
@@ -159,7 +198,7 @@ func (s *S3Storage) AddObject(obj EasyStoreObject) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy3(stmt, obj.Namespace(), obj.Id(), obj.VTag())
+	return execPrepared(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
 
 // GetBlobsByKey -- get all blob data associated with the specified object
@@ -376,7 +415,7 @@ func (s *S3Storage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
 // DeleteMetadataByKey -- delete all field data associated with the specified object
@@ -401,7 +440,7 @@ func (s *S3Storage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
-	return execPreparedBy2(stmt, key.Namespace, key.ObjectId)
+	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
 // GetKeysByFields -- get a list of keys that have the supplied fields/values
@@ -529,6 +568,7 @@ func (s *S3Storage) addS3Object(namespace string, identifier string, obj EasySto
 	if ok == false {
 		return fmt.Errorf("%q: %w", "cast failed, not an easyStoreObjectImpl", ErrBadParameter)
 	}
+
 	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
 	b := s.serialize.ObjectSerialize(impl).([]byte)

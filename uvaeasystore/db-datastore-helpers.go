@@ -16,18 +16,8 @@ import (
 	"strings"
 )
 
-func execPreparedBy2(stmt *sql.Stmt, value1 string, value2 string) error {
-	_, err := stmt.Exec(value1, value2)
-	return errorMapper(err)
-}
-
-func execPreparedBy3(stmt *sql.Stmt, value1 string, value2 string, value3 string) error {
-	_, err := stmt.Exec(value1, value2, value3)
-	return errorMapper(err)
-}
-
-func execPreparedBy4(stmt *sql.Stmt, value1 string, value2 string, value3 string, value4 string) error {
-	_, err := stmt.Exec(value1, value2, value3, value4)
+func execPrepared(stmt *sql.Stmt, values ...any) error {
+	_, err := stmt.Exec(values...)
 	return errorMapper(err)
 }
 
