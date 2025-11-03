@@ -18,16 +18,22 @@ func main() {
 
 	var namespace string
 	var debug bool
+	var verifyCache bool
 	var limit int
 	var logger *log.Logger
 
-	flag.StringVar(&namespace, "namespace", "", "namespace to rebuild")
+	flag.StringVar(&namespace, "namespace", "", "namespace to check")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.IntVar(&limit, "limit", 0, "Check count limit, 0 is no limit")
+	flag.BoolVar(&verifyCache, "verify", false, "Verify against cache")
 	flag.Parse()
 
 	if debug == true {
 		logger = log.Default()
+	}
+
+	if verifyCache == true {
+		log.Printf("INFO: enabled cache verify\n")
 	}
 
 	// create the S3 store configuration
@@ -82,7 +88,7 @@ func main() {
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
 
 		// get the object
-		_, err := s3ds.GetObjectByKey(key, uvaeasystore.NOCACHE)
+		eso, err := s3ds.GetObjectByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
 			log.Printf("ERROR: getting object from S3 datastore (%s), continuing\n", err.Error())
 			errorCount++
@@ -90,7 +96,8 @@ func main() {
 		}
 
 		// get the fields
-		_, err = s3ds.GetFieldsByKey(key, uvaeasystore.NOCACHE)
+		var fields *uvaeasystore.EasyStoreObjectFields
+		fields, err = s3ds.GetFieldsByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				//log.Printf("INFO: no fields located for this object\n")
@@ -134,6 +141,47 @@ func main() {
 			}
 		} else {
 			//log.Printf("INFO: %d blobs located for this object\n", len(blobs))
+		}
+
+		// do we verify the cache
+		if verifyCache == true {
+
+			//log.Printf("INFO: checking cache for this object\n")
+
+			var esoCache uvaeasystore.EasyStoreObject
+			esoCache, err = s3ds.GetObjectByKey(key, uvaeasystore.FROMCACHE)
+			if err != nil {
+				log.Printf("ERROR: getting cached object from S3 datastore (%s), continuing\n", err.Error())
+				errorCount++
+				continue
+			}
+
+			// get the fields
+			var fieldsCache *uvaeasystore.EasyStoreObjectFields
+			fieldsCache, err = s3ds.GetFieldsByKey(key, uvaeasystore.FROMCACHE)
+			if err != nil {
+				if errors.Is(err, uvaeasystore.ErrNotFound) == true {
+					//log.Printf("INFO: no fields located for this object\n")
+				} else {
+					log.Printf("ERROR: getting cached fields from S3 datastore (%s), continuing\n", err.Error())
+					errorCount++
+					continue
+				}
+			} else {
+				//log.Printf("INFO: %d fields located for this object\n", len(*fields))
+			}
+
+			if verifyObject(eso, esoCache) == false {
+				log.Printf("ERROR: cached object and S3 datastore OUT OF SYNC, continuing\n")
+				errorCount++
+				continue
+			}
+
+			if verifyFields(*fields, *fieldsCache) == false {
+				log.Printf("ERROR: cached fields and S3 datastore OUT OF SYNC, continuing\n")
+				errorCount++
+				continue
+			}
 		}
 
 		log.Printf("INFO: ok\n")
@@ -183,6 +231,50 @@ func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error)
 	}
 
 	return result, nil
+}
+
+func verifyObject(eso1 uvaeasystore.EasyStoreObject, eso2 uvaeasystore.EasyStoreObject) bool {
+
+	same := true
+	// silly I know
+	if eso1.Namespace() != eso2.Namespace() {
+		log.Printf("ERROR: namespace out of sync s3 [%s] cache [%s]\n", eso1.Namespace(), eso2.Namespace())
+		same = false
+	}
+	if eso1.Id() != eso2.Id() {
+		log.Printf("ERROR: id out of sync s3 [%s] cache [%s]\n", eso1.Id(), eso2.Id())
+		same = false
+	}
+
+	if eso1.VTag() != eso2.VTag() {
+		log.Printf("ERROR: vtag out of sync s3 [%s] cache [%s]\n", eso1.VTag(), eso2.VTag())
+		same = false
+	}
+
+	// FIXME
+	//if eso1.Created() != eso2.Created() {
+	//	log.Printf("ERROR: created out of sync s3 [%s] cache [%s]\n", eso1.Created(), eso2.Created())
+	//	same = false
+	//}
+
+	//if eso1.Modified() != eso2.Modified() {
+	//	log.Printf("ERROR: modified out of sync s3 [%s] cache [%s]\n", eso1.Modified(), eso2.Modified())
+	//	same = false
+	//}
+
+	return same
+}
+
+func verifyFields(fs1 uvaeasystore.EasyStoreObjectFields, fs2 uvaeasystore.EasyStoreObjectFields) bool {
+	if len(fs1) != len(fs2) {
+		return false
+	}
+	for key, value := range fs1 {
+		if val, ok := fs2[key]; !ok || val != value {
+			return false
+		}
+	}
+	return true
 }
 
 func asIntWithDefault(str string, def int) int {
