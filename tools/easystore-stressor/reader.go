@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/uvalib/easystore/uvaeasystore"
 )
@@ -13,11 +14,12 @@ func reader(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 
 	defer wg.Done()
 
+	start := time.Now()
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	results, err := es.ObjectGetByFields(namespace, fields, uvaeasystore.BaseComponent)
 
 	if err != nil {
-		log.Printf("[reader %d]: error getting object set, terminating", id)
+		log.Printf("[reader %d]: error (%s) getting object set, terminating", id, err.Error())
 		os.Exit(99)
 	}
 
@@ -35,15 +37,18 @@ func reader(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 		res = append(res, o)
 	}
 
+	duration := time.Since(start)
+	log.Printf("[reader %d]: loaded %d objects (elapsed %d ms)", id, len(res), duration.Milliseconds())
+
+	start = time.Now()
 	// main reader loop
-	log.Printf("[reader %d]: loaded %d objects", id, len(res))
 	for ix := 0; ix < count; ix++ {
 
 		o := res[rand.Intn(len(res))]
 
 		eso, err := es.ObjectGetByKey(namespace, o.Id(), uvaeasystore.AllComponents)
 		if err != nil {
-			log.Printf("[reader %d]: error getting object (%s), terminating", id, o.Id())
+			log.Printf("[reader %d]: error (%s) getting object (%s), terminating", id, err.Error(), o.Id())
 			os.Exit(99)
 		}
 
@@ -72,7 +77,8 @@ func reader(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 		}
 	}
 
-	log.Printf("[reader %d]: terminating normally after %d iterations", id, count)
+	duration = time.Since(start)
+	log.Printf("[reader %d]: terminating normally after %d iterations (elapsed %d ms)", id, count, duration.Milliseconds())
 }
 
 //

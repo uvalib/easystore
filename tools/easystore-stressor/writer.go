@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/uvalib/easystore/uvaeasystore"
 )
@@ -14,6 +15,9 @@ func writer(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 
 	defer wg.Done()
 
+	start := time.Now()
+
+	// main writer loop
 	for ix := 0; ix < count; ix++ {
 
 		// make fields
@@ -39,7 +43,7 @@ func writer(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 
 		eso, err := es.ObjectCreate(o)
 		if err != nil {
-			log.Printf("[writer %d]: error creating object, terminating", id)
+			log.Printf("[writer %d]: error (%s) creating object, terminating", id, err.Error())
 			os.Exit(99)
 		}
 
@@ -52,7 +56,8 @@ func writer(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 		}
 	}
 
-	log.Printf("[writer %d]: terminating normally after %d iterations", id, count)
+	duration := time.Since(start)
+	log.Printf("[writer %d]: terminating normally after %d iterations (elapsed %d ms)", id, count, duration.Milliseconds())
 }
 
 func newBinaryBlob(filename string) uvaeasystore.EasyStoreBlob {

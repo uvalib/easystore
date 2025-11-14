@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
-	"math/rand"
 	"os"
 	"sync"
-	"time"
+
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -17,7 +16,9 @@ func main() {
 	var readers int
 	var writers int
 	var updaters int
-	var count int
+	var readCount int
+	var writeCount int
+	var updateCount int
 	var debug bool
 	var logger *log.Logger
 
@@ -25,9 +26,16 @@ func main() {
 	flag.IntVar(&readers, "readers", 1, "Reader workers")
 	flag.IntVar(&writers, "writers", 1, "Writer workers")
 	flag.IntVar(&updaters, "updaters", 1, "Updater workers")
-	flag.IntVar(&count, "count", 100, "Iteration count")
+	flag.IntVar(&readCount, "readcount", 100, "Read iteration count")
+	flag.IntVar(&writeCount, "writecount", 100, "Write iteration count")
+	flag.IntVar(&updateCount, "updatecount", 100, "Update iteration count")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
+
+	if readers == 0 && writers == 0 && updaters == 0 {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 
 	if debug == true {
 		logger = log.Default()
@@ -48,36 +56,34 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	// seed the RNG
-	rand.Seed(time.Now().UnixNano())
-
-	// start reader and writer workers
-
+	// start reader workers
 	if readers != 0 {
-		log.Printf("[main] starting %d reader(s) for %d iterations...", readers, count)
+		log.Printf("[main] starting %d reader(s) for %d iterations...", readers, readCount)
 		for r := 1; r <= readers; r++ {
 			wg.Add(1)
-			go reader(r, &wg, es, namespace, debug, count)
+			go reader(r, &wg, es, namespace, debug, readCount)
 		}
 	} else {
 		log.Printf("[main] no readers configured...")
 	}
 
+	// start writer workers
 	if writers != 0 {
-		log.Printf("[main] starting %d writer(s) for %d iterations...", writers, count)
+		log.Printf("[main] starting %d writer(s) for %d iterations...", writers, writeCount)
 		for w := 1; w <= writers; w++ {
 			wg.Add(1)
-			go writer(w, &wg, es, namespace, debug, count)
+			go writer(w, &wg, es, namespace, debug, writeCount)
 		}
 	} else {
 		log.Printf("[main] no writers configured...")
 	}
 
+	// start updater workers
 	if updaters != 0 {
-		log.Printf("[main] starting %d updater(s) for %d iterations...", updaters, count)
+		log.Printf("[main] starting %d updater(s) for %d iterations...", updaters, updateCount)
 		for u := 1; u <= updaters; u++ {
 			wg.Add(1)
-			go updater(u, &wg, es, namespace, debug, count)
+			go updater(u, &wg, es, namespace, debug, updateCount)
 		}
 	} else {
 		log.Printf("[main] no updaters configured...")

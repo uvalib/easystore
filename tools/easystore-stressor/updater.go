@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/uvalib/easystore/uvaeasystore"
 )
@@ -15,11 +16,12 @@ func updater(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace st
 
 	defer wg.Done()
 
+	start := time.Now()
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	results, err := es.ObjectGetByFields(namespace, fields, uvaeasystore.BaseComponent)
 
 	if err != nil {
-		log.Printf("[updater %d]: error getting object set, terminating", id)
+		log.Printf("[updater %d]: error (%s) getting object set, terminating", id, err.Error())
 		os.Exit(99)
 	}
 
@@ -37,15 +39,18 @@ func updater(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace st
 		res = append(res, o)
 	}
 
-	// main reader loop
-	log.Printf("[updater %d]: loaded %d objects", id, len(res))
+	duration := time.Since(start)
+	log.Printf("[updater %d]: loaded %d objects (elapsed %d ms)", id, len(res), duration.Milliseconds())
+	start = time.Now()
+
+	// main updater loop
 	for ix := 0; ix < count; ix++ {
 
 		o := res[rand.Intn(len(res))]
 
 		eso, err := es.ObjectGetByKey(namespace, o.Id(), uvaeasystore.AllComponents)
 		if err != nil {
-			log.Printf("[updater %d]: error getting object (%s), terminating", id, o.Id())
+			log.Printf("[updater %d]: error (%s) getting object (%s), terminating", id, err.Error(), o.Id())
 			os.Exit(99)
 		}
 
@@ -90,9 +95,9 @@ func updater(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace st
 
 		eso, err = es.ObjectUpdate(eso, uvaeasystore.AllComponents)
 		if err != nil {
-			log.Printf("[updater %d]: ERROR %v", id, err)
+			//log.Printf("[updater %d]: ERROR %v", id, err)
 			if errors.Is(err, uvaeasystore.ErrStaleObject) == false {
-				log.Printf("[updater %d]: error updating object, terminating", id)
+				log.Printf("[updater %d]: error (%s) updating object, terminating", id, err.Error())
 				os.Exit(99)
 			} else {
 				log.Printf("[updater %d]: stale object, continuing", id)
@@ -108,7 +113,8 @@ func updater(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace st
 		}
 	}
 
-	log.Printf("[updater %d]: terminating normally after %d iterations", id, count)
+	duration = time.Since(start)
+	log.Printf("[updater %d]: terminating normally after %d iterations (elapsed %d ms)", id, count, duration.Milliseconds())
 }
 
 //
