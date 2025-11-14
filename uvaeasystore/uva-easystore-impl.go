@@ -333,7 +333,7 @@ func (impl easyStoreImpl) FileCreate(namespace string, oid string, file EasyStor
 
 	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	_, err := impl.store.GetObjectByKey(key, NOCACHE)
 	if err != nil {
 		return err
 	}
@@ -421,7 +421,7 @@ func (impl easyStoreImpl) FileRename(namespace string, oid string, name string, 
 
 	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	_, err := impl.store.GetObjectByKey(key, NOCACHE)
 	if err != nil {
 		return err
 	}
@@ -468,7 +468,7 @@ func (impl easyStoreImpl) FileUpdate(namespace string, oid string, file EasyStor
 
 	// ensure containing object actually exists
 	key := DataStoreKey{namespace, oid}
-	_, err := impl.store.GetObjectByKey(key, FROMCACHE)
+	_, err := impl.store.GetObjectByKey(key, NOCACHE)
 	if err != nil {
 		return err
 	}
