@@ -93,10 +93,10 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 	url := req.URL.String()
 	count := 0
 	for {
-		start := time.Now()
+		//start := time.Now()
 		response, err = client.Do(req)
-		duration := time.Since(start)
-		fmt.Printf("INFO: %s %s (elapsed %d ms)\n", req.Method, url, duration.Milliseconds())
+		//duration := time.Since(start)
+		//fmt.Printf("INFO: %s %s (elapsed %d ms)\n", req.Method, url, duration.Milliseconds())
 
 		count++
 		if err != nil {
