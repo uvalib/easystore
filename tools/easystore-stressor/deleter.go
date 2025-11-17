@@ -12,11 +12,12 @@ import (
 	"github.com/uvalib/easystore/uvaeasystore"
 )
 
-func reader(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace string, debug bool, count int) {
+func deleter(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace string, debug bool, count int) {
 
 	defer wg.Done()
 
-	workerId := fmt.Sprintf("reader-%d", id)
+	workerId := fmt.Sprintf("deleter-%d", id)
+
 	start := time.Now()
 
 	var res []uvaeasystore.EasyStoreObject
@@ -38,25 +39,24 @@ func reader(id int, wg *sync.WaitGroup, es uvaeasystore.EasyStore, namespace str
 		itemIx := rand.Intn(len(res))
 		o := res[itemIx]
 
-		eso, err := es.ObjectGetByKey(namespace, o.Id(), uvaeasystore.AllComponents)
+		// delete the current item from the set
+		res = deleteElement(res, itemIx)
+
+		// delete the object
+		_, err := es.ObjectDelete(o, uvaeasystore.BaseComponent)
 		if err != nil {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				log.Printf("[%s]: object deleted... continuing", workerId)
-				// delete the current item from the set
-				res = deleteElement(res, itemIx)
 			} else {
-				log.Printf("[%s]: error (%s) getting object (%s), terminating", workerId, err.Error(), o.Id())
+				log.Printf("[%s]: error (%s) deleting object (%s), terminating", workerId, err.Error(), o.Id())
 				os.Exit(99)
 			}
 		}
 
-		if eso != nil {
+		if err != nil {
 			if debug == true {
-				log.Printf("[%s]: read %s", workerId, eso.Id())
+				log.Printf("[%s]: deleted %s", workerId, o.Id())
 			}
-
-			// validate the returned object
-			validateObject(workerId, eso)
 		}
 
 		if ix > 0 && ix%25 == 0 {
