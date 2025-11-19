@@ -121,8 +121,11 @@ func httpSend(client *http.Client, req *http.Request) ([]byte, error) {
 			if response.StatusCode >= 300 {
 				logLevel := "ERROR"
 				// log StatusNotFound as informational instead of as an error
-				if response.StatusCode == http.StatusNotFound {
+				switch response.StatusCode {
+				case http.StatusNotFound: // object/file not found, not really an error
 					logLevel = "INFO"
+				case http.StatusConflict: // stale object, not really an error
+					logLevel = "WARNING"
 				}
 				fmt.Printf("%s: %s %s failed with status %d\n", logLevel, req.Method, url, response.StatusCode)
 
