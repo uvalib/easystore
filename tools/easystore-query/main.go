@@ -33,7 +33,7 @@ func main() {
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&namespace, "namespace", "", "namespace to query")
 	flag.StringVar(&whatCmd, "what", "id", "What to query for, can be 1 or more of id,fields,metadata,files")
-	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (field:name=value)")
+	flag.StringVar(&whereCmd, "where", "", "How to specify, either by object id (oid=nnnnn) or by field (fields:name=value)")
 	flag.StringVar(&dumpDir, "dumpdir", "", "Directory to dump files and/or metadata")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.BoolVar(&quiet, "quiet", false, "Quiet mode")
@@ -179,7 +179,7 @@ func queryEasyStore(namespace string, esro uvaeasystore.EasyStoreReadonly, what 
 			name := strings.Split(s, "=")[0]
 			value := strings.Split(s, "=")[1]
 			fields[name] = value
-			fmt.Printf("Querying by Field: %s=%s\n", name, value)
+			fmt.Printf("INFO: querying by field: %s=%s\n", name, value)
 		}
 	}
 
