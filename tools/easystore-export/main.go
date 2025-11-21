@@ -21,6 +21,7 @@ func main() {
 	var mode string
 	var namespace string
 	var whatCmd string
+	var whereCmd string
 	var outDir string
 	var debug bool
 	var logger *log.Logger
@@ -28,6 +29,7 @@ func main() {
 	flag.StringVar(&mode, "mode", "postgres", "Mode, sqlite, postgres, s3, proxy")
 	flag.StringVar(&namespace, "namespace", "", "namespace to export")
 	flag.StringVar(&whatCmd, "what", "id", "What to export, can be 1 or more of id,fields,metadata,files")
+	flag.StringVar(&whereCmd, "where", "", "Query by field (fields:name=value)")
 	flag.StringVar(&outDir, "exportdir", "", "Export directory")
 	flag.BoolVar(&debug, "debug", false, "Log debug information")
 	flag.Parse()
@@ -109,8 +111,17 @@ func main() {
 		what += uvaeasystore.Files
 	}
 
-	// empty fields means all objects
+	// query by fields
 	fields := uvaeasystore.DefaultEasyStoreFields()
+	if strings.Contains(whereCmd, "fields:") {
+		split := strings.Split(whereCmd[7:], ",")
+		for _, s := range split {
+			name := strings.Split(s, "=")[0]
+			value := strings.Split(s, "=")[1]
+			fields[name] = value
+			fmt.Printf("INFO: querying by field: %s=%s\n", name, value)
+		}
+	}
 
 	// empty fields should return all items
 	iter, err := esro.ObjectGetByFields(namespace, fields, what)
@@ -130,7 +141,7 @@ func main() {
 	errors := 0
 	for err == nil {
 		// create output directory
-		basedir := fmt.Sprintf("%s/export-%03d", outDir, num)
+		basedir := fmt.Sprintf("%s/export-%s", outDir, o.Id())
 		_ = os.Mkdir(basedir, 0755)
 
 		log.Printf("INFO: exporting %s (%d of %d)", o.Id(), num+1, count)
