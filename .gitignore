@@ -5,3 +5,4 @@ db/postgres/*.ksh
 .DS_Store
 tools/*/bin
 tools/*/tmp
+tmp
