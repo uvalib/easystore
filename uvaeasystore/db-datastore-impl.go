@@ -54,6 +54,7 @@ func (s *dbStorage) UpdateObject(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	newVTag := newVtag()
 	return execPrepared(stmt, newVTag, s.dbCurrentTimeFn, key.Namespace, key.ObjectId)
@@ -66,6 +67,7 @@ func (s *dbStorage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	// errors here are serialization errors
 	buf, err := blob.Payload()
@@ -84,6 +86,7 @@ func (s *dbStorage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	for n, v := range fields {
 		_, err = stmt.Exec(key.Namespace, key.ObjectId, n, v)
@@ -101,6 +104,7 @@ func (s *dbStorage) AddMetadata(key DataStoreKey, obj EasyStoreMetadata) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	// errors here are serialization errors
 	buf, err := obj.Payload()
@@ -119,6 +123,7 @@ func (s *dbStorage) AddObject(obj EasyStoreObject) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	return execPrepared(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
@@ -234,6 +239,7 @@ func (s *dbStorage) DeleteBlobByKey(key DataStoreKey, curName string) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId, curName)
 }
 
@@ -244,6 +250,7 @@ func (s *dbStorage) DeleteBlobsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
@@ -254,6 +261,7 @@ func (s *dbStorage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
@@ -264,6 +272,7 @@ func (s *dbStorage) DeleteMetadataByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId, blobMetadataName)
 }
 
@@ -274,6 +283,7 @@ func (s *dbStorage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 

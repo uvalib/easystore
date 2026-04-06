@@ -74,11 +74,12 @@ func (s *S3Storage) UpdateFields(key DataStoreKey, fields EasyStoreObjectFields)
 
 	// update the cache (database)
 
-	stmt, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
+	stmt1, err := s.Prepare("DELETE FROM fields WHERE namespace = $1 AND oid = $2")
 	if err != nil {
 		return err
 	}
-	err = execPrepared(stmt, key.Namespace, key.ObjectId)
+	defer stmt1.Close()
+	err = execPrepared(stmt1, key.Namespace, key.ObjectId)
 	if err != nil {
 		return err
 	}
@@ -96,12 +97,13 @@ func (s *S3Storage) UpdateFields(key DataStoreKey, fields EasyStoreObjectFields)
 	// remove trailing comma
 	insert = strings.TrimRight(insert, ",")
 
-	stmt, err = s.Prepare(insert)
+	stmt2, err := s.Prepare(insert)
 	if err != nil {
 		return err
 	}
+	defer stmt2.Close()
 
-	return execPrepared(stmt, args...)
+	return execPrepared(stmt2, args...)
 }
 
 // UpdateMetadata -- update the contents of existing metadata
@@ -135,6 +137,7 @@ func (s *S3Storage) UpdateObject(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, impl.Vtag_, key.Namespace, key.ObjectId)
 }
 
@@ -175,6 +178,7 @@ func (s *S3Storage) AddFields(key DataStoreKey, fields EasyStoreObjectFields) er
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	return execPrepared(stmt, args...)
 }
@@ -198,6 +202,7 @@ func (s *S3Storage) AddObject(obj EasyStoreObject) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, obj.Namespace(), obj.Id(), obj.VTag())
 }
 
@@ -415,6 +420,7 @@ func (s *S3Storage) DeleteFieldsByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
@@ -440,6 +446,7 @@ func (s *S3Storage) DeleteObjectByKey(key DataStoreKey) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	return execPrepared(stmt, key.Namespace, key.ObjectId)
 }
 
