@@ -6,8 +6,9 @@ package uvaeasystore
 
 import (
 	"fmt"
-	"github.com/rs/xid"
 	"log"
+
+	"github.com/rs/xid"
 )
 
 //
@@ -19,6 +20,14 @@ func logDebug(log *log.Logger, msg string) {
 		log.Printf("DEBUG: %s", msg)
 	} else {
 		//fmt.Printf("DEBUG: %s\n", msg)
+	}
+}
+
+func logWarning(log *log.Logger, msg string) {
+	if log != nil {
+		log.Printf("WARNING: %s", msg)
+	} else {
+		fmt.Printf("WARNING: %s\n", msg)
 	}
 }
 

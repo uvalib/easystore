@@ -110,7 +110,7 @@ func (impl easyStoreImpl) ObjectUpdate(obj EasyStoreObject, which EasyStoreCompo
 		return nil, err
 	}
 	if current.VTag() != obj.VTag() {
-		logError(impl.config.Logger(), fmt.Sprintf("stale vtag; req [%s], cur [%s]", obj.VTag(), current.VTag()))
+		logWarning(impl.config.Logger(), fmt.Sprintf("stale vtag; req [%s], cur [%s]", obj.VTag(), current.VTag()))
 		return nil, ErrStaleObject
 	}
 
@@ -258,7 +258,7 @@ func (impl easyStoreImpl) ObjectDelete(obj EasyStoreObject, which EasyStoreCompo
 		return nil, err
 	}
 	if current.VTag() != obj.VTag() {
-		logError(impl.config.Logger(), fmt.Sprintf("stale vtag; req [%s], cur [%s]", obj.VTag(), current.VTag()))
+		logWarning(impl.config.Logger(), fmt.Sprintf("stale vtag; req [%s], cur [%s]", obj.VTag(), current.VTag()))
 		return nil, ErrStaleObject
 	}
 
