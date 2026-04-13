@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
@@ -832,11 +831,7 @@ func (s *S3Storage) signedUrl(bucket string, key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	decode, err := url.QueryUnescape(ps.URL)
-	if err != nil {
-		return "", err
-	}
-	return decode, nil
+	return ps.URL, nil
 }
 
 func (s *S3Storage) statusText(err error) string {
