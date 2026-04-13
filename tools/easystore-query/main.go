@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"io"
 	"log"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -137,12 +138,12 @@ func main() {
 				fmt.Printf("  ===> ns/id: %s/%s (%d of %d)\n", obj.Namespace(), obj.Id(), current, total)
 				err = outputObject(obj, what)
 				if err != nil {
-					log.Fatalf("ERROR: outputting result object (%s)", err.Error())
+					log.Printf("ERROR: outputting result object (%s)", err.Error())
 				}
 			}
 			err = dumpObject(obj, dumpDir)
 			if err != nil {
-				log.Fatalf("ERROR: dumping result object (%s)", err.Error())
+				log.Printf("ERROR: dumping result object (%s)", err.Error())
 			}
 
 			obj, err = results.Next()
@@ -271,6 +272,7 @@ func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
 
 			// check for a streaming URL
 			if len(f.Url()) != 0 {
+				
 				fmt.Printf("       ==> streaming %s...\n", f.Url())
 
 				resp, err := http.Get(f.Url())
