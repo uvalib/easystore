@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -132,7 +133,7 @@ func main() {
 		_, err = es.ObjectUpdate(eso, uvaeasystore.Fields)
 	} else {
 		if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-			log.Printf("INFO: not found ns/oid [%s/%s]\n", namespace, oid)
+			log.Printf("INFO: not found ns/oid [%s/%s]", namespace, oid)
 			err = nil
 		}
 	}

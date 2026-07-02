@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -93,11 +94,11 @@ func main() {
 	errorCount := 0
 	count := len(ids)
 	for ix, id := range ids {
-		log.Printf("INFO: processing ns/oid [%s/%s] (%d of %d)\n", namespace, id, ix+1, count)
+		log.Printf("INFO: processing ns/oid [%s/%s] (%d of %d)", namespace, id, ix+1, count)
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
 		obj, err := s3ds.GetObjectByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
-			log.Printf("ERROR: getting object from S3 datastore, continuing\n")
+			log.Printf("ERROR: getting object from S3 datastore, continuing")
 			errorCount++
 			continue
 		}
@@ -105,47 +106,47 @@ func main() {
 		fields, err := s3ds.GetFieldsByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-				log.Printf("INFO: no fields located for this object\n")
+				log.Printf("INFO: no fields located for this object")
 			} else {
-				log.Printf("ERROR: getting fields from S3 datastore, continuing\n")
+				log.Printf("ERROR: getting fields from S3 datastore, continuing")
 				errorCount++
 				continue
 			}
 		} else {
-			log.Printf("INFO: %d fields located for this object\n", len(*fields))
+			log.Printf("INFO: %d fields located for this object", len(*fields))
 		}
 
 		if dryRun == false {
 			if delBefore == true {
-				log.Printf("INFO: deleting object and fields before adding\n")
+				log.Printf("INFO: deleting object and fields before adding")
 				_ = pgds.DeleteFieldsByKey(key)
 				_ = pgds.DeleteObjectByKey(key)
 			}
 
-			log.Printf("INFO: adding object to DB datastore...\n")
+			log.Printf("INFO: adding object to DB datastore...")
 			err = pgds.AddObject(obj)
 			if err != nil {
-				log.Printf("ERROR: adding object to DB datastore, continuing\n")
+				log.Printf("ERROR: adding object to DB datastore, continuing")
 				errorCount++
 				continue
 			}
 
 			// do we have fields to regenerate?
 			if fields != nil && len(*fields) != 0 {
-				log.Printf("INFO: adding fields to DB datastore...\n")
+				log.Printf("INFO: adding fields to DB datastore...")
 				err = pgds.AddFields(key, *fields)
 				if err != nil {
-					log.Printf("ERROR: adding fields to DB datastore, continuing\n")
+					log.Printf("ERROR: adding fields to DB datastore, continuing")
 					errorCount++
 					continue
 				}
 			}
 		} else {
 			if delBefore == true {
-				log.Printf("INFO: would delete object and fields before adding\n")
-				log.Printf("INFO: would add object to DB datastore...\n")
+				log.Printf("INFO: would delete object and fields before adding")
+				log.Printf("INFO: would add object to DB datastore...")
 				if fields != nil && len(*fields) != 0 {
-					log.Printf("INFO: would add fields to DB datastore...\n")
+					log.Printf("INFO: would add fields to DB datastore...")
 				}
 			}
 		}
@@ -166,7 +167,7 @@ func main() {
 
 func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error) {
 
-	log.Printf("INFO: getting list of stored objects (this may take a while)...\n")
+	log.Printf("INFO: getting list of stored objects (this may take a while)...")
 
 	// query parameters
 	params := &s3.ListObjectsV2Input{

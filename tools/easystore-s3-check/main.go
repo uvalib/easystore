@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -33,7 +34,7 @@ func main() {
 	}
 
 	if verifyCache == true {
-		log.Printf("INFO: enabled cache verify\n")
+		log.Printf("INFO: enabled cache verify")
 	}
 
 	// create the S3 store configuration
@@ -83,14 +84,14 @@ func main() {
 			break
 		}
 
-		log.Printf("INFO: checking ns/oid [%s/%s] (%d of %d)\n", namespace, id, ix+1, count)
+		log.Printf("INFO: checking ns/oid [%s/%s] (%d of %d)", namespace, id, ix+1, count)
 
 		key := uvaeasystore.DataStoreKey{Namespace: namespace, ObjectId: id}
 
 		// get the object
 		eso, err := s3ds.GetObjectByKey(key, uvaeasystore.NOCACHE)
 		if err != nil {
-			log.Printf("ERROR: getting object from S3 datastore (%s), continuing\n", err.Error())
+			log.Printf("ERROR: getting object from S3 datastore (%s), continuing", err.Error())
 			errorCount++
 			continue
 		}
@@ -102,7 +103,7 @@ func main() {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				//log.Printf("INFO: no fields located for this object\n")
 			} else {
-				log.Printf("ERROR: getting fields from S3 datastore (%s), continuing\n", err.Error())
+				log.Printf("ERROR: getting fields from S3 datastore (%s), continuing", err.Error())
 				errorCount++
 				continue
 			}
@@ -116,14 +117,14 @@ func main() {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				//log.Printf("INFO: no metadata located for this object\n")
 			} else {
-				log.Printf("ERROR: getting metadata from S3 datastore (%s), continuing\n", err.Error())
+				log.Printf("ERROR: getting metadata from S3 datastore (%s), continuing", err.Error())
 				errorCount++
 				continue
 			}
 		} else {
 			_, err := md.Payload()
 			if err != nil {
-				log.Printf("ERROR: getting metadata payload (%s), continuing\n", err.Error())
+				log.Printf("ERROR: getting metadata payload (%s), continuing", err.Error())
 			} else {
 				//log.Printf("INFO: %d bytes of metadata located for this object\n", len(pl))
 			}
@@ -135,7 +136,7 @@ func main() {
 			if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 				//log.Printf("INFO: no blobs located for this object\n")
 			} else {
-				log.Printf("ERROR: getting blobs from S3 datastore (%s), continuing\n", err.Error())
+				log.Printf("ERROR: getting blobs from S3 datastore (%s), continuing", err.Error())
 				errorCount++
 				continue
 			}
@@ -170,7 +171,7 @@ func main() {
 					if errors.Is(err, uvaeasystore.ErrNotFound) == true {
 						//log.Printf("INFO: no fields located for this object\n")
 					} else {
-						log.Printf("ERROR: getting cached fields from S3 datastore (%s), continuing\n", err.Error())
+						log.Printf("ERROR: getting cached fields from S3 datastore (%s), continuing", err.Error())
 						errorCount++
 						continue
 					}
@@ -186,7 +187,7 @@ func main() {
 			}
 		}
 
-		log.Printf("INFO: ok\n")
+		log.Printf("INFO: ok")
 		okCount++
 	}
 
@@ -195,7 +196,7 @@ func main() {
 
 func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error) {
 
-	log.Printf("INFO: getting list of stored objects (this may take a while)...\n")
+	log.Printf("INFO: getting list of stored objects (this may take a while)...")
 
 	// query parameters
 	params := &s3.ListObjectsV2Input{
@@ -235,44 +236,52 @@ func getIds(namespace string, s3Store *uvaeasystore.S3Storage) ([]string, error)
 	return result, nil
 }
 
-func verifyObject(eso1 uvaeasystore.EasyStoreObject, eso2 uvaeasystore.EasyStoreObject) bool {
+func verifyObject(esoSource uvaeasystore.EasyStoreObject, esoCache uvaeasystore.EasyStoreObject) bool {
 
 	same := true
 	// silly I know
-	if eso1.Namespace() != eso2.Namespace() {
-		log.Printf("ERROR: namespace out of sync s3 [%s] cache [%s]\n", eso1.Namespace(), eso2.Namespace())
+	if esoSource.Namespace() != esoCache.Namespace() {
+		log.Printf("ERROR: namespace out of sync, s3 [%s], cache [%s]", esoSource.Namespace(), esoCache.Namespace())
 		same = false
 	}
-	if eso1.Id() != eso2.Id() {
-		log.Printf("ERROR: id out of sync s3 [%s] cache [%s]\n", eso1.Id(), eso2.Id())
+	if esoSource.Id() != esoCache.Id() {
+		log.Printf("ERROR: id out of sync, s3 [%s], cache [%s]", esoSource.Id(), esoCache.Id())
 		same = false
 	}
 
-	if eso1.VTag() != eso2.VTag() {
-		log.Printf("ERROR: vtag out of sync s3 [%s] cache [%s]\n", eso1.VTag(), eso2.VTag())
+	if esoSource.VTag() != esoCache.VTag() {
+		log.Printf("ERROR: vtag out of sync, s3 [%s], cache [%s]", esoSource.VTag(), esoCache.VTag())
 		same = false
 	}
 
 	// FIXME
-	//if eso1.Created() != eso2.Created() {
-	//	log.Printf("ERROR: created out of sync s3 [%s] cache [%s]\n", eso1.Created(), eso2.Created())
+	//if esoSource.Created() != esoCache.Created() {
+	//	log.Printf("ERROR: created out of sync, s3 [%s], cache [%s]\n", esoSource.Created(), esoCache.Created())
 	//	same = false
 	//}
 
-	//if eso1.Modified() != eso2.Modified() {
-	//	log.Printf("ERROR: modified out of sync s3 [%s] cache [%s]\n", eso1.Modified(), eso2.Modified())
+	//if esoSource.Modified() != esoCache.Modified() {
+	//	log.Printf("ERROR: modified out of sync, s3 [%s], cache [%s]\n", esoSource.Modified(), esoCache.Modified())
 	//	same = false
 	//}
 
 	return same
 }
 
-func verifyFields(fs1 uvaeasystore.EasyStoreObjectFields, fs2 uvaeasystore.EasyStoreObjectFields) bool {
-	if len(fs1) != len(fs2) {
+func verifyFields(fsSource uvaeasystore.EasyStoreObjectFields, fsCache uvaeasystore.EasyStoreObjectFields) bool {
+	if len(fsSource) != len(fsCache) {
+		log.Printf("ERROR: field counts out of sync, s3 [%d], cache [%d]", len(fsSource), len(fsCache))
 		return false
 	}
-	for key, value := range fs1 {
-		if val, ok := fs2[key]; !ok || val != value {
+
+	for key, value := range fsSource {
+		val, ok := fsCache[key]
+		if ok == false {
+			log.Printf("ERROR: field in s3 does not exist in cache [%s]", key)
+			return false
+		}
+		if val != value {
+			log.Printf("ERROR: field [%s] values out of sync, s3 [%s], cache [%s]", key, value, val)
 			return false
 		}
 	}

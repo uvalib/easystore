@@ -4,12 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -171,7 +172,7 @@ func main() {
 
 	} else {
 		if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-			log.Printf("INFO: not found ns/oid [%s/%s]\n", namespace, oid)
+			log.Printf("INFO: not found ns/oid [%s/%s]", namespace, oid)
 			err = nil
 		}
 	}
@@ -188,7 +189,7 @@ func addBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name s
 	// read the file
 	buf, err := os.ReadFile(fname)
 	if err != nil {
-		log.Printf("INFO: %s not found or not readable\n", fname)
+		log.Printf("INFO: %s not found or not readable", fname)
 		return nil
 	}
 
@@ -210,7 +211,7 @@ func delBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name s
 
 	// handle this case differently
 	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]", eso.Namespace(), eso.Id(), name)
 		err = nil
 	}
 
@@ -222,7 +223,7 @@ func renameBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, nam
 
 	// handle this case differently
 	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]", eso.Namespace(), eso.Id(), name)
 		err = nil
 	}
 
@@ -246,7 +247,7 @@ func updateBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, nam
 	// read the file
 	buf, err := os.ReadFile(fname)
 	if err != nil {
-		log.Printf("INFO: %s not found or not readable\n", fname)
+		log.Printf("INFO: %s not found or not readable", fname)
 		return nil
 	}
 
@@ -260,7 +261,7 @@ func updateBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, nam
 
 	// handle this case differently
 	if errors.Is(err, uvaeasystore.ErrNotFound) == true {
-		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]\n", eso.Namespace(), eso.Id(), name)
+		log.Printf("INFO: not found ns/oid/name [%s/%s/%s]", eso.Namespace(), eso.Id(), name)
 		err = nil
 	}
 
