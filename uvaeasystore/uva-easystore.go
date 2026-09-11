@@ -12,6 +12,7 @@ package uvaeasystore
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"time"
 )
@@ -28,6 +29,7 @@ var ErrSerialize = fmt.Errorf("serialization error")
 var ErrDeserialize = fmt.Errorf("deserialization error")
 var ErrBusNotConfigured = fmt.Errorf("bus not configured")
 var ErrRecurse = fmt.Errorf("cannot recurse further")
+var ErrPayloadNotBuffered = fmt.Errorf("the payload is not buffered, use the payload reader")
 
 // EasyStoreComponents - the components that can appear in an object
 type EasyStoreComponents uint
@@ -149,7 +151,11 @@ type EasyStoreBlob interface {
 
 	// access to actual payload, one of the following
 	Url() string              // a url to stream the payload
-	Payload() ([]byte, error) // the payload
+	Payload() ([]byte, error) // the payload (ErrPayloadNotBuffered if the blob is a stream)
+
+	// stream the payload, this is the preferred access method for larger files as the
+	// payload is never held in memory in its entirety. The caller closes the reader
+	PayloadReader() (io.ReadCloser, error)
 
 	EasyStoreCommon // any common fields
 }
@@ -226,6 +232,20 @@ func ProxyEasyStoreObject(namespace string, id string, vtag string) EasyStoreObj
 // NewEasyStoreBlob - factory for our easystore blob object
 func NewEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
 	return newEasyStoreBlob(name, mimeType, payload)
+}
+
+// NewEasyStoreBlobFromReader - factory for an easystore blob whose payload is streamed
+// from the supplied reader. Use this in preference to NewEasyStoreBlob for larger files;
+// the payload is consumed as it is written to the store so it is never held in memory in
+// its entirety. The reader is closed by the store once the payload has been consumed
+func NewEasyStoreBlobFromReader(name string, mimeType string, payload io.ReadCloser) EasyStoreBlob {
+	return newEasyStoreBlobFromReader(name, mimeType, payload)
+}
+
+// NewEasyStoreBlobFromFile - factory for an easystore blob whose payload is streamed from
+// the named file. If the mime type is blank we attempt to determine it from the contents
+func NewEasyStoreBlobFromFile(name string, mimeType string, fileName string) (EasyStoreBlob, error) {
+	return newEasyStoreBlobFromFile(name, mimeType, fileName)
 }
 
 // NewEasyStoreMetadata - factory for our easystore blob object

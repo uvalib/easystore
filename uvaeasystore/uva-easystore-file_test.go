@@ -109,6 +109,154 @@ func TestFileCreate(t *testing.T) {
 	}
 }
 
+func TestFileCreateStreaming(t *testing.T) {
+	es := testSetup(t)
+	defer es.Close()
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// create the new object
+	o, err := es.ObjectCreate(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// add some files, the payloads are streamed rather than buffered
+	pl1 := newBinaryPayload()
+	pl2 := newBinaryPayload()
+	f1 := newStreamingBlob("file1.bin", pl1)
+	f2 := newStreamingBlob("file2.bin", pl2)
+
+	err = es.FileCreate(o.Namespace(), o.Id(), f1)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+	err = es.FileCreate(o.Namespace(), o.Id(), f2)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// get the current object
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	files := after.Files()
+	if len(files) != 2 {
+		t.Fatalf("expected 2 but got %d\n", len(files))
+	}
+
+	b1 := files[0]
+	b2 := files[1]
+	testEqual(t, f1.Name(), b1.Name())
+	testEqual(t, f2.Name(), b2.Name())
+	testEqual(t, f1.MimeType(), b1.MimeType())
+	testEqual(t, f2.MimeType(), b2.MimeType())
+
+	url1 := b1.Url()
+	url2 := b2.Url()
+	if len(url1) == 0 {
+		t.Fatalf("file 1 url is empty\n")
+	}
+	if len(url2) == 0 {
+		t.Fatalf("file 2 url is empty\n")
+	}
+
+	// verify the streamed payloads arrived intact
+	plAfter1, _ := getFileContents(url1)
+	plAfter2, _ := getFileContents(url2)
+
+	if !bytes.Equal(pl1, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+
+	if !bytes.Equal(pl2, plAfter2) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+
+	// check the vtags are updated
+	if o.VTag() == after.VTag() {
+		t.Fatalf("object vtags are equal but should not be\n")
+	}
+}
+
+func TestObjectCreateStreamingFiles(t *testing.T) {
+	es := testSetup(t)
+	defer es.Close()
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// attach a streamed file to the object before it is created
+	pl1 := newBinaryPayload()
+	f1 := newStreamingBlob("file1.bin", pl1)
+	o.SetFiles([]EasyStoreBlob{f1})
+
+	after, err := es.ObjectCreate(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	files := after.Files()
+	if len(files) != 1 {
+		t.Fatalf("expected 1 but got %d\n", len(files))
+	}
+
+	testEqual(t, f1.Name(), files[0].Name())
+	testEqual(t, f1.MimeType(), files[0].MimeType())
+
+	url1 := files[0].Url()
+	if len(url1) == 0 {
+		t.Fatalf("file 1 url is empty\n")
+	}
+
+	// verify the streamed payload arrived intact
+	plAfter1, _ := getFileContents(url1)
+	if !bytes.Equal(pl1, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+}
+
+func TestFileUpdateStreaming(t *testing.T) {
+	es := testSetup(t)
+	defer es.Close()
+	o := NewEasyStoreObject(goodNamespace, "")
+
+	// add a file
+	f1 := newBinaryBlob("file1.bin")
+	o.SetFiles([]EasyStoreBlob{f1})
+
+	// create the new object
+	o, err := es.ObjectCreate(o)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// replace its contents with a streamed payload
+	pl2 := newBinaryPayload()
+	f2 := newStreamingBlob("file1.bin", pl2)
+
+	err = es.FileUpdate(o.Namespace(), o.Id(), f2)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	// get the current object
+	after, err := es.ObjectGetByKey(o.Namespace(), o.Id(), AllComponents)
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+
+	files := after.Files()
+	if len(files) != 1 {
+		t.Fatalf("expected 1 but got %d\n", len(files))
+	}
+
+	// verify the streamed payload replaced the original one
+	plAfter1, _ := getFileContents(files[0].Url())
+	if !bytes.Equal(pl2, plAfter1) {
+		t.Fatalf("file payloads are unequal but should be\n")
+	}
+}
+
 func TestFileDelete(t *testing.T) {
 	es := testSetup(t)
 	defer es.Close()

@@ -20,6 +20,7 @@ import (
 // test invariants
 var goodSqliteFilename = "/tmp/sqlite.db"
 var badSqliteFilename = "/tmp/blablabla.db"
+var badFilename = "/tmp/blablabla.bin"
 var sourceName = "testing.unit.automated"
 var goodBusName = "uva-experiment-bus-staging"
 var goodNamespace = "test-namespace"
@@ -336,10 +337,34 @@ func asIntWithDefault(str string, def int) int {
 }
 
 func newBinaryBlob(filename string) EasyStoreBlob {
+	return NewEasyStoreBlob(filename, "application/octet-stream", newBinaryPayload())
+}
+
+// a blob whose payload is streamed rather than buffered
+func newStreamingBlob(filename string, payload []byte) EasyStoreBlob {
+	return NewEasyStoreBlobFromReader(filename, "application/octet-stream", io.NopCloser(bytes.NewReader(payload)))
+}
+
+func newBinaryPayload() []byte {
 	buf := make([]byte, 512)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
-	return NewEasyStoreBlob(filename, "application/octet-stream", buf)
+	return buf
+}
+
+// write the payload to a temporary file, returns the file name
+func tempFile(t *testing.T, payload []byte) string {
+
+	f, err := os.CreateTemp("", "easystore-test")
+	if err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+	defer f.Close()
+
+	if _, err = f.Write(payload); err != nil {
+		t.Fatalf("expected 'OK' but got '%s'\n", err)
+	}
+	return f.Name()
 }
 
 func getFileContents(url string) ([]byte, error) {

@@ -69,8 +69,9 @@ func (s *dbStorage) AddBlob(key DataStoreKey, blob EasyStoreBlob) error {
 	}
 	defer stmt.Close()
 
-	// errors here are serialization errors
-	buf, err := blob.Payload()
+	// this implementation stores the payload in a single column so it cannot stream;
+	// a streamed payload is buffered here before it is written
+	buf, err := blobPayload(blob)
 	if err != nil {
 		return err
 	}

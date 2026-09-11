@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -186,22 +185,16 @@ func main() {
 
 func addBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, fname string) error {
 
-	// read the file
-	buf, err := os.ReadFile(fname)
+	// make the new blob, the contents are streamed from the file (and the content type is
+	// determined from it) so we support arbitrarily large files
+	bl, err := uvaeasystore.NewEasyStoreBlobFromFile(name, "", fname)
 	if err != nil {
 		log.Printf("INFO: %s not found or not readable", fname)
 		return nil
 	}
 
-	// attempt to determine the content type
-	mt := http.DetectContentType(buf)
-
-	// make the new blob
-	bl := uvaeasystore.NewEasyStoreBlob(name, mt, buf)
 	// and add it
-	err = es.FileCreate(eso.Namespace(), eso.Id(), bl)
-
-	return err
+	return es.FileCreate(eso.Namespace(), eso.Id(), bl)
 }
 
 func delBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string) error {
@@ -244,18 +237,14 @@ func show(eso uvaeasystore.EasyStoreObject) error {
 
 func updateBlob(es uvaeasystore.EasyStore, eso uvaeasystore.EasyStoreObject, name string, fname string) error {
 
-	// read the file
-	buf, err := os.ReadFile(fname)
+	// make the new blob, the contents are streamed from the file (and the content type is
+	// determined from it) so we support arbitrarily large files
+	bl, err := uvaeasystore.NewEasyStoreBlobFromFile(name, "", fname)
 	if err != nil {
 		log.Printf("INFO: %s not found or not readable", fname)
 		return nil
 	}
 
-	// attempt to determine the content type
-	mt := http.DetectContentType(buf)
-
-	// make the new blob
-	bl := uvaeasystore.NewEasyStoreBlob(name, mt, buf)
 	// and update it
 	err = es.FileUpdate(eso.Namespace(), eso.Id(), bl)
 

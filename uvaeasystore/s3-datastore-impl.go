@@ -15,6 +15,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"path/filepath"
 	"strings"
@@ -527,9 +528,14 @@ func (s *S3Storage) addS3Blob(namespace string, identifier string, blob EasyStor
 	impl.Created_, impl.Modified_ = time.Now(), time.Now()
 
 	// we want to store as the original file rather than a serialized byte stream...
-	fBytes := impl.Payload_
-	// upload to S3
-	err := s.s3UploadFromBuffer(s.Bucket, fileKey, fBytes)
+	var err error
+	if impl.reader != nil {
+		// the payload is a stream so upload it without buffering it all in memory
+		defer impl.reader.Close()
+		err = s.s3UploadFromReader(s.Bucket, fileKey, impl.reader)
+	} else {
+		err = s.s3UploadFromBuffer(s.Bucket, fileKey, impl.Payload_)
+	}
 	if err != nil {
 		return err
 	}
@@ -538,6 +544,7 @@ func (s *S3Storage) addS3Blob(namespace string, identifier string, blob EasyStor
 	// interfaces are pointers
 	implClone := *impl
 	implClone.Payload_ = nil
+	implClone.reader = nil
 	bBytes := s.serialize.BlobSerialize(implClone).([]byte)
 
 	// upload to S3
@@ -667,6 +674,12 @@ func (s *S3Storage) isBlobName(name string) bool {
 //
 
 func (s *S3Storage) s3UploadFromBuffer(bucket string, key string, buf []byte) error {
+	return s.s3UploadFromReader(bucket, key, bytes.NewReader(buf))
+}
+
+// s3UploadFromReader -- upload the contents of the reader, the payload is consumed as it
+// is sent so an arbitrarily large file only occupies a part buffer at a time
+func (s *S3Storage) s3UploadFromReader(bucket string, key string, body io.Reader) error {
 
 	logDebug(s.log, fmt.Sprintf("uploading [%s/%s]", bucket, key))
 	start := time.Now()
@@ -679,7 +692,7 @@ func (s *S3Storage) s3UploadFromBuffer(bucket string, key string, buf []byte) er
 	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
-		Body:   bytes.NewReader(buf),
+		Body:   body,
 	})
 
 	duration := time.Since(start)

@@ -164,18 +164,8 @@ func FileCreatePreflight(namespace string, oid string, file EasyStoreBlob) error
 	}
 
 	// validate the file
-	if len(file.Name()) == 0 {
-		return ErrBadParameter
-	}
-	if len(file.MimeType()) == 0 {
-		return ErrBadParameter
-	}
-	pl, err := file.Payload()
-	if err != nil {
-		return ErrBadParameter
-	}
-	if len(pl) == 0 {
-		return ErrBadParameter
+	if err := filePreflight(file); err != nil {
+		return err
 	}
 
 	// preflight good
@@ -234,18 +224,8 @@ func FileUpdatePreflight(namespace string, oid string, file EasyStoreBlob) error
 	}
 
 	// validate the file
-	if len(file.Name()) == 0 {
-		return ErrBadParameter
-	}
-	if len(file.MimeType()) == 0 {
-		return ErrBadParameter
-	}
-	pl, err := file.Payload()
-	if err != nil {
-		return ErrBadParameter
-	}
-	if len(pl) == 0 {
-		return ErrBadParameter
+	if err := filePreflight(file); err != nil {
+		return err
 	}
 
 	// preflight good
@@ -285,6 +265,42 @@ func RenamePreflight(obj EasyStoreObject, which EasyStoreComponents, curName str
 		return ErrBadParameter
 	}
 	if curName == newName {
+		return ErrBadParameter
+	}
+
+	// preflight good
+	return nil
+}
+
+//
+// private helpers
+//
+
+// filePreflight -- common validation of the file/blob attributes
+func filePreflight(file EasyStoreBlob) error {
+
+	if file == nil {
+		return ErrBadParameter
+	}
+
+	if len(file.Name()) == 0 {
+		return ErrBadParameter
+	}
+	if len(file.MimeType()) == 0 {
+		return ErrBadParameter
+	}
+
+	// a streamed payload cannot be validated without consuming it, we just require the
+	// stream to be present
+	if blobIsStreaming(file) == true {
+		return nil
+	}
+
+	pl, err := file.Payload()
+	if err != nil {
+		return ErrBadParameter
+	}
+	if len(pl) == 0 {
 		return ErrBadParameter
 	}
 
