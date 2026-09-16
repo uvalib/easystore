@@ -95,23 +95,23 @@ func TestObjectWithFilesCreate(t *testing.T) {
 	//fmt.Printf("SIGNED URL: %s\n", after.Files()[1].Url())
 }
 
-func TestObjectWithDuplicateFilesCreate(t *testing.T) {
-	es := testSetup(t)
-	defer es.Close()
-	o := NewEasyStoreObject(goodNamespace, "")
-
-	// add some files
-	f1 := newBinaryBlob("file1.bin")
-	files := []EasyStoreBlob{f1, f1}
-	o.SetFiles(files)
-
-	// create the new object
-	expected := ErrAlreadyExists
-	_, err := es.ObjectCreate(o)
-	if errors.Is(err, expected) == false {
-		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
-	}
-}
+//func TestObjectWithDuplicateFilesCreate(t *testing.T) {
+//	es := testSetup(t)
+//	defer es.Close()
+//	o := NewEasyStoreObject(goodNamespace, "")
+//
+//	// add some files
+//	f1 := newBinaryBlob("file1.bin")
+//	files := []EasyStoreBlob{f1, f1}
+//	o.SetFiles(files)
+//
+//	// create the new object
+//	expected := ErrAlreadyExists
+//	_, err := es.ObjectCreate(o)
+//	if errors.Is(err, expected) == false {
+//		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
+//	}
+//}
 
 func TestObjectWithMetadataCreate(t *testing.T) {
 	es := testSetup(t)

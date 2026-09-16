@@ -113,7 +113,7 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		return nil, err
 	}
 
-	b := newEasyStoreBlob(
+	b := newEasyStoreBlobFromBuffer(
 		jsonUnencode(omap["name"].(string)),
 		omap["mimetype"].(string),
 		buf)

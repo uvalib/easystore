@@ -31,7 +31,7 @@ type easyStoreBlobImpl struct {
 }
 
 // factory for our easystore blob interface
-func newEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
+func newEasyStoreBlobFromBuffer(name string, mimeType string, payload []byte) EasyStoreBlob {
 	return &easyStoreBlobImpl{Name_: name, MimeType_: mimeType, Payload_: payload}
 }
 

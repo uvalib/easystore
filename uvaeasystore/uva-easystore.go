@@ -229,13 +229,13 @@ func ProxyEasyStoreObject(namespace string, id string, vtag string) EasyStoreObj
 	return proxyEasyStoreObject(namespace, id, vtag)
 }
 
-// NewEasyStoreBlob - factory for our easystore blob object
-func NewEasyStoreBlob(name string, mimeType string, payload []byte) EasyStoreBlob {
-	return newEasyStoreBlob(name, mimeType, payload)
+// NewEasyStoreBlobFromBuffer - factory for our easystore blob object
+func NewEasyStoreBlobFromBuffer(name string, mimeType string, payload []byte) EasyStoreBlob {
+	return newEasyStoreBlobFromBuffer(name, mimeType, payload)
 }
 
 // NewEasyStoreBlobFromReader - factory for an easystore blob whose payload is streamed
-// from the supplied reader. Use this in preference to NewEasyStoreBlob for larger files;
+// from the supplied reader. Use this in preference to NewEasyStoreBloFromBuffer for larger files;
 // the payload is consumed as it is written to the store so it is never held in memory in
 // its entirety. The reader is closed by the store once the payload has been consumed
 func NewEasyStoreBlobFromReader(name string, mimeType string, payload io.ReadCloser) EasyStoreBlob {

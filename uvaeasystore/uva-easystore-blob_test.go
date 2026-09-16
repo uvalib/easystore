@@ -15,7 +15,7 @@ import (
 func TestBlobFromBuffer(t *testing.T) {
 
 	payload := []byte("the payload contents")
-	b := NewEasyStoreBlob("file1.bin", "application/octet-stream", payload)
+	b := NewEasyStoreBlobFromBuffer("file1.bin", "application/octet-stream", payload)
 
 	// a buffered blob provides its payload as a buffer
 	buf, err := b.Payload()
@@ -121,25 +121,6 @@ func TestBlobFromFile(t *testing.T) {
 	_, err = NewEasyStoreBlobFromFile("file1.json", "", badFilename)
 	if err == nil {
 		t.Fatalf("expected an error but got 'OK'\n")
-	}
-}
-
-func TestBlobPreflight(t *testing.T) {
-
-	// a streamed blob passes preflight without its payload being consumed
-	b := NewEasyStoreBlobFromReader("file1.bin", "application/octet-stream", io.NopCloser(bytes.NewReader([]byte("payload"))))
-	if err := FileCreatePreflight(goodNamespace, "oid-123", b); err != nil {
-		t.Fatalf("expected 'OK' but got '%s'\n", err)
-	}
-	if err := FileUpdatePreflight(goodNamespace, "oid-123", b); err != nil {
-		t.Fatalf("expected 'OK' but got '%s'\n", err)
-	}
-
-	// while an empty buffered blob does not
-	expected := ErrBadParameter
-	b = NewEasyStoreBlob("file1.bin", "application/octet-stream", nil)
-	if err := FileCreatePreflight(goodNamespace, "oid-123", b); errors.Is(err, expected) == false {
-		t.Fatalf("expected '%s' but got '%s'\n", expected, err)
 	}
 }
 

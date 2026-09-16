@@ -77,14 +77,14 @@ func newBinaryBlob(filename string) uvaeasystore.EasyStoreBlob {
 	buf := make([]byte, 512)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
-	return uvaeasystore.NewEasyStoreBlob(filename, "application/octet-stream", buf)
+	return uvaeasystore.NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", buf)
 }
 
 func newMetadataBlob(filename string) uvaeasystore.EasyStoreBlob {
 	buf := make([]byte, 512)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
-	return uvaeasystore.NewEasyStoreBlob(filename, "application/octet-stream", buf)
+	return uvaeasystore.NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", buf)
 }
 
 func validateObject(workerId string, eso uvaeasystore.EasyStoreObject) {

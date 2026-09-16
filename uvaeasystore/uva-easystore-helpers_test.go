@@ -337,7 +337,7 @@ func asIntWithDefault(str string, def int) int {
 }
 
 func newBinaryBlob(filename string) EasyStoreBlob {
-	return NewEasyStoreBlob(filename, "application/octet-stream", newBinaryPayload())
+	return NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", newBinaryPayload())
 }
 
 // a blob whose payload is streamed rather than buffered
