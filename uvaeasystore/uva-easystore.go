@@ -108,9 +108,6 @@ type EasyStore interface {
 	// delete all or part of an existing object, specify which components are to be deleted
 	ObjectDelete(EasyStoreObject, EasyStoreComponents) (EasyStoreObject, error)
 
-	// rename one of the blobs within the object, old name, new name
-	//Rename(EasyStoreObject, EasyStoreComponents, string, string) (EasyStoreObject, error)
-
 	// file API calls
 
 	// create a file
