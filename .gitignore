@@ -2,6 +2,7 @@
 .vscode
 env.*
 db/postgres/*.ksh
+db/s3/*.ksh
 .DS_Store
 tools/*/bin
 tools/*/tmp
