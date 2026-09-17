@@ -29,12 +29,11 @@ var badId = "oid-blablabla"
 var jsonPayload = []byte("{\"id\":123,\"name\":\"the name\"}")
 
 // can be "sqlite", "postgres", "s3" or "proxy"
-// var datastore = "sqlite"
-//var datastore = "postgres"
+// var datastore = "sqlite"  // NOT SUPPORTED
+//var datastore = "postgres" // NOT SUPPORTED
 
-var datastore = "s3"
-
-//var datastore = "proxy"
+// var datastore = "s3"
+var datastore = "proxy"
 
 // do we want event telemetry?
 var enableBus = false
@@ -108,6 +107,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	case "proxy":
 		proxyConfig = ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			ServiceTimeout:  60,
 			Log:             logger,
 		}
 		esro, err = NewEasyStoreProxyReadonly(proxyConfig)
@@ -187,6 +187,7 @@ func testSetup(t *testing.T) EasyStore {
 	case "proxy":
 		proxyConfig = ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			ServiceTimeout:  60,
 			Log:             logger,
 		}
 		es, err = NewEasyStoreProxy(proxyConfig)
