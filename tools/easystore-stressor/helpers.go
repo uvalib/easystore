@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -9,6 +11,8 @@ import (
 
 	"github.com/uvalib/easystore/uvaeasystore"
 )
+
+var maxObjectSetSize = uint(5000)
 
 func getObjectSet(workerId string, namespace string, es uvaeasystore.EasyStoreReadonly) []uvaeasystore.EasyStoreObject {
 
@@ -25,8 +29,9 @@ func getObjectSet(workerId string, namespace string, es uvaeasystore.EasyStoreRe
 		return make([]uvaeasystore.EasyStoreObject, 0, 0)
 	}
 
-	res := make([]uvaeasystore.EasyStoreObject, 0, results.Count())
-	for {
+	resultCount := int(min(results.Count(), maxObjectSetSize))
+	res := make([]uvaeasystore.EasyStoreObject, 0, resultCount)
+	for _ = range resultCount {
 		o, err := results.Next()
 		if err != nil {
 			break
@@ -74,17 +79,19 @@ func makeFields() uvaeasystore.EasyStoreObjectFields {
 }
 
 func newBinaryBlob(filename string) uvaeasystore.EasyStoreBlob {
-	buf := make([]byte, 512)
+	buf := make([]byte, 8192)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
-	return uvaeasystore.NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", buf)
+	//	return uvaeasystore.NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", buf)
+	return uvaeasystore.NewEasyStoreBlobFromReader(filename, "application/octet-stream",
+		io.NopCloser(bytes.NewReader(buf)))
 }
 
-func newMetadataBlob(filename string) uvaeasystore.EasyStoreBlob {
-	buf := make([]byte, 512)
+func newMetadataBlob(filename string) uvaeasystore.EasyStoreMetadata {
+	buf := make([]byte, 8192)
 	// then we can call rand.Read.
 	_, _ = rand.Read(buf)
-	return uvaeasystore.NewEasyStoreBlobFromBuffer(filename, "application/octet-stream", buf)
+	return uvaeasystore.NewEasyStoreMetadata(filename, buf)
 }
 
 func validateObject(workerId string, eso uvaeasystore.EasyStoreObject) {
