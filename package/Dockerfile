@@ -18,6 +18,7 @@ RUN cd /build/tools/easystore-query; make linux
 RUN cd /build/tools/easystore-s3-check; make linux
 RUN cd /build/tools/easystore-s3-rebuild; make linux
 RUN cd /build/tools/easystore-stressor; make linux
+RUN cd /build/tools/easystore-write-verify; make linux
 
 #
 # build the target container
@@ -53,6 +54,7 @@ COPY --from=builder /build/tools/easystore-query/bin/easystore-query.linux ${APP
 COPY --from=builder /build/tools/easystore-s3-check/bin/easystore-s3-check.linux ${APP_HOME}/bin/easystore-s3-check
 COPY --from=builder /build/tools/easystore-s3-rebuild/bin/easystore-s3-rebuild.linux ${APP_HOME}/bin/easystore-s3-rebuild
 COPY --from=builder /build/tools/easystore-stressor/bin/easystore-stressor.linux ${APP_HOME}/bin/easystore-stressor
+COPY --from=builder /build/tools/easystore-write-verify/bin/easystore-write-verify.linux ${APP_HOME}/bin/easystore-write-verify
 
 # Ensure permissions are correct
 RUN chown docker:sse /home/docker/.profile ${APP_HOME}/bin/* && chmod 755 /home/docker/.profile ${APP_HOME}/bin/*
