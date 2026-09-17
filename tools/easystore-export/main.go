@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/uvalib/easystore/uvaeasystore"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // main entry point
@@ -84,6 +85,7 @@ func main() {
 	case "proxy":
 		proxyConfig = uvaeasystore.ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			ServiceTimeout:  60,
 			Log:             logger,
 		}
 		esro, err = uvaeasystore.NewEasyStoreProxyReadonly(proxyConfig)

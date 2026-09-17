@@ -91,6 +91,7 @@ func main() {
 	case "proxy":
 		proxyConfig = uvaeasystore.ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			ServiceTimeout:  60,
 			Log:             logger,
 		}
 		esro, err = uvaeasystore.NewEasyStoreProxyReadonly(proxyConfig)
@@ -272,7 +273,7 @@ func dumpObject(obj uvaeasystore.EasyStoreObject, outdir string) error {
 
 			// check for a streaming URL
 			if len(f.Url()) != 0 {
-				
+
 				fmt.Printf("       ==> streaming %s...\n", f.Url())
 
 				resp, err := http.Get(f.Url())

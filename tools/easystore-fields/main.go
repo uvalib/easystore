@@ -103,6 +103,7 @@ func main() {
 	case "proxy":
 		proxyConfig = uvaeasystore.ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
+			ServiceTimeout:  60,
 			Log:             logger,
 		}
 		es, err = uvaeasystore.NewEasyStoreProxy(proxyConfig)
