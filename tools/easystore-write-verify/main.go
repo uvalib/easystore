@@ -128,7 +128,8 @@ func main() {
 		}
 
 		// create our new work object
-		oNew := uvaeasystore.NewEasyStoreObject(namespace, "")
+		// we really don't want to use the namespace that then lambda's trigger on
+		oNew := uvaeasystore.NewEasyStoreObject("test-namespace", "")
 
 		// populate it
 		oNew.SetFiles(fileStreams(originalNames, originalFiles))
