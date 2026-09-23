@@ -804,21 +804,36 @@ func (s *S3Storage) s3List(bucket string, key string) ([]string, error) {
 	logDebug(s.log, fmt.Sprintf("list [%s/%s]", bucket, key))
 	start := time.Now()
 
-	res, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	// query parameters
+	params := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucket),
 		Prefix: aws.String(key),
-	})
-	if err != nil {
-		duration := time.Since(start)
-		logError(s.log, fmt.Sprintf("list [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
-		return nil, err
 	}
+
+	// create a paginator, a single list call only returns the first page of results
+	var limit int32 = 1000
+	paginate := s3.NewListObjectsV2Paginator(s.S3Client, params, func(o *s3.ListObjectsV2PaginatorOptions) {
+		o.Limit = limit
+	})
 
 	// make the result set
 	result := make([]string, 0)
-	for _, o := range res.Contents {
-		logDebug(s.log, fmt.Sprintf("found [%s]", *o.Key))
-		result = append(result, *o.Key)
+
+	// iterate through the pages
+	for paginate.HasMorePages() {
+
+		// get the next page
+		page, err := paginate.NextPage(context.TODO())
+		if err != nil {
+			duration := time.Since(start)
+			logError(s.log, fmt.Sprintf("list [%s/%s] complete in %0.2f seconds (%s)", bucket, key, duration.Seconds(), s.statusText(err)))
+			return nil, err
+		}
+
+		for _, o := range page.Contents {
+			logDebug(s.log, fmt.Sprintf("found [%s]", *o.Key))
+			result = append(result, *o.Key)
+		}
 	}
 
 	duration := time.Since(start)
