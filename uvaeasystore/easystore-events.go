@@ -122,7 +122,7 @@ func pubFileDelete(bus uvalibrabus.UvaBus, obj EasyStoreObject) error {
 		return fmt.Errorf("%q: %w", err, ErrSerialize)
 	}
 	ev := uvalibrabus.UvaBusEvent{
-		EventName:  uvalibrabus.EventFileCreate,
+		EventName:  uvalibrabus.EventFileDelete,
 		Namespace:  obj.Namespace(),
 		Identifier: obj.Id(),
 		Detail:     detail,
