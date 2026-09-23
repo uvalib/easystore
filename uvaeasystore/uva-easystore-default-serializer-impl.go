@@ -37,10 +37,23 @@ func (impl easyStoreSerializerImpl) ObjectDeserialize(i interface{}) (EasyStoreO
 		return nil, err
 	}
 
-	o := newEasyStoreObject(omap["ns"].(string), omap["id"].(string))
+	namespace, err := mapString(omap, "ns")
+	if err != nil {
+		return nil, err
+	}
+	id, err := mapString(omap, "id")
+	if err != nil {
+		return nil, err
+	}
+	vtag, err := mapString(omap, "vtag")
+	if err != nil {
+		return nil, err
+	}
+
+	o := newEasyStoreObject(namespace, id)
 	obj := o.(*easyStoreObjectImpl)
 	//obj.Vtag_ = newVtag() // vtags must be unique so mint a new one here
-	obj.Vtag_ = omap["vtag"].(string)
+	obj.Vtag_ = vtag
 	obj.Created_, obj.Modified_, err = timestampExtract(omap)
 	if err != nil {
 		return nil, err
@@ -107,15 +120,27 @@ func (impl easyStoreSerializerImpl) BlobDeserialize(i interface{}) (EasyStoreBlo
 		return nil, err
 	}
 
-	str := omap["payload"].(string)
+	str, err := mapString(omap, "payload")
+	if err != nil {
+		return nil, err
+	}
 	buf, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
+	}
+
+	name, err := mapString(omap, "name")
+	if err != nil {
+		return nil, err
+	}
+	mimeType, err := mapString(omap, "mimetype")
 	if err != nil {
 		return nil, err
 	}
 
 	b := newEasyStoreBlobFromBuffer(
-		jsonUnencode(omap["name"].(string)),
-		omap["mimetype"].(string),
+		jsonUnencode(name),
+		mimeType,
 		buf)
 
 	blob := b.(*easyStoreBlobImpl)
@@ -151,13 +176,21 @@ func (impl easyStoreSerializerImpl) MetadataDeserialize(i interface{}) (EasyStor
 		return nil, err
 	}
 
-	str := omap["payload"].(string)
+	str, err := mapString(omap, "payload")
+	if err != nil {
+		return nil, err
+	}
 	buf, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, fmt.Errorf("%q: %w", err.Error(), ErrDeserialize)
+	}
+
+	mimeType, err := mapString(omap, "mimetype")
 	if err != nil {
 		return nil, err
 	}
 
-	md := newEasyStoreMetadata(omap["mimetype"].(string), buf)
+	md := newEasyStoreMetadata(mimeType, buf)
 	meta := md.(*easyStoreMetadataImpl)
 	meta.Created_, meta.Modified_, err = timestampExtract(omap)
 	if err != nil {
@@ -222,17 +255,45 @@ func interfaceToArrayMap(i interface{}) ([]map[string]interface{}, error) {
 	return objmap, nil
 }
 
+// mapString -- extract a string member from a deserialized map. A member that is absent,
+// or that is present but is not a string, means the stored data is not what we wrote. The
+// store holds assets we do not control the lifetime of so this must be an error and never
+// a panic, otherwise reading one damaged asset takes down the caller
+func mapString(omap map[string]interface{}, name string) (string, error) {
+
+	val, ok := omap[name]
+	if ok == false {
+		return "", fmt.Errorf("%q: %w", fmt.Sprintf("missing member [%s] deserializing", name), ErrDeserialize)
+	}
+
+	str, ok := val.(string)
+	if ok == false {
+		return "", fmt.Errorf("%q: %w", fmt.Sprintf("member [%s] is not a string deserializing", name), ErrDeserialize)
+	}
+
+	return str, nil
+}
+
 func timestampExtract(omap map[string]interface{}) (time.Time, time.Time, error) {
 
-	created, err1 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["created"].(string))
-	modified, err2 := time.Parse("2006-01-02 15:04:05 -0700 MST", omap["modified"].(string))
+	createdStr, err := mapString(omap, "created")
+	if err != nil {
+		return time.Now(), time.Now(), err
+	}
+	modifiedStr, err := mapString(omap, "modified")
+	if err != nil {
+		return time.Now(), time.Now(), err
+	}
+
+	created, err1 := time.Parse("2006-01-02 15:04:05 -0700 MST", createdStr)
+	modified, err2 := time.Parse("2006-01-02 15:04:05 -0700 MST", modifiedStr)
 
 	if err1 != nil {
-		return time.Now(), time.Now(), err1
+		return time.Now(), time.Now(), fmt.Errorf("%q: %w", err1.Error(), ErrDeserialize)
 	}
 
 	if err2 != nil {
-		return time.Now(), time.Now(), err2
+		return time.Now(), time.Now(), fmt.Errorf("%q: %w", err2.Error(), ErrDeserialize)
 	}
 
 	return created, modified, nil
