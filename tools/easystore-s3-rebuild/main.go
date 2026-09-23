@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// create the S3 store configuration
-	s3Config := uvaeasystore.DatastoreS3Config{
+	s3Config := &uvaeasystore.DatastoreS3Config{
 		Bucket:              os.Getenv("BUCKET"),
 		SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 		DbHost:              os.Getenv("DBHOST"),
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// create the postgres store configuration
-	pgConfig := uvaeasystore.DatastorePostgresConfig{
+	pgConfig := &uvaeasystore.DatastorePostgresConfig{
 		DbHost:     os.Getenv("DBHOST"),
 		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 		DbName:     os.Getenv("DBNAME"),

@@ -21,27 +21,27 @@ type ProxyConfigImpl struct {
 	Log             *log.Logger // the logger
 }
 
-func (impl ProxyConfigImpl) Logger() *log.Logger {
+func (impl *ProxyConfigImpl) Logger() *log.Logger {
 	return impl.Log
 }
 
-func (impl ProxyConfigImpl) SetLogger(log *log.Logger) {
+func (impl *ProxyConfigImpl) SetLogger(log *log.Logger) {
 	impl.Log = log
 }
 
-func (impl ProxyConfigImpl) Endpoint() string {
+func (impl *ProxyConfigImpl) Endpoint() string {
 	return impl.ServiceEndpoint
 }
 
-func (impl ProxyConfigImpl) SetEndpoint(endpoint string) {
+func (impl *ProxyConfigImpl) SetEndpoint(endpoint string) {
 	impl.ServiceEndpoint = endpoint
 }
 
-func (impl ProxyConfigImpl) Timeout() int {
+func (impl *ProxyConfigImpl) Timeout() int {
 	return impl.ServiceTimeout
 }
 
-func (impl ProxyConfigImpl) SetTimeout(timeout int) {
+func (impl *ProxyConfigImpl) SetTimeout(timeout int) {
 	impl.ServiceTimeout = timeout
 }
 

@@ -38,27 +38,27 @@ type DatastoreS3Config struct {
 	Log                 *log.Logger // the logger
 }
 
-func (impl DatastoreS3Config) Logger() *log.Logger {
+func (impl *DatastoreS3Config) Logger() *log.Logger {
 	return impl.Log
 }
 
-func (impl DatastoreS3Config) SetLogger(log *log.Logger) {
+func (impl *DatastoreS3Config) SetLogger(log *log.Logger) {
 	impl.Log = log
 }
 
-func (impl DatastoreS3Config) MessageBus() string {
+func (impl *DatastoreS3Config) MessageBus() string {
 	return impl.BusName
 }
 
-func (impl DatastoreS3Config) SetMessageBus(busName string) {
+func (impl *DatastoreS3Config) SetMessageBus(busName string) {
 	impl.BusName = busName
 }
 
-func (impl DatastoreS3Config) EventSource() string {
+func (impl *DatastoreS3Config) EventSource() string {
 	return impl.SourceName
 }
 
-func (impl DatastoreS3Config) SetEventSource(sourceName string) {
+func (impl *DatastoreS3Config) SetEventSource(sourceName string) {
 	impl.SourceName = sourceName
 }
 
@@ -66,7 +66,7 @@ func (impl DatastoreS3Config) SetEventSource(sourceName string) {
 func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 
 	// make sure its one of these
-	c, ok := config.(DatastoreS3Config)
+	c, ok := config.(*DatastoreS3Config)
 	if ok == false {
 		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastoreS3Config", ErrBadParameter)
 	}
@@ -126,7 +126,7 @@ func newS3Store(config EasyStoreImplConfig) (DataStore, error) {
 	}, nil
 }
 
-func validateS3Config(config DatastoreS3Config) error {
+func validateS3Config(config *DatastoreS3Config) error {
 
 	if len(config.Bucket) == 0 {
 		return fmt.Errorf("%q: %w", "config.Bucket is blank", ErrBadParameter)

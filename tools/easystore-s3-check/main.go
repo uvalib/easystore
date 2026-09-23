@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// create the S3 store configuration
-	s3Config := uvaeasystore.DatastoreS3Config{
+	s3Config := &uvaeasystore.DatastoreS3Config{
 		Bucket:              os.Getenv("BUCKET"),
 		SignerExpireMinutes: asIntWithDefault(os.Getenv("SIGNEXPIRE"), 60),
 		SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),

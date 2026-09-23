@@ -45,7 +45,7 @@ func main() {
 		logger = log.Default()
 	}
 
-	proxyConfig := uvaeasystore.ProxyConfigImpl{
+	proxyConfig := &uvaeasystore.ProxyConfigImpl{
 		ServiceEndpoint: os.Getenv("ESENDPOINT"),
 		ServiceTimeout:  60,
 		Log:             logger,

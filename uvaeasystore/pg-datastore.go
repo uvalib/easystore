@@ -31,27 +31,27 @@ type DatastorePostgresConfig struct {
 	Log        *log.Logger // the logger
 }
 
-func (impl DatastorePostgresConfig) Logger() *log.Logger {
+func (impl *DatastorePostgresConfig) Logger() *log.Logger {
 	return impl.Log
 }
 
-func (impl DatastorePostgresConfig) SetLogger(log *log.Logger) {
+func (impl *DatastorePostgresConfig) SetLogger(log *log.Logger) {
 	impl.Log = log
 }
 
-func (impl DatastorePostgresConfig) MessageBus() string {
+func (impl *DatastorePostgresConfig) MessageBus() string {
 	return impl.BusName
 }
 
-func (impl DatastorePostgresConfig) SetMessageBus(busName string) {
+func (impl *DatastorePostgresConfig) SetMessageBus(busName string) {
 	impl.BusName = busName
 }
 
-func (impl DatastorePostgresConfig) EventSource() string {
+func (impl *DatastorePostgresConfig) EventSource() string {
 	return impl.SourceName
 }
 
-func (impl DatastorePostgresConfig) SetEventSource(sourceName string) {
+func (impl *DatastorePostgresConfig) SetEventSource(sourceName string) {
 	impl.SourceName = sourceName
 }
 
@@ -59,7 +59,7 @@ func (impl DatastorePostgresConfig) SetEventSource(sourceName string) {
 func newPostgresStore(config EasyStoreImplConfig) (DataStore, error) {
 
 	// make sure its one of these
-	c, ok := config.(DatastorePostgresConfig)
+	c, ok := config.(*DatastorePostgresConfig)
 	if ok == false {
 		return nil, fmt.Errorf("%q: %w", "bad configuration, not a DatastorePostgresConfig", ErrBadParameter)
 	}
@@ -91,7 +91,7 @@ func newPostgresStore(config EasyStoreImplConfig) (DataStore, error) {
 	}, nil
 }
 
-func validatePostgresConfig(config DatastorePostgresConfig) error {
+func validatePostgresConfig(config *DatastorePostgresConfig) error {
 
 	if len(config.DbHost) == 0 {
 		return fmt.Errorf("%q: %w", "config.DbHost is blank", ErrBadParameter)

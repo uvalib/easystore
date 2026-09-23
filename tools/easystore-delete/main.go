@@ -43,14 +43,14 @@ func main() {
 
 	switch mode {
 	//	case "sqlite":
-	//		implConfig = uvaeasystore.DatastoreSqliteConfig{
+	//		implConfig = &uvaeasystore.DatastoreSqliteConfig{
 	//			DataSource: os.Getenv("SQLITEFILE"),
 	//			Log:        logger,
 	//		}
 	//		es, err = uvaeasystore.NewEasyStore(implConfig)
 	//
 	//	case "postgres":
-	//		implConfig = uvaeasystore.DatastorePostgresConfig{
+	//		implConfig = &uvaeasystore.DatastorePostgresConfig{
 	//			DbHost:     os.Getenv("DBHOST"),
 	//			DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 	//			DbName:     os.Getenv("DBNAME"),
@@ -62,7 +62,7 @@ func main() {
 	//		es, err = uvaeasystore.NewEasyStore(implConfig)
 
 	case "s3":
-		implConfig = uvaeasystore.DatastoreS3Config{
+		implConfig = &uvaeasystore.DatastoreS3Config{
 			Bucket:              os.Getenv("BUCKET"),
 			SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
 			SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
@@ -78,7 +78,7 @@ func main() {
 		es, err = uvaeasystore.NewEasyStore(implConfig)
 
 	case "proxy":
-		proxyConfig = uvaeasystore.ProxyConfigImpl{
+		proxyConfig = &uvaeasystore.ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
 			ServiceTimeout:  60,
 			Log:             logger,

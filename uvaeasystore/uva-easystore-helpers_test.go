@@ -64,7 +64,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 
 	switch datastore {
 	//case "sqlite":
-	//	implConfig = DatastoreSqliteConfig{
+	//	implConfig = &DatastoreSqliteConfig{
 	//		DataSource: goodSqliteFilename,
 	//		BusName:    busName,
 	//		SourceName: sourceName,
@@ -73,7 +73,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	//	esro, err = NewEasyStoreReadonly(implConfig)
 
 	//case "postgres":
-	//	implConfig = DatastorePostgresConfig{
+	//	implConfig = &DatastorePostgresConfig{
 	//		DbHost:     os.Getenv("DBHOST"),
 	//		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 	//		DbName:     os.Getenv("DBNAME"),
@@ -87,7 +87,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 	//	esro, err = NewEasyStoreReadonly(implConfig)
 
 	case "s3":
-		implConfig = DatastoreS3Config{
+		implConfig = &DatastoreS3Config{
 			Bucket:              os.Getenv("BUCKET"),
 			SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
 			SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
@@ -105,7 +105,7 @@ func testSetupReadonly(t *testing.T) EasyStoreReadonly {
 		esro, err = NewEasyStoreReadonly(implConfig)
 
 	case "proxy":
-		proxyConfig = ProxyConfigImpl{
+		proxyConfig = &ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
 			ServiceTimeout:  60,
 			Log:             logger,
@@ -144,7 +144,7 @@ func testSetup(t *testing.T) EasyStore {
 
 	switch datastore {
 	//case "sqlite":
-	//	implConfig = DatastoreSqliteConfig{
+	//	implConfig = &DatastoreSqliteConfig{
 	//		DataSource: goodSqliteFilename,
 	//		BusName:    busName,
 	//		SourceName: sourceName,
@@ -153,7 +153,7 @@ func testSetup(t *testing.T) EasyStore {
 	//	es, err = NewEasyStore(implConfig)
 
 	//case "postgres":
-	//	implConfig = DatastorePostgresConfig{
+	//	implConfig = &DatastorePostgresConfig{
 	//		DbHost:     os.Getenv("DBHOST"),
 	//		DbPort:     asIntWithDefault(os.Getenv("DBPORT"), 0),
 	//		DbName:     os.Getenv("DBNAME"),
@@ -167,7 +167,7 @@ func testSetup(t *testing.T) EasyStore {
 	//	es, err = NewEasyStore(implConfig)
 
 	case "s3":
-		implConfig = DatastoreS3Config{
+		implConfig = &DatastoreS3Config{
 			Bucket:              os.Getenv("BUCKET"),
 			SignerAccessKey:     os.Getenv("SIGNER_ACCESS_KEY"),
 			SignerSecretKey:     os.Getenv("SIGNER_SECRET_KEY"),
@@ -185,7 +185,7 @@ func testSetup(t *testing.T) EasyStore {
 		es, err = NewEasyStore(implConfig)
 
 	case "proxy":
-		proxyConfig = ProxyConfigImpl{
+		proxyConfig = &ProxyConfigImpl{
 			ServiceEndpoint: os.Getenv("ESENDPOINT"),
 			ServiceTimeout:  60,
 			Log:             logger,
