@@ -24,7 +24,7 @@ func NewEventBus(eventSource string, eventBus string, logger *log.Logger) (uvali
 		return nil, nil
 	}
 
-	cfg := uvalibrabus.UvaBusConfig{eventSource, eventBus, logger}
+	cfg := uvalibrabus.UvaBusConfig{Source: eventSource, BusName: eventBus, Log: logger}
 	return uvalibrabus.NewUvaBus(cfg)
 }
 
