@@ -126,7 +126,7 @@ func (impl easyStoreProxyImpl) ObjectCreate(obj EasyStoreObject) (EasyStoreObjec
 	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), obj.Namespace())
+	url := impl.requestUrl(obj.Namespace())
 	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -200,7 +200,7 @@ func (impl easyStoreProxyImpl) ObjectUpdate(obj EasyStoreObject, which EasyStore
 	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
+	url := impl.requestUrl(obj.Namespace(), obj.Id()) + query
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -240,7 +240,7 @@ func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStore
 	}
 
 	// create the vtag parameter
-	vtag := fmt.Sprintf("vtag=%s", obj.VTag())
+	vtag := fmt.Sprintf("vtag=%s", neturl.QueryEscape(obj.VTag()))
 
 	// build the attributes list (this is optional)
 	attribs := impl.componentHelper(which)
@@ -256,7 +256,7 @@ func (impl easyStoreProxyImpl) ObjectDelete(obj EasyStoreObject, which EasyStore
 	logInfo(impl.config.Logger(), fmt.Sprintf("deleting object ns/oid [%s/%s]", obj.Namespace(), obj.Id()))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), obj.Namespace(), obj.Id(), query)
+	url := impl.requestUrl(obj.Namespace(), obj.Id()) + query
 	respBytes, err := httpDelete(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -295,7 +295,7 @@ func (impl easyStoreProxyImpl) FileCreate(namespace string, oid string, file Eas
 	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s/file", impl.config.Endpoint(), namespace, oid)
+	url := impl.requestUrl(namespace, oid, "file")
 	respBytes, err := httpPost(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -320,7 +320,7 @@ func (impl easyStoreProxyImpl) FileDelete(namespace string, oid string, name str
 	logInfo(impl.config.Logger(), fmt.Sprintf("deleting file ns/oid/name [%s/%s/%s]", namespace, oid, name))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s/file/%s", impl.config.Endpoint(), namespace, oid, name)
+	url := impl.requestUrl(namespace, oid, "file", name)
 	respBytes, err := httpDelete(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -345,7 +345,7 @@ func (impl easyStoreProxyImpl) FileRename(namespace string, oid string, name str
 	logInfo(impl.config.Logger(), fmt.Sprintf("renaming file ns/oid/name [%s/%s/%s] -> [%s]", namespace, oid, name, newName))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s/file/%s?new=%s", impl.config.Endpoint(), namespace, oid, name, newName)
+	url := fmt.Sprintf("%s?new=%s", impl.requestUrl(namespace, oid, "file", name), neturl.QueryEscape(newName))
 	respBytes, err := httpPost(impl.HTTPClient, url, nil, "")
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -384,7 +384,7 @@ func (impl easyStoreProxyImpl) FileUpdate(namespace string, oid string, file Eas
 	//log.Printf("REQ: [%s]", string(reqBytes))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s/file", impl.config.Endpoint(), namespace, oid)
+	url := impl.requestUrl(namespace, oid, "file")
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -410,7 +410,7 @@ func (impl easyStoreProxyImpl) fileStream(method string, namespace string, oid s
 	logDebug(impl.config.Logger(), fmt.Sprintf("streaming file ns/oid/name [%s/%s/%s]", namespace, oid, file.Name()))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s/file/%s/content", impl.config.Endpoint(), namespace, oid, neturl.PathEscape(file.Name()))
+	url := impl.requestUrl(namespace, oid, "file", file.Name(), "content")
 	var respBytes []byte
 	if method == "POST" {
 		respBytes, err = httpPostStream(impl.StreamClient, url, reader, file.MimeType())
@@ -456,7 +456,7 @@ func (impl easyStoreProxyReadonlyImpl) Close() error {
 }
 
 func (impl easyStoreProxyReadonlyImpl) Check() error {
-	url := fmt.Sprintf("%s/healthcheck", impl.config.Endpoint())
+	url := impl.requestUrl("healthcheck")
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -488,7 +488,7 @@ func (impl easyStoreProxyReadonlyImpl) ObjectGetByKey(namespace string, id strin
 	logInfo(impl.config.Logger(), fmt.Sprintf("getting ns/oid [%s/%s]", namespace, id))
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/%s%s", impl.config.Endpoint(), namespace, id, query)
+	url := impl.requestUrl(namespace, id) + query
 	respBytes, err := httpGet(impl.HTTPClient, url)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -535,7 +535,7 @@ func (impl easyStoreProxyReadonlyImpl) ObjectGetByKeys(namespace string, ids []s
 	}
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s", impl.config.Endpoint(), namespace)
+	url := impl.requestUrl(namespace)
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -585,7 +585,7 @@ func (impl easyStoreProxyReadonlyImpl) ObjectGetByFields(namespace string, field
 	}
 
 	// issue the request
-	url := fmt.Sprintf("%s/%s/search", impl.config.Endpoint(), namespace)
+	url := impl.requestUrl(namespace, "search")
 	respBytes, err := httpPut(impl.HTTPClient, url, reqBytes, jsonContentType)
 	if err != nil {
 		if len(respBytes) > 0 {
@@ -613,6 +613,18 @@ func (impl easyStoreProxyReadonlyImpl) ObjectGetByFields(namespace string, field
 
 func (impl easyStoreProxyReadonlyImpl) FileGetByKey(namespace string, oid string, name string) (EasyStoreBlob, error) {
 	return nil, ErrNotImplemented
+}
+
+// requestUrl -- build a request url from the endpoint and the supplied path segments.
+// Every segment is escaped because the namespace, the object id and the file names are
+// all caller supplied and may contain characters that are not legal in a url path
+func (impl easyStoreProxyReadonlyImpl) requestUrl(segments ...string) string {
+
+	escaped := make([]string, 0, len(segments))
+	for _, s := range segments {
+		escaped = append(escaped, neturl.PathEscape(s))
+	}
+	return fmt.Sprintf("%s/%s", impl.config.Endpoint(), strings.Join(escaped, "/"))
 }
 
 func (impl easyStoreProxyReadonlyImpl) componentHelper(which EasyStoreComponents) string {
