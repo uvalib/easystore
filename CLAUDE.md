@@ -28,15 +28,14 @@ Consequences:
 Library (from repo root; the `Makefile` `cd`s into `uvaeasystore` for you):
 
 ```sh
-make test                      # go test -tags service -v
-make TEST=TestObjectCreate test # single test (-run)
-make fmt
-make dep                       # go get -u && go mod tidy
+make test                          # go test -tags service -v
+make TEST=TestObjectCreate test    # single test, or an alternation: TEST='A|B'
+make fmt vet
+make check                         # staticcheck + the shadow vet tool
+make dep                           # go get -u && go mod tidy
 ```
 
-Caveats in the root `Makefile`:
-- `make vet` and `make check` omit `-tags service`, so they fail to build the test files (`undefined: DatastoreS3Config`). Use `go vet -tags service ./...` instead. Untagged `go build ./...` is still fine — it just excludes the service files.
-- `TEST=` is unquoted in the recipe, so an alternation regexp (`TEST='A|B'`) is interpreted by the shell as a pipe. Run `go test -tags service -run 'A|B' .` directly for those.
+`make test` (and `make build`, which just runs `test`) talks to live infrastructure — see below. `make vet` is clean; `make check` reports a standing backlog of ~39 staticcheck findings and so exits non-zero, which also means the shadow step after it does not run. Untagged `go build ./...` works and simply excludes the service files, but untagged `go test`/`go vet` cannot build the test files at all.
 
 Tools (from a `tools/easystore-*/` directory):
 
@@ -46,6 +45,8 @@ make all        # darwin + linux
 make linux      # what the Dockerfile invokes
 make clean fmt vet check dep
 ```
+
+The per-tool `check` targets still use a bare `go install` with no `@version` and a hardcoded `$(HOME)/go/bin`, so they fail outside a module / when `GOBIN` is set. The root `Makefile` has been fixed; these have not.
 
 Container: `package/scripts/build.ksh` then `package/scripts/shell.ksh` (tools land in `/easystore-tools/bin`).
 
